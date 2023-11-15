@@ -4,31 +4,24 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=200G
+#SBATCH --mem=20G
 #SBATCH --array=1-4
 #SBATCH --time=0-200:00:00
-# "Defines how long the job will run in real time. This is a hard cap meaning
-# that if the job runs longer than what is written here, it will be
-# force-stopped by the server. If you make the expected time too long, it will
-# take longer for the job to start. Here, we say the job will take 5 minutes. d-hh:mm:ss"
+# "d-hh:mm:ss"
 #SBATCH --account=BISC020282
-# That last line is required due to the January 2023 update to BlueCrystal Phase 4. If using BluePebble, I imagine that you would take it back out again. (I previously ran this script for lots of alignments on BluePebble without that line.) BISC020282 is my project code in ACRC ("Social evolution of animal altruism").
+# BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
 
 # -------------------------------------------------------------
-# LOAD THE MODULES ON THE CLUSTER: (Note that you might need to change to the right version for BlueCrystal or BluePebble. You can check what they have installed using module spider bwa):
+# LOAD THE MODULES ON THE CLUSTER:
 
 # If running on BluePebble:
 module load apps/bwa/0.7.17
 module load apps/samtools/1.16
 module load apps/picard/2.27.5
 
-# If running on BlueCrystal:
-#module load apps/bwa/0.7.17
-#module load apps/samtools/1.13-30
-
 # -------------------------------------------------------------
 # READ IN THE SPREADSHEET LISTING THE WASPS AND THEIR READ FILES:
-
+# The first column in 'myFilesTable.txt' should be the sample name. The second column should contain the val_1 file after running trim_galore. The third column should be the val_2 file. The columns should be separated by a space. Each row is a separate sample.
 samplesheet="myFilesTable.txt"
 
 name=`sed -n "${SLURM_ARRAY_TASK_ID}p" $samplesheet |  awk '{print $1}'`
@@ -36,28 +29,38 @@ r1=`sed -n "${SLURM_ARRAY_TASK_ID}p" $samplesheet |  awk '{print $2}'`
 r2=`sed -n "${SLURM_ARRAY_TASK_ID}p" $samplesheet |  awk '{print $3}'`
 
 # -------------------------------------------------------------
+# Print sample information to the SLURM output file:
+echo
+echo "Sample name:"
+echo $name
+echo
+echo "Read 1 file:"
+echo $r1
+echo
+echo "Read 2 file:"
+echo $r2
+echo
+# -------------------------------------------------------------
 # BWA ALIGNMENT
 
 cd /user/work/pk14885/Wasps
 
-threads=$SLURM_JOB_CPUS_PER_NODE
-bwa mem -t $threads /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta ${r1} ${r2} > ${name}.output.sam
+##threads=8
+bwa mem /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta ${r1} ${r2} > ${name}.output.sam
 
 # -------------------------------------------------------------
 # SAMTOOLS
 
-# Now that the alignment has been completed by BWA, we can convert the resulting sam file into a bam file, which apparently takes up much less space:
+# Now that the alignment has been completed by BWA, we can convert the resulting sam file into a bam file:
     
     #brew install samtools
     samtools view -f 2 -b ${name}.output.sam > ${name}.output.bam
 #NOTE ON MONDAY 9TH JAN: I'VE BEEN HAVING PROBLEMS, AS THE PICARD MARKDUPLICATES FUNCTION BELOW SEEMS TO PRODUCE FILES THAT LEAD TO A SUBSEQUENT ERROR (ERROR:MATE_NOT_FOUND IN picard VALIDATESAMFILE). IT'S POSSIBLE THAT THIS IS DUE TO ORPHANED READS (SEPARATED FROM THEIR MATE IN THE PAIR). I THINK THAT WE CAN POSSIBLY GET RID OF THESE PROBLEM PAIRS AT THIS STAGE, BY ADD '-f 2'. I HAVE ADDED IT ABOVE. TAKE IT OUT AGAIN IF IT DOES NOT SOLVE THE PROBLEM.
 
-# We now remove the sam file, which we no longer need:
-
+# Remove the sam file, which we no longer need:
     rm ${name}.output.sam
 
-# Apparently, we now 'sort' the output somehow:
-
+# Sort the output:
     samtools sort -o ${name}.sorted.bam ${name}.output.bam
  
 # -------------------------------------------------------------
@@ -71,11 +74,9 @@ java -Xmx16g -jar /sw/apps/picard/picard.jar AddOrReplaceReadGroups I=${name}.so
 # DEAL WITH DUPLICATES IN PICARD
 
 # The programme 'picard' allows us to mark and remove PCR duplicates. We therefore run this line:
-
     java -Xmx16g -jar /sw/apps/picard/picard.jar MarkDuplicates I=${name}.hasreadgroups.bam O=${name}.before.removal.of.overlaps.bam M=${name}.marked_dup_metrics.txt REMOVE_DUPLICATES=true
     
-# Let's now remove the other output files, which I don't think we need anymore:
-
+# Remove the output files that are no longer needed:
     rm ${name}.output.bam
     rm ${name}.sorted.bam
     rm ${name}.hasreadgroups.bam
@@ -95,13 +96,11 @@ bam clipOverlap --in ${name}.before.removal.of.overlaps.bam --out ${name}.no.ove
 # ...AND NOW BACK TO SAMTOOLS
 
 # Next, index the sorted and Picard'd bam file:
-
     samtools index ${name}.no.overlaps.bam
 
 # This produces a .bai file.
 
 # To obtain quality-control info, run this:
-    
     samtools flagstat ${name}.no.overlaps.bam
 
 # The % next to 'mapped' in the resulting output tells you how many reads mapped to the reference genome, apparently.
@@ -123,8 +122,8 @@ bam clipOverlap --in ${name}.before.removal.of.overlaps.bam --out ${name}.no.ove
 # -------------------------------------------------------------
 # TO SAVE SPACE ON THE CLUSTER, NOW REMOVE THE RAW READ FILES FOR THIS WASP FROM BLUEPEBBLE (i.e. THE TRIMMED 'VAL' FILES):
 
-#rm ${r1}
-#ßrm ${r2}
+rm ${r1}
+rm ${r2}
 
 # -------------------------------------------------------------
 # MOVE THE FILES TO OUTPUT FOLDERS:
