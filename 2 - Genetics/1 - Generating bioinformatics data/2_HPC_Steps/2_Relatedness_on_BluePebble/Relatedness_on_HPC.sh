@@ -117,7 +117,7 @@ REF="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fas
     ngsRelate -g ANGSD_results/my_Angsd_file.glf.gz -n $file_count -f ANGSD_results/freq -O ANGSD_results/newres -z bam.filelist -m 1
 # I've added '-m 1' in an attempt to get it to run faster (https://github.com/ANGSD/NgsRelate/blob/master/README.md).
 
- # The 'newres' file is the relatedness output, which you can open in Excel. You can download it from BluePebble by running this command on the laptop: scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/Cameroon/Mbouda/ANGSD_results newres
+ # The 'newres' file is the relatedness output, which you can open in Excel. You can download it from BluePebble by running this command on the laptop: scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/Cameroon/Mbouda/ANGSD_results/newres newres
  
 
  
