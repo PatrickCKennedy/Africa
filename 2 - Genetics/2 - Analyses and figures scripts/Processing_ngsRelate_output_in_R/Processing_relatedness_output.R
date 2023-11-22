@@ -396,11 +396,11 @@ SA_NeighbourRelatednesses$rab <- as.numeric(SA_NeighbourRelatednesses$rab)
 hist(as.numeric(SA_NeighbourRelatednesses$rab))
 
 # Cameroon neighbour relatedness only:
-ggplot(Cameroon_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Country)) + 
+CA_neighbour_plot <- ggplot(Cameroon_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Country)) + 
   geom_histogram(aes(y = ..density..),
                  fill = myCameroonColour, 
                  alpha = 0.8, bins = 60) +
-  geom_density(alpha = 0.4, adjust = 0.7) +
+  geom_density(alpha = 0.4, adjust = 3) +
   theme_classic() + 
   labs(y= "Density", 
        x = "Neighbour relatedness") + 
@@ -408,14 +408,14 @@ ggplot(Cameroon_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Country)
   scale_x_continuous(limits = c(-0.01,0.9), expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) + 
   geom_vline(xintercept = mean(as.numeric(Cameroon_NeighbourRelatednesses$rab)), 
-             linetype="dashed")
+             linetype="dashed") + theme(legend.position = "none")
 
 # South African neighbour relatedness only:
-ggplot(SA_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Country)) + 
+SA_neighbour_plot <- ggplot(SA_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Country)) + 
   geom_histogram(aes(y = ..density..),
                  fill = mySouthAfricaColour, 
                  alpha = 0.8, bins = 60) +
-  geom_density(alpha = 0.4, adjust = 0.7) +
+  geom_density(alpha = 0.4, adjust = 3) +
   theme_classic() + 
   labs(y= "Density", 
        x = "Neighbour relatedness") + 
@@ -423,7 +423,18 @@ ggplot(SA_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Country)) +
   scale_x_continuous(limits = c(-0.01,0.9), expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) + 
   geom_vline(xintercept = mean(as.numeric(SA_NeighbourRelatednesses$rab)), 
-             linetype="dashed")
+             linetype="dashed") + theme(legend.position = "none")
+
+# Plot on the panel:
+plot_grid(nonsisters_barplot, 
+          SA_plot, 
+          SA_neighbour_plot,
+          nonsisters_barplot,
+          Cameroon_plot,
+          CA_neighbour_plot,
+          align = "v",
+          nrow = 2, 
+          rel_widths  = c(1/15, 1/4, 1/4))
 
 # Percentage probability that a randomly-chosen neighbour is a full sister:
 # ...in South Africa:
@@ -568,19 +579,39 @@ for (nest in 1:length(nestlist)){
 
 # Following: http://www.sthda.com/english/articles/33-social-network-analysis/135-network-visualization-essentials-in-r/
 
-# Enter the population of interest here:
-Population_of_interest <- "ZebraHouse"
+# We only want to plot between-foundress relatednesses in this section (i.e., no post-emergence nests and no brood).
+# Therefore, restrict 'All' to foundresses only:
+All_F <- subset(All,All$`Wasp type.x` == 'F' & All$`Wasp type.y` == 'F' )
+
+# The script will loop through each of the aggregations, and export the kinship network:
+
+aggregation_list <- unique(All$SpecificAggregation.x)
+
+for (aggregation in 1:length(aggregation_list)){
+
+# Enter the specific AGGREGATION of interest here:
+Aggregation_of_interest <- aggregation_list[[aggregation]]
 
 # Generate a list of all samples in the dataset from this population:
-this_population_data <- subset(All, ida_Population == Population_of_interest)
-this_population_data <- subset(this_population_data, idb_Population == Population_of_interest)
-df1 <- cbind(this_population_data$ida_WaspID, this_population_data$idb_WaspID)
+this_aggregation_data <- subset(All_F, SpecificAggregation.x == Aggregation_of_interest)
+this_aggregation_data <- subset(this_aggregation_data, SpecificAggregation.y == Aggregation_of_interest)
+df1 <- cbind(this_aggregation_data$ida_WaspID, this_aggregation_data$idb_WaspID)
 df1 <- as.data.frame(df1)
 df1 <- stack(df1)
 df1 <- as.data.frame(df1$values)
 colnames(df1) <- c("label")
 library(tidyverse)
 df1 <- distinct(df1)
+
+# Only continue with this aggregation if has data to plot:
+        if (nrow(this_aggregation_data) > 0){
+
+# Record which country this aggregation is in:
+this_aggregation_country <- this_aggregation_data$ida_Country[[1]]
+
+# Set colours to red for South Africa and turquoise for Cameroon:
+if (this_aggregation_country == 'Cameroon'){my_edge_colour = "turquoise"}
+if (this_aggregation_country == 'SouthAfrica'){my_edge_colour = "red"}
 
 # Give each wasp in the population a unique number as a node ID number:
 library(dplyr)
@@ -595,9 +626,9 @@ nodes <- as_tibble(df1)
 
 # Now generate an edgelist for this population:
 rm(my_edgelist)
-my_edgelist <- cbind(this_population_data$ida_WaspID, 
-                     this_population_data$idb_WaspID, 
-                     this_population_data$rab)
+my_edgelist <- cbind(this_aggregation_data$ida_WaspID, 
+                     this_aggregation_data$idb_WaspID, 
+                     this_aggregation_data$rab)
 my_edgelist <- as.data.frame(my_edgelist)
 my_edgelist$V3 <- as.numeric(my_edgelist$V3)
 
@@ -610,12 +641,16 @@ my_edgelist <- subset(my_edgelist, V3 > myCutOff)
         # We can follow this example (https://stackoverflow.com/questions/72880329/different-aesthetic-scales-for-different-types-of-edges-on-same-graph)
         # to have two different types of edge in the edgelist.
         # So here, I will add in edges linking co-foundresses:
-                    my_edgelist2 <- cbind(this_population_data$ida_WaspID,
-                                         this_population_data$idb_WaspID,
-                                         this_population_data$Same_nest)
+                    my_edgelist2 <- cbind(this_aggregation_data$ida_WaspID,
+                                         this_aggregation_data$idb_WaspID,
+                                         this_aggregation_data$Same_nest)
                     my_edgelist2 <- as.data.frame(my_edgelist2)
                     my_edgelist2$V3 <- as.numeric(my_edgelist2$V3)
                     my_edgelist2 <- subset(my_edgelist2, V3 == 1)
+
+           # Only continue with this aggregation if has at least one egde:
+        if (nrow(my_edgelist2) > 0){
+
                     my_edgelist2$type <-"Wasp cofoundresses"
                     my_edgelist$type <-"Relatedness"
                     my_edgelist2$V3 <- 0.7 # Change the value '1' to something else (such as 0.5) to avoid these lines
@@ -625,7 +660,7 @@ my_edgelist <- subset(my_edgelist, V3 > myCutOff)
                     my_edgelist$V4 <- "solid"         # relatedness edges
               # For plotting on the graph, state the colours for each edge type:
                     my_edgelist2$V5 <- "black"              # cofoundresses edges
-                    my_edgelist$V5 <- "turquoise"         # relatedness edges - set to turquoise for Cameroon and red for South Africa
+                    my_edgelist$V5 <- my_edge_colour         # relatedness edges - set to turquoise for Cameroon and red for South Africa
                     my_edgelist <- rbind(my_edgelist2,my_edgelist)
                     
 # Convert the edgelist to 'tibble' format too (http://www.sthda.com/english/articles/33-social-network-analysis/135-network-visualization-essentials-in-r/):
@@ -655,7 +690,7 @@ edges <- as_tibble(edges)
 library(igraph)
 library(ggraph)
 net <- graph_from_data_frame(d=edges,vertices=nodes,directed=T)
-ggraph(net,layout='fr') + 
+my_plot_aggregation <- ggraph(net,layout='stress') + 
   geom_edge_fan(aes(color=my_line_colours, # You set line colours in the code above.
                     alpha=as.numeric(weight),
                     width=as.numeric(weight),
@@ -665,16 +700,29 @@ ggraph(net,layout='fr') +
                              values = edges$linetype) +
   scale_edge_color_manual(limits = as.factor(edges$my_line_colours), 
                             values = edges$my_line_colours) +
-  geom_node_point(fill = "white", shape = 21, size = 3, color = "black") +
-  scale_edge_alpha(range = c(0.5,1)) +
-  scale_edge_width(range = c(0.1,1)) + 
-  theme_graph()
+  geom_node_point(fill = "white", shape = 21, size = 2, color = "black") +
+  scale_edge_alpha(range = c(0,1)) +
+  scale_edge_width(range = c(0.1,0.5)) + 
+  theme_graph() + theme(legend.position = "none")
 
 # layout = 'stress'  is quite good
 
   # To include the wasp ID names, add the following option:
   ##        + geom_node_label(aes(label=label),size=1)
   
+
+# Opening the graphical device
+pdf(paste("Aggregation_",Aggregation_of_interest,".pdf", sep = ""),
+        width = 4, height = 2) # Width and height in inches
+
+# Creating a plot
+print(my_plot_aggregation)
+
+# Closing the graphical device
+dev.off() 
+
+}}}
+
 # -----------------------------------------------------------------------------
 # LOOK AT RELATEDNESS IN THE EXPERIMENT WASPS:
 
