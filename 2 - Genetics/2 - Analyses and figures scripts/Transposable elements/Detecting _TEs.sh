@@ -65,9 +65,10 @@ exit # "return to the host machine shell"
 % Start the dnaPipeTE container:
 sudo docker run --platform linux/amd64 -it -v ~/Project:/mnt clemgoub/dnapipete:latest
 
-myRMlibrary="/Users/pk14885/Downloads/Libraries\ 3/RMRBSeqs.embl"
+% We need to supply the TE library file. I downloaded it as part of the 'noarch/repeatmasker-4.1.5-pl5321hdfd78af_1.tar.bz2' download at https://anaconda.org/bioconda/repeatmasker/files (it is inside the 'Libraries' folder once you've downloaded RepeatMasker):
+myRMlibrary="/Users/pk14885/Downloads/noarch_repeatmasker-4.1.5-pl5321hdfd78af_1/share/RepeatMasker/Libraries/RepeatMasker.lib"
 
-python3 dnaPipeTE.py -input SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
+python3 dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
 
 python3 dnaPipeTE.py -input $my_wasp_to_process -output /mnt/output -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
 
