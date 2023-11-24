@@ -70,8 +70,6 @@ myRMlibrary="/Users/pk14885/Downloads/noarch_repeatmasker-4.1.5-pl5321hdfd78af_1
 
 python3 dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
 
-python3 dnaPipeTE.py -input $my_wasp_to_process -output /mnt/output -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
-
 % CITATIONS ARE REQUIRED FOR USING RepeatMasker.lib:
 % General References apply to all applications of Repbase, also known as Repbase Update, to data analysis (e.g. to sequence annotations using CENSOR, RepeatMasker or XBLAST). If you use Repbase in your work please cite one of the following papers:
     % Bao, W., Kojima, K.K., Kohany, O. Repbase Update, a database of repetitive elements in eukaryotic genomes. Mob DNA, 2015;6:11
