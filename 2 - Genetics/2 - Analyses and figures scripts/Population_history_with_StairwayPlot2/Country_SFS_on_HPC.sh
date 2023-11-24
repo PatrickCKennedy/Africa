@@ -16,7 +16,7 @@
 # --------------------------------------------------------------------------
 
 # First, set the working directory to the folder of everyone's BAM files:
-	cd /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica
+	cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon
  
 # --------------------------------------------------------------------------
 # KEEP A RECORD OF WHICH POPULATION WE ARE FOCUSING ON:
