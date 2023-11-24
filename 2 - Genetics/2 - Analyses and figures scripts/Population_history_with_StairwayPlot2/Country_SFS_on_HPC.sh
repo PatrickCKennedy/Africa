@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Soa_SFS
+#SBATCH --job-name=Country_SFS
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
