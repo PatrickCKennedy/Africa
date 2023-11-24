@@ -36,7 +36,7 @@ fq2psmcfa -q20 diploid.fq.gz > diploid.psmcfa
 
 # Now run PSMC:
 psmc -N30 -t5 -r1 -p "28*2+3+5" -o my_diploid.psmc diploid.psmcfa
-# How do we know what to put for -p?!? This paper (https://www.biorxiv.org/content/10.1101/2019.12.20.884403v1.full.pdf) uses  -p "28*2+3+5"
+# e.g., https://www.biorxiv.org/content/10.1101/2019.12.20.884403v1.full.pdf uses  -p "28*2+3+5"
     
 # Plot the result:
 psmc_plot.pl -g 1 -u 3.6e-09 diploid my_diploid.psmc
