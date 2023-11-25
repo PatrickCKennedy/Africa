@@ -57,7 +57,9 @@ module load apps/singularity/1.1.3
 module load lib/openmpi/4.0.2-gcc
 
 # singularity shell --bind Project:/mnt dnaPipeTE/dnapipete.img
-singularity shell --bind /user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img
+# singularity shell --bind /user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img
+singularity exec --bind /user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img
+
 
 # Run dnaPipeTE:
 cd /opt/dnaPipeTE
