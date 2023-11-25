@@ -86,8 +86,9 @@ python3 dnaPipeTE.py \
 -RM_t 0.25 \
 -cpu 8
 
-% P: You can either supply    -genome_size 407000000 -genome_coverage 0.15     or      -sample_size       but not both.
+% P: You can either supply a genome size and coverage (e.g., -genome_size 407000000 -genome_coverage 0.15) or a sample size (e.g., -sample_size 500000) but not both.
 % An example: https://littlebioinformatician.wordpress.com/scripts/dnapipete/
+% In the run above, I have used a small sample size of 100000 as a test. If it works, we can increase it.
 
 
 python3 dnaPipeTE.py -input /mnt/reads_input.fastq -output /mnt/output -RM_lib ../RepeatMasker/Libraries/RepeatMasker.lib -genome_size 170000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
