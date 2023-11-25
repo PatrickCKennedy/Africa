@@ -78,7 +78,7 @@ python3 dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM
     % Jurka, J. Repeats in genomic DNA: mining and meaning. Curr. Opin. Struct. Biol.8:333-337 (1998).
 
 python3 dnaPipeTE.py \
--input $my_wasp_to_process \
+-input /mnt/data/SAMPLE_R1.fastq.gz \
 -output /mnt/PatrickTest \
 -sample_size 100000 \
 -sample_number 2 \
