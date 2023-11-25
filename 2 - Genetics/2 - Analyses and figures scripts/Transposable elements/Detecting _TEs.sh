@@ -80,12 +80,15 @@ python3 dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM
 python3 dnaPipeTE.py \
 -input $my_wasp_to_process \
 -output /mnt/PatrickTest \
--genome_size 407000000 \
--genome_coverage 0.15 \
+-sample_size 100000 \
 -sample_number 2 \
 -RM_lib /mnt/data/Droso_TE.fasta \
 -RM_t 0.25 \
 -cpu 8
+
+% P: You can either supply    -genome_size 407000000 -genome_coverage 0.15     or      -sample_size       but not both.
+% An example: https://littlebioinformatician.wordpress.com/scripts/dnapipete/
+
 
 python3 dnaPipeTE.py -input /mnt/reads_input.fastq -output /mnt/output -RM_lib ../RepeatMasker/Libraries/RepeatMasker.lib -genome_size 170000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
 
