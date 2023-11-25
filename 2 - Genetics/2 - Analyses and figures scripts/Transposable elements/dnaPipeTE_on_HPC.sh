@@ -58,8 +58,9 @@ module load lib/openmpi/4.0.2-gcc
 
 # singularity shell --bind Project:/mnt dnaPipeTE/dnapipete.img
 # singularity shell --bind /user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img
-singularity exec --bind /user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img
 
+# Trying with this method (https://docs.sylabs.io/guides/3.0/user-guide/bind_paths_and_mounts.html):
+singularity exec --bind /Project:/mnt dnaPipeTE/dnapipete.img ls /mnt
 
 # Run dnaPipeTE:
 cd /opt/dnaPipeTE
