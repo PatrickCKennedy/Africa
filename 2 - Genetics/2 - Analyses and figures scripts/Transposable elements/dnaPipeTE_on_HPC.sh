@@ -50,6 +50,10 @@ myRMlibrary="/user/work/pk14885/Project/RepeatMasker.lib"
 # INITIATE dnaPipeTE:
 
 # Initiate and mount dnaPipeTE:
+
+module load apps/singularity/1.1.3
+cd $SLURM_SUBMIT_DIR
+
 singularity shell --bind Project:/mnt dnaPipeTE/dnapipete.img
 cd /opt/dnaPipeTE
 
