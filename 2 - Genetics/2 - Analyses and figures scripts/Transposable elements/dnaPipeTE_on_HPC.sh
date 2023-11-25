@@ -50,16 +50,12 @@ myRMlibrary="/user/work/pk14885/Project/RepeatMasker.lib"
 # INITIATE dnaPipeTE:
 
 # Initiate and mount dnaPipeTE:
-
-module load apps/singularity/1.1.3
-cd $SLURM_SUBMIT_DIR
-
+cd /user/work/pk14885
 singularity shell --bind Project:/mnt dnaPipeTE/dnapipete.img
 cd /opt/dnaPipeTE
 
 # Run dnaPipeTE:
 python3 dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -sample_size 100000 -sample_number 2 -RM_t 0.2 -cpu 2
-
 
 
 
