@@ -90,6 +90,7 @@ python3 dnaPipeTE.py \
 % An example: https://littlebioinformatician.wordpress.com/scripts/dnapipete/
 % In the run above, I have used a small sample size of 100000 as a test. If it works, we can increase it.
 
+% P: When running on the local computer, it can hang at a given percent progress. However, if you kill the task (using Cntl+C) and then restart it, it resumes at the same point, which is good news - and can break the deadlock.
 
 python3 dnaPipeTE.py -input /mnt/reads_input.fastq -output /mnt/output -RM_lib ../RepeatMasker/Libraries/RepeatMasker.lib -genome_size 170000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
 
