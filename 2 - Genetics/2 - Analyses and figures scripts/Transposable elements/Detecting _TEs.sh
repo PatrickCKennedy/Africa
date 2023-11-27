@@ -82,7 +82,7 @@ python3 dnaPipeTE.py \
 -output /mnt/PatrickTest \
 -sample_size 100000 \
 -sample_number 2 \
--RM_lib /mnt/data/Droso_TE.fasta \
+-RM_lib /opt/RepeatMasker/Libraries/RepeatLibrary.lib \
 -RM_t 0.25 \
 -cpu 8
 
