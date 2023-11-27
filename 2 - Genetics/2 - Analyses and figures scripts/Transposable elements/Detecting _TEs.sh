@@ -65,10 +65,10 @@ exit # "return to the host machine shell"
 % Start the dnaPipeTE container:
 sudo docker run --platform linux/amd64 -it -v ~/Project:/mnt clemgoub/dnapipete:latest
 
-% We need to supply the TE library file. I downloaded it as part of the 'noarch/repeatmasker-4.1.5-pl5321hdfd78af_1.tar.bz2' download at https://anaconda.org/bioconda/repeatmasker/files (it is inside the 'Libraries' folder once you've downloaded RepeatMasker):
-myRMlibrary="/Users/pk14885/Downloads/noarch_repeatmasker-4.1.5-pl5321hdfd78af_1/share/RepeatMasker/Libraries/RepeatMasker.lib"
+% To prevent an error that I encountered during the 'RepeatMasker' step of the dnaPipeTE pipeline, run the following:
+export BLASTDB_LMDB_MAP_SIZE=100000000
+% (For more information on this, see https://github.com/rmhubley/RepeatMasker/issues/148)
 
-python3 dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
 
 % CITATIONS ARE REQUIRED FOR USING RepeatMasker.lib:
 % General References apply to all applications of Repbase, also known as Repbase Update, to data analysis (e.g. to sequence annotations using CENSOR, RepeatMasker or XBLAST). If you use Repbase in your work please cite one of the following papers:
@@ -77,14 +77,26 @@ python3 dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM
     % Jurka, J. Repbase Update: a database and an electronic journal of repetitive elements. Trends Genet.9:418-420 (2000)
     % Jurka, J. Repeats in genomic DNA: mining and meaning. Curr. Opin. Struct. Biol.8:333-337 (1998).
 
+
 python3 dnaPipeTE.py \
 -input /mnt/data/SAMPLE_R1.fastq.gz \
--output /mnt/PatrickTest \
+-output /mnt/PatrickTest_28Nov2023_b \
 -sample_size 100000 \
 -sample_number 2 \
 -RM_lib /opt/RepeatMasker/Libraries/RepeatLibrary.lib \
 -RM_t 0.25 \
 -cpu 8
+
+
+
+
+
+
+
+
+
+
+
 
 
 python3 dnaPipeTE.py \
@@ -97,6 +109,15 @@ python3 dnaPipeTE.py \
 -cpu 8
 
 
+
+
+
+
+
+% We need to supply the TE library file. I downloaded it as part of the 'noarch/repeatmasker-4.1.5-pl5321hdfd78af_1.tar.bz2' download at https://anaconda.org/bioconda/repeatmasker/files (it is inside the 'Libraries' folder once you've downloaded RepeatMasker):
+myRMlibrary="/Users/pk14885/Downloads/noarch_repeatmasker-4.1.5-pl5321hdfd78af_1/share/RepeatMasker/Libraries/RepeatMasker.lib"
+
+python3 dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
 
 % P: You can either supply a genome size and coverage (e.g., -genome_size 407000000 -genome_coverage 0.15) or a sample size (e.g., -sample_size 500000) but not both.
 % An example: https://littlebioinformatician.wordpress.com/scripts/dnapipete/
