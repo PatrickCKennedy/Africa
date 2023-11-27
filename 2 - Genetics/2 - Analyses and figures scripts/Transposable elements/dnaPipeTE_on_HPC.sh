@@ -56,5 +56,5 @@ module load apps/singularity/1.1.3
 
 singularity exec \
 -B/user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img \
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -sample_size 100000 -sample_number 2 -RM_t 0.2 -cpu 2
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq -output /mnt/output -RM_lib $myRMlibrary -sample_size 100000 -sample_number 2 -RM_t 0.2 -cpu 2
 
