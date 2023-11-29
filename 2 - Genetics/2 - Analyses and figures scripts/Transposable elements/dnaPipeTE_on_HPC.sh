@@ -53,6 +53,7 @@ myRMlibrary="/user/work/pk14885/Project/RepeatMasker.lib"
 cd /user/work/pk14885
 
 module load apps/singularity/1.1.3
+module load lang/perl/5.30.0-bioperl-gcc
 
 singularity exec \
 -B/user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img \
@@ -62,10 +63,10 @@ python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output 
 
 # In principle, you can also run this on the BluePebble login node (which would be against ACRC policy).
 # That would be:
-module load apps/singularity/1.1.3
-singularity shell --bind /user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img
-cd /opt/dnaPipeTE # <<<--- This line is very important to run the program with singularity!
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
-
+            # module load apps/singularity/1.1.3
+            # singularity shell --bind /user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img
+            # cd /opt/dnaPipeTE # <<<--- This line is very important to run the program with singularity!
+            # python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
+            
 
 
