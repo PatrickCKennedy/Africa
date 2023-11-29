@@ -80,6 +80,20 @@ export BLASTDB_LMDB_MAP_SIZE=100000000
 
 python3 dnaPipeTE.py \
 -input /mnt/data/SAMPLE_R1.fastq.gz \
+-output /mnt/PatrickTest_28Nov2023_c \
+-sample_size 100000 \
+-sample_number 2 \
+-RM_t 0.25 \
+-cpu 8
+
+
+
+
+
+
+
+python3 dnaPipeTE.py \
+-input /mnt/data/SAMPLE_R1.fastq.gz \
 -output /mnt/PatrickTest_28Nov2023_b \
 -sample_size 100000 \
 -sample_number 2 \
