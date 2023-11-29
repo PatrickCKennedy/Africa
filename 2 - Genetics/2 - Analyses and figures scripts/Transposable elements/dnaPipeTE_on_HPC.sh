@@ -57,7 +57,7 @@ module load lang/perl/5.30.0-bioperl-gcc
 
 singularity exec \
 -B/user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img \
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 8
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -genome_size 407000000 -genome_coverage 0.01 -sample_number 2 -RM_t 0.2 -cpu 8
 
 # You can *either* use -genome_coverage and -genome_size OR -sample_size (number of reads to sample).
          #   singularity exec \
