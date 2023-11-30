@@ -4,20 +4,32 @@
 
 # This might be what we need: https://github.com/nat2bee/repetitive_elements_pipeline
 
-myReferenceGenome="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta"
 
-# Another option: https://github.com/ellenbell/FasTE
-# Following that pipeline here:
-    # I have downloaded the EDTA Singularity container on BluePebble (in the work directory).
+# ------------------------------------------------------------
+# EDTA on BluePebble:
 
-export PYTHONNOUSERSITE=1
-singularity exec /user/work/pk14885/EDTA.sif EDTA.pl --genome $myReferenceGenome --species others --sensitive 1 --threads 42 
+    myReferenceGenome="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta"
+
+    # Another option: https://github.com/ellenbell/FasTE
+    # Following that pipeline here:
+        # I have downloaded the EDTA Singularity container on BluePebble (in the work directory), following https://github.com/oushujun/EDTA#quick-installation-using-singularity-good-for-hpc-users
+    
+    module load apps/singularity/1.1.3
+    export PYTHONNOUSERSITE=1
+    singularity exec /user/work/pk14885/EDTA.sif EDTA.pl --genome /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta --species others --sensitive 1 --threads 42 
+
+# ------------------------------------------------------------
+# EDTA on the local computer:
+
+# I have installed EDTA as a Docker container on the laptop.
+
+# To run it on the laptop:
+docker run -v $PWD:/in -w /in biocontainers/edta:2.0.0 EDTA.pl --genome genome.fa --species others --sensitive 1 --threads 4
 
 
 
 
-
-
+# ------------------------------------------------------------
 
 
 
