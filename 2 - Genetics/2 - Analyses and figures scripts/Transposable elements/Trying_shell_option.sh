@@ -51,7 +51,7 @@ module load apps/singularity/1.1.3
 module load lang/perl/5.30.0-bioperl-gcc
 module load lang/perl
 
-singularity shell --bind /user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img
-cd /opt/dnaPipeTE # <<<--- This line is very important to run the program with singularity!
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
-            
+singularity shell --cleanenv \
+-B/user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img \
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -genome_size 407000000 -genome_coverage 0.01 -sample_number 2 -RM_t 0.2 -cpu 8
+
