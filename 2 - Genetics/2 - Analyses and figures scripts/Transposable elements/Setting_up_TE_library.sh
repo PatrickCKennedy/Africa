@@ -4,16 +4,14 @@
 
 # This might be what we need: https://github.com/nat2bee/repetitive_elements_pipeline
 
+myReferenceGenome="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta"
 
 # Another option: https://github.com/ellenbell/FasTE
 # Following that pipeline here:
     # I have downloaded the EDTA Singularity container on BluePebble (in the work directory).
 
-    export PYTHONNOUSERSITE=1
-    singularity exec /user/work/pk14885/EDTA.sif EDTA.pl --genome genome.fa [other parameters]
-    
-
-
+export PYTHONNOUSERSITE=1
+singularity exec /user/work/pk14885/EDTA.sif EDTA.pl --genome $myReferenceGenome --species others --sensitive 1 --threads 42 
 
 
 
