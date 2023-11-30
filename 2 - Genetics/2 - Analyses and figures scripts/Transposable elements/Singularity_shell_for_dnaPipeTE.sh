@@ -21,13 +21,13 @@
 # If running this section on HPC (BluePebble) - CHOOSE THE TARGET WASP HERE:
 
             cd /user/work/pk14885/Wasps/Completed_alignments/
-
+            
             # MANUALLY ENTER BOTH THE LOCATION OF THE TARGET WASP'S BAM FILE IN BLUEPEBBLE AND THE NAME YOU WOULD LIKE TO USE FOR THE DNAPIPETE OUTPUTS:
             my_wasp_to_process="/SouthAfrica/Pumphouse/BRIS_P11_a_CKDL220030776-1A_HK7J7DSX5.no.overlaps.bam"
             my_wasp_name_manual_entry="BRIS_P11_a"
             
             module load apps/samtools/1.16
-            samtools sort -n $my_wasp_to_process -o ${my_wasp_name_manual_entry}.sorted.by.name 
+            samtools sort -n $PWD$my_wasp_to_process -o ${my_wasp_name_manual_entry}.sorted.by.name 
             samtools fastq -@ 8 ${my_wasp_name_manual_entry}.sorted.by.name.bam -1 ${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -2 ${my_wasp_name_manual_entry}.SAMPLE_R2.fastq.gz -0 /dev/null -s /dev/null -n
             rm ${my_wasp_name_manual_entry}.sorted.by.name.bam
             rm ${my_wasp_name_manual_entry}.SAMPLE_R2.fastq.gz
