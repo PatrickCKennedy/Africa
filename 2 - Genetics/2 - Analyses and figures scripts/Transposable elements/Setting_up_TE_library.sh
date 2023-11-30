@@ -8,15 +8,53 @@
 # ------------------------------------------------------------
 # EDTA on BluePebble:
 
-    myReferenceGenome="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta"
 
     # Another option: https://github.com/ellenbell/FasTE
     # Following that pipeline here:
         # I have downloaded the EDTA Singularity container on BluePebble (in the work directory), following https://github.com/oushujun/EDTA#quick-installation-using-singularity-good-for-hpc-users
     
+    cd /user/work/pk14885/Running_EDTA
     module load apps/singularity/1.1.3
     export PYTHONNOUSERSITE=1
-    singularity exec /user/work/pk14885/EDTA.sif EDTA.pl --genome /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta --species others --sensitive 1 --threads 42 
+    singularity exec /user/work/pk14885/EDTA.sif EDTA.pl --genome B_junceaGenome.FINAL.fasta --species others --sensitive 1 --threads 42 
+
+
+singularity shell -B/user/work/pk14885/Running_EDTA:/mnt /user/work/pk14885/EDTA.sif
+EDTA.pl --genome /mnt/B_junceaGenome.FINAL.fasta --species others --sensitive 1 --threads 42 
+
+# This leads to the following error: "Error: The RMblast engine is not installed in RepeatMasker!"
+# But this thread (https://github.com/oushujun/EDTA/issues/11) says you can solve this by
+# pointing to your own installation of RepeatMasker:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+singularity exec /user/work/pk14885/EDTA.sif EDTA.pl --genome opt/B_junceaGenome.FINAL.fasta --species others --sensitive 1 --threads 42 
+
+
+singularity shell --cleanenv \
+    -B/user/work/pk14885/Project:/mnt \
+    /user/work/pk14885/dnaPipeTE/dnapipete.img <<EOF
+cd /opt/dnaPipeTE
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -output /mnt/output_${my_wasp_name_manual_entry} -genome_size 407000000 -genome_coverage 0.5 -sample_number 2 -RM_t 0.2 -cpu 8
+EOF
+
+
+<<EOF
+cd /opt/dnaPipeTE
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -output /mnt/output_${my_wasp_name_manual_entry} -genome_size 407000000 -genome_coverage 0.5 -sample_number 2 -RM_t 0.2 -cpu 8
+EOF
+
 
 # ------------------------------------------------------------
 # EDTA on the local computer:
@@ -24,9 +62,14 @@
 # I have installed EDTA as a Docker container on the laptop.
 
 # To run it on the laptop:
-docker run -v $PWD:/in -w /in biocontainers/edta:2.0.0 EDTA.pl --genome genome.fa --species others --sensitive 1 --threads 4
+cd /Users/pk14885/Downloads/
+docker run --platform linux/amd64 -v $PWD:/in -w /in oushujun/edta:2.0.0 EDTA.pl --genome B_junceaGenome.FINAL1.fa --species others --sensitive 1 --threads 4
 
+# As above, this leads to the error "Error: The RMblast engine is not installed in RepeatMasker!"
+# We can try solving this by pointing to our own version of RepeatMasker (https://github.com/oushujun/EDTA/issues/11):
+docker run --platform linux/amd64 -v $PWD:/in -w /in oushujun/edta:2.0.0 EDTA.pl --genome B_junceaGenome.FINAL1.fa --species others --sensitive 1 --threads 4 --repeatmasker /Users/pk14885/Downloads/RepeatMasker
 
+docker run -it clemgoub/dnapipete:latest
 
 
 # ------------------------------------------------------------
