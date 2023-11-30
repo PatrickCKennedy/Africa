@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
-#SBATCH --time=0-01:00:00
+#SBATCH --time=1-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --account=BISC020282
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
@@ -23,7 +23,7 @@ export LANG=en_GB.UTF-8
 module load apps/singularity/1.1.3
 
 # ---------------------------------------------------------------------------------------------------------
-# SECTION THAT IS CURRENTLY RUN ON THE LOCAL COMPUTER: GENERATE A FASTQ FILE FROM THE POST-ALIGNMENT BAM FILE FOR YOUR WASP OF INTEREST:
+# SECTION RUN FOR CONVENIENCE ON THE LOCAL COMPUTER (NOT HPC): GENERATE A FASTQ FILE FROM THE POST-ALIGNMENT BAM FILE FOR YOUR WASP OF INTEREST:
 
 # For this step, I am using the BAM files before the removal of the overlaps by BAMUTIL.
 
