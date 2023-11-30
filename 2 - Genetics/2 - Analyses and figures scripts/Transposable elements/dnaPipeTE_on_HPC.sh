@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
-#SBATCH --time=4-00:00:00
+#SBATCH --time=0-01:00:00
 # "d-hh:mm:ss"
 #SBATCH --account=BISC020282
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
@@ -52,14 +52,14 @@ myRMlibrary="/user/work/pk14885/Project/RepeatMasker.lib"
 # Initiate and mount dnaPipeTE:
 cd /user/work/pk14885
 
-module load apps/singularity/1.1.3
-module load lang/perl/5.30.0-bioperl-gcc
-module load lang/perl
-
 # Trying to avoid the Perl locale warning on BluePebble:
 export LC_CTYPE=en_GB.UTF-8
 export LC_ALL=en_GB.UTF-8
-export LANGUAGE=en_US.UTF-8
+export LANGUAGE=en_GB.UTF-8
+
+module load apps/singularity/1.1.3
+module load lang/perl/5.30.0-bioperl-gcc
+module load lang/perl
 
 singularity exec \
 -B/user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img \
