@@ -55,6 +55,10 @@ cd /user/work/pk14885
 module load apps/singularity/1.1.3
 module load lang/perl/5.30.0-bioperl-gcc
 
+# Trying to avoid the Perl locale warning on BluePebble:
+export LC_CTYPE=en_GB.UTF-8
+export LC_ALL=en_GB.UTF-8
+
 singularity exec \
 -B/user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img \
 python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -genome_size 407000000 -genome_coverage 0.01 -sample_number 2 -RM_t 0.2 -cpu 8
