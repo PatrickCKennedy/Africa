@@ -11,6 +11,13 @@
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
 
 # ---------------------------------------------------------------------------------------------------------
+# REMOVE OUTPUTS FROM PREVIOUS RUNS:
+
+cd /user/work/pk14885/Project
+rm -r output
+cd cd /user/work/pk14885
+
+# ---------------------------------------------------------------------------------------------------------
 # SECTION THAT IS CURRENTLY RUN ON THE LOCAL COMPUTER: GENERATE A FASTQ FILE FROM THE POST-ALIGNMENT BAM FILE FOR YOUR WASP OF INTEREST:
 
 # For this step, I am using the BAM files before the removal of the overlaps by BAMUTIL.
@@ -51,9 +58,10 @@ module load apps/singularity/1.1.3
 module load lang/perl/5.30.0-bioperl-gcc
 module load lang/perl
 
-singularity shell \
+singularity shell --cleanenv \
     -B/user/work/pk14885/Project:/mnt \
     /user/work/pk14885/dnaPipeTE/dnapipete.img <<EOF
+cd /opt/dnaPipeTE
 python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -genome_size 407000000 -genome_coverage 0.01 -sample_number 2 -RM_t 0.2 -cpu 8
 EOF
 
