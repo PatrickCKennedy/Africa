@@ -11,6 +11,14 @@
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
 
 # -------------------------------------------------------------
+# Trying to avoid Perl locale warning on BluePebble:
+export LC_CTYPE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+
+# -------------------------------------------------------------
 # LOAD SINGULARITY ON BLUEPEBBLE:
 
 module load apps/singularity/1.1.3
@@ -52,11 +60,6 @@ myRMlibrary="/user/work/pk14885/Project/RepeatMasker.lib"
 # Initiate and mount dnaPipeTE:
 cd /user/work/pk14885
 
-# Trying to avoid the Perl locale warning on BluePebble:
-export LC_CTYPE=en_GB.UTF-8
-export LC_ALL=en_GB.UTF-8
-export LANGUAGE=en_GB.UTF-8
-
 module load apps/singularity/1.1.3
 module load lang/perl/5.30.0-bioperl-gcc
 module load lang/perl
@@ -70,7 +73,6 @@ python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output 
          #   -B/user/work/pk14885/Project:/mnt /user/work/pk14885/dnaPipeTE/dnapipete.img \
          #   python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 8
 
-
 # In principle, you can also run this on the BluePebble login node (which would be against ACRC policy).
 # That would be:
             # module load apps/singularity/1.1.3
@@ -78,5 +80,3 @@ python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output 
             # cd /opt/dnaPipeTE # <<<--- This line is very important to run the program with singularity!
             # python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -RM_lib $myRMlibrary -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 2
             
-
-
