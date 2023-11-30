@@ -4,8 +4,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=20G
-#SBATCH --time=0-01:00:00
+#SBATCH --mem=150G
+#SBATCH --time=1-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --account=BISC020282
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
@@ -62,6 +62,6 @@ singularity shell --cleanenv \
     -B/user/work/pk14885/Project:/mnt \
     /user/work/pk14885/dnaPipeTE/dnapipete.img <<EOF
 cd /opt/dnaPipeTE
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -genome_size 407000000 -genome_coverage 0.01 -sample_number 2 -RM_t 0.2 -cpu 8
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/SAMPLE_R1.fastq.gz -output /mnt/output -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 8
 EOF
 
