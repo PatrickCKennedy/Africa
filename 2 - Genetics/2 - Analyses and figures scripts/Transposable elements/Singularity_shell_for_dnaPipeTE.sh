@@ -72,6 +72,11 @@ singularity shell --cleanenv \
     -B/user/work/pk14885/Project:/mnt \
     /user/work/pk14885/dnaPipeTE/dnapipete.img <<EOF
 cd /opt/dnaPipeTE
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -output /mnt/output_${my_wasp_name_manual_entry} -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 8
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -output /mnt/output_${my_wasp_name_manual_entry} -genome_size 407000000 -genome_coverage 0.5 -sample_number 2 -RM_t 0.2 -cpu 8
 EOF
+
+# --------------------------------------------------------------------------------
+# DOWNLOAD THE OUTPUTS ON THE LOCAL COMPUTER:
+
+##     scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Project/NAME.THE.OUTPUT.FIRST.output NAME.THE.OUTPUT.FIRST.output
 
