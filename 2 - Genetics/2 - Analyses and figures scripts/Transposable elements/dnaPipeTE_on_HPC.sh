@@ -54,6 +54,7 @@ cd /user/work/pk14885
 
 module load apps/singularity/1.1.3
 module load lang/perl/5.30.0-bioperl-gcc
+module load lang/perl
 
 # Trying to avoid the Perl locale warning on BluePebble:
 export LC_CTYPE=en_GB.UTF-8
