@@ -5,6 +5,14 @@
 # This might be what we need: https://github.com/nat2bee/repetitive_elements_pipeline
 
 
+# Another option: https://github.com/ellenbell/FasTE
+# Following that pipeline here:
+    # I have downloaded the EDTA Singularity container on BluePebble (in the work directory).
+
+    export PYTHONNOUSERSITE=1
+    singularity exec /user/work/pk14885/EDTA.sif EDTA.pl --genome genome.fa [other parameters]
+    
+
 
 
 
