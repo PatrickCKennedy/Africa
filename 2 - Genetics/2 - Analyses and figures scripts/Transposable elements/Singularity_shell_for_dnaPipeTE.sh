@@ -22,16 +22,16 @@
 
             cd /user/work/pk14885/Wasps/Completed_alignments/
 
-            # MANUALLY ENTER THE LOCATION OF THE TARGET WASP'S BAM FILE IN BLUEPEBBLE, AND THE NAME YOU WOULD LIKE TO USE FOR THE DNAPIPETE OUTPUTS:
+            # MANUALLY ENTER BOTH THE LOCATION OF THE TARGET WASP'S BAM FILE IN BLUEPEBBLE AND THE NAME YOU WOULD LIKE TO USE FOR THE DNAPIPETE OUTPUTS:
             my_wasp_to_process="/SouthAfrica/Pumphouse/BRIS_P11_a_CKDL220030776-1A_HK7J7DSX5.no.overlaps.bam"
             my_wasp_name_manual_entry="BRIS_P11_a"
             
             module load apps/samtools/1.16
-            samtools sort -n $my_wasp_to_process $my_wasp_name_manual_entry.sorted.by.name 
-            samtools fastq -@ 8 $my_wasp_name_manual_entry.sorted.by.name.bam -1 $my_wasp_name_manual_entry.SAMPLE_R1.fastq.gz -2 $my_wasp_name_manual_entry.SAMPLE_R2.fastq.gz -0 /dev/null -s /dev/null -n
-            rm $my_wasp_name_manual_entry.sorted.by.name.bam
-            rm $my_wasp_name_manual_entry.SAMPLE_R2.fastq.gz
-            mv $my_wasp_name_manual_entry.SAMPLE_R1.fastq.gz /user/work/pk14885/Project/data/
+            samtools sort -n $my_wasp_to_process  ${my_wasp_name_manual_entry}.sorted.by.name 
+            samtools fastq -@ 8 ${my_wasp_name_manual_entry}.sorted.by.name.bam -1 ${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -2 ${my_wasp_name_manual_entry}.SAMPLE_R2.fastq.gz -0 /dev/null -s /dev/null -n
+            rm ${my_wasp_name_manual_entry}.sorted.by.name.bam
+            rm ${my_wasp_name_manual_entry}.SAMPLE_R2.fastq.gz
+            mv ${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz /user/work/pk14885/Project/data/
             
 # If running this section on the local computer - CHOOSE THE TARGET WASP HERE:
 
@@ -48,7 +48,7 @@
 # REMOVE ANY OUTPUTS ON THE SAME WASP FROM PREVIOUS RUNS:
 
 cd /user/work/pk14885/Project
-rm -r $my_wasp_name_manual_entry.output
+rm -r ${my_wasp_name_manual_entry}.output
 cd /user/work/pk14885
 
 # --------------------------------------------------------------------------------
@@ -72,6 +72,6 @@ singularity shell --cleanenv \
     -B/user/work/pk14885/Project:/mnt \
     /user/work/pk14885/dnaPipeTE/dnapipete.img <<EOF
 cd /opt/dnaPipeTE
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/$my_wasp_name_manual_entry.SAMPLE_R1.fastq.gz -output /mnt/output_$my_wasp_name_manual_entry -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 8
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -output /mnt/output_${my_wasp_name_manual_entry} -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 8
 EOF
 
