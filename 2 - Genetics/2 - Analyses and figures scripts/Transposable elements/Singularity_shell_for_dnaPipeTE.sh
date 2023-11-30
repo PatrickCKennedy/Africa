@@ -27,7 +27,7 @@
             my_wasp_name_manual_entry="BRIS_P11_a"
             
             module load apps/samtools/1.16
-            samtools sort -n $my_wasp_to_process ${my_wasp_name_manual_entry}.sorted.by.name 
+            samtools sort -n $my_wasp_to_process -o ${my_wasp_name_manual_entry}.sorted.by.name 
             samtools fastq -@ 8 ${my_wasp_name_manual_entry}.sorted.by.name.bam -1 ${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -2 ${my_wasp_name_manual_entry}.SAMPLE_R2.fastq.gz -0 /dev/null -s /dev/null -n
             rm ${my_wasp_name_manual_entry}.sorted.by.name.bam
             rm ${my_wasp_name_manual_entry}.SAMPLE_R2.fastq.gz
