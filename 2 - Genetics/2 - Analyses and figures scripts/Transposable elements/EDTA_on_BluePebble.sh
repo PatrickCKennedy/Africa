@@ -21,7 +21,7 @@
 cd /user/work/pk14885/Running_EDTA
 module load apps/singularity/1.1.3
 singularity shell -B/user/work/pk14885/Running_EDTA:/mnt /user/work/pk14885/EDTA.sif <<EOF
-EDTA.pl --genome /mnt/B_junceaGenome.FINAL.fasta --species others --sensitive 1 --threads 42 
+EDTA.pl --genome /mnt/B_junceaGenome.FINAL.fasta --species others --sensitive 0 --threads 42 
 EOF
 
 # ---------------------------------------------------------------------
