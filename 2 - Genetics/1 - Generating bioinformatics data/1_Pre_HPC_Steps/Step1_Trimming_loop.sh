@@ -26,5 +26,3 @@ $myTRIMGALORE --paired `find . -maxdepth 1 -name "*.fq.gz*" -print` -q 0
 cd /Volumes/Patricks_LaCie_Genomics_Harddrive/2_Trimmed_sequences/1_Place_wasps_to_be_trimmed_here
 mv /Volumes/Patricks_LaCie_Genomics_Harddrive/2_Trimmed_sequences/1_Place_wasps_to_be_trimmed_here/$d /Volumes/Patricks_LaCie_Genomics_Harddrive/2_Trimmed_sequences/2_Successfully_trimmed_wasps
 done
-
-	# In an email, Joe said "trim_galore you can turn off the default phred 20 quality since bwa local aligner has it's own quality handing as I mentioned earlier". I *think* the way to do that is to add -q 0 to the command, which I have done.
