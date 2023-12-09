@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # -----------------------------------------
-# 'Step1_Patrick_trimming_loop.sh'
+# P
 
 # The point of this script is to perform trimming of all the wasps of interest.
 
