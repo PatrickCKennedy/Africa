@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # -----------------------------------------
-# P
+# PK
 
 # The point of this script is to perform trimming of all the wasps of interest.
 
