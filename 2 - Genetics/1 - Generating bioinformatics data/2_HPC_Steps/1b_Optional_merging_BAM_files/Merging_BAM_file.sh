@@ -22,7 +22,7 @@
 # -------------------------------------------------------------
 # PLACE THE BAM FILES TO BE MERGED IN A SINGLE FOLDER (WITH THE NAME OF THE WASP OF INTEREST):
 
-cd /user/work/pk14885/Wasps/Completed_alignments/WaspsForPSMC/Merging_BAMs_from_same_wasp/LOUW19PETIO
+cd /user/work/pk14885/Wasps/Completed_alignments/WaspsForPSMC/Merging_BAMs_from_same_wasp/KENYA_TT1_2
 
 # Extract the wasp name from the folder name:
 this_WASP_NAME=$(basename "$PWD")
