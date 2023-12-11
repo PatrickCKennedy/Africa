@@ -2,11 +2,11 @@
 
 #SBATCH --job-name=array_job
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-node=5
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
-#SBATCH --array=1-4
-#SBATCH --time=0-200:00:00
+#SBATCH --array=1-177
+#SBATCH --time=2-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --account=BISC020282
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
@@ -43,10 +43,10 @@ echo
 # -------------------------------------------------------------
 # BWA ALIGNMENT
 
-cd /user/work/pk14885/Wasps
+# Set the working directory to the folder containing the uploaded wasps:
+cd /user/work/pk14885/Wasps_Dec2023
 
-##threads=8
-bwa mem /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta ${r1} ${r2} > ${name}.output.sam
+bwa mem -t $SLURM_JOB_CPUS_PER_NODE /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta ${r1} ${r2} > ${name}.output.sam
 
 # -------------------------------------------------------------
 # SAMTOOLS
@@ -65,8 +65,6 @@ bwa mem /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.
  
 # -------------------------------------------------------------
 # SPECIFY 'READ GROUP' INFO IN PICARD:
-
-# If I understand correctly, we need to specify the sort of metadata for this wasp. This is at 1:37:08 of the W8: Variant Calling with GATK Day 1 video. GATK doesn't seem to work without read groups specified. I will try just setting read groups (RGID) to 'Patrick', the library number (RGLB) to 'WaspLibraries', the 'read group platform' (RGPL) to ILLUMINA, the 'read group platform unit' (RGPU - what is this?) to unit1 (following the video), and sample id (RGSM) to the wasp name:
 
 java -Xmx16g -jar /sw/apps/picard/picard.jar AddOrReplaceReadGroups I=${name}.sorted.bam O=${name}.hasreadgroups.bam RGID=Patrick RGLB=WaspLibraries RGPL=ILLUMINA RGPU=unit1 RGSM=${name}
 
@@ -122,8 +120,8 @@ bam clipOverlap --in ${name}.before.removal.of.overlaps.bam --out ${name}.no.ove
 # -------------------------------------------------------------
 # TO SAVE SPACE ON THE CLUSTER, NOW REMOVE THE RAW READ FILES FOR THIS WASP FROM BLUEPEBBLE (i.e. THE TRIMMED 'VAL' FILES):
 
-rm ${r1}
-rm ${r2}
+###rm ${r1}
+###rm ${r2}
 
 # -------------------------------------------------------------
 # MOVE THE FILES TO OUTPUT FOLDERS:
