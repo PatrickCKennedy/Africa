@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=Transposable_elements
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=28
+#SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=150G
 #SBATCH --time=4-00:00:00
@@ -21,7 +21,7 @@
 cd /user/work/pk14885/Running_EDTA
 module load apps/singularity/1.1.3
 singularity shell -B/user/work/pk14885/Running_EDTA:/mnt /user/work/pk14885/EDTA.sif <<EOF
-EDTA.pl --genome /mnt/B_junceaGenome.FINAL.fasta --species others --sensitive 0 --threads 28 
+EDTA.pl --genome /mnt/B_junceaGenome.FINAL.fasta --species others --sensitive 0 --threads 42 
 EOF
 
 # ---------------------------------------------------------------------
