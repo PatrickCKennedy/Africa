@@ -2,7 +2,7 @@
 #SBATCH --job-name=Country_Relatedness
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=1
+#SBATCH --cpus-per-task=8
 #SBATCH --mem=100G
 #SBATCH --time=0-120:00:00
 # "d-hh:mm:ss"
