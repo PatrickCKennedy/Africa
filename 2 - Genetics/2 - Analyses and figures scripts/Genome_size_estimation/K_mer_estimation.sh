@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=kmers
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
 #SBATCH --time=0-05:00:00
