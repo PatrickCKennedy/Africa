@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=Heterozygosity
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10G
 #SBATCH --time=3-00:00:00
