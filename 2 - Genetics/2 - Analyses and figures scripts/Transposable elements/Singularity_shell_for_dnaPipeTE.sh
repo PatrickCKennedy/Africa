@@ -2,7 +2,7 @@
 
 #SBATCH --job-name=Transposable_elements
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=150G
 #SBATCH --time=1-00:00:00
@@ -54,9 +54,10 @@ cd /user/work/pk14885
 # --------------------------------------------------------------------------------
 # SUPPLY THE GENERAL LIBRARY FILE FOR REPETITIVE ELEMENTS
 
-# The Singularity container for dnaPipeTE comes with a default general library file, which we use below by not specifying an -RM_lib option in the call to dnaPipeTE.py
+# The Singularity container for dnaPipeTE comes with a default general library file, which you can below by not specifying an -RM_lib option in the call to dnaPipeTE.py
 # Alternative option: you can download the general library file as part of the 'noarch/repeatmasker-4.1.5-pl5321hdfd78af_1.tar.bz2' download at https://anaconda.org/bioconda/repeatmasker/files (it is inside the 'Libraries' folder once you've downloaded RepeatMasker):
-# In this case, I have uploaded it to BluePebble (you can set it as myRMlibrary="/user/work/pk14885/Project/RepeatMasker.lib" and add -RM_lib $myRMlibrary in the dnaPipeTE.py call below if you choose).
+# I have uploaded it to BluePebble (you can set it as myRMlibrary="/user/work/pk14885/Project/RepeatMasker.lib" and add -RM_lib $myRMlibrary in the dnaPipeTE.py call below if you choose).
+# Below, we use the Belonogaster juncea custom TE library that we have already generated using EDTA.
 
 # --------------------------------------------------------------------------------
 # INITIATE dnaPipeTE:
@@ -66,13 +67,13 @@ module load apps/singularity/1.1.3
 module load lang/perl/5.30.0-bioperl-gcc
 module load lang/perl
 
-# Initiate and mount dnaPipeTE using a Singularity shell:
+# Initiate and mount dnaPipeTE using a Singularity shell, using the custom Belonogaster juncea TE library we have already generated with EDTA:
 
 singularity shell --cleanenv \
     -B/user/work/pk14885/Project:/mnt \
     /user/work/pk14885/dnaPipeTE/dnapipete.img <<EOF
 cd /opt/dnaPipeTE
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -output /mnt/output_${my_wasp_name_manual_entry} -genome_size 407000000 -genome_coverage 0.5 -sample_number 2 -RM_t 0.2 -cpu 8
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${my_wasp_name_manual_entry}.SAMPLE_R1.fastq.gz -output /mnt/output_${my_wasp_name_manual_entry} -genome_size 407000000 -genome_coverage 0.5 -sample_number 2 -RM_t 0.2 -cpu 8 -RM_lib /mnt/data/B_junceaGenome.FINAL.fasta.mod.EDTA.TElib.fa
 EOF
 
 # --------------------------------------------------------------------------------
