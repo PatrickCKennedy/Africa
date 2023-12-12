@@ -23,6 +23,12 @@ cd /user/work/pk14885/Wasps_Dec2023
 myForwardRead="A4_2_3_Cameroon_EKDL230052137-1A_22GGMJLT3_L7_1_val_1.fq.gz"
 myReverseRead="A4_2_3_Cameroon_EKDL230052137-1A_22GGMJLT3_L7_2_val_2.fq.gz"
 
+# I think it is not working because the reads need to be unzipped first, using gzcat
+
+
+
+
+
 ##jellyfish count -m 21 -s 100M -t 10 -C <(zcat R1.fq.gz) <(zcat R2.fq.gz)
 ##jellyfish histo -t 10 --high=1000000 mer_counts.jf > reads.histo
 # then load histogram in genomescope with k = m, read length = 150, max kmer cov = 1000000
