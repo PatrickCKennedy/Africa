@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Heterozygosity
+#SBATCH --job-name=Cam_Heterozygosity
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
@@ -36,9 +36,11 @@ module load apps/angsd/0.941
 # BEFORE RUNNING THIS SCRIPT, MAKE SURE YOU HAVE GENERATED TWO TEXT FILES IT NEEDS TO RUN (THESE ARE A LIST OF THE WASPS THAT THE ARRAY WILL WORK THROUGH): bam.filelist AND WaspNameOnly. TO GENERATE THEM, TYPE THE FOLLOWING LINES MANUALLY FROM THE RELEVANT COUNTRY FOLDER (SouthAfrica OR Cameroon) IN BLUEPEBBLE:
 
 ##    ls */*.bam > bam.filelist
-##    sed 's/_CKDL.*//' bam.filelist > mytempfile
-##    sed 's/.*\///' mytempfile > WaspNameOnly
-##    rm mytempfile
+##    sed 's/_CKDL.*//' bam.filelist > mytempfile1
+##    sed 's/_EKDL.*//' mytempfile1 > mytempfile2
+##    sed 's/.*\///' mytempfile2 > WaspNameOnly
+##    rm mytempfile1
+##    rm mytempfile2
 ##    mkdir Heterozygosity
 
 # The last line makes a folder to store the results (if it doesn't already exist).
