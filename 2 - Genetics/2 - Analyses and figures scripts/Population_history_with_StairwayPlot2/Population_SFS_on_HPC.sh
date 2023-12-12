@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=Soa_SFS
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-node=6
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=100G
 #SBATCH --time=0-12:00:00
@@ -64,7 +64,8 @@ module load apps/angsd/0.941
     -doSaf 1 \
     -out ANGSD_results/smallFolded \
     -anc $REF \
-    -GL 1
+    -GL 1 \
+    -nThreads 6
     # (I think this angsd command should be run as this separate command (i.e., not part of the one at the top of the file), because: "Generally speaking you shouldn't use any filter that will distort the distribution of allele frequencies or remove monomorphic sites (minMAF and SNP_pval, I'm looking at you). This will hugely distort the SFS." (https://github.com/ANGSD/angsd/issues/259))
     
     # Go back to the ANGSD_results folder (which is where the 'smallFolded' output is):
