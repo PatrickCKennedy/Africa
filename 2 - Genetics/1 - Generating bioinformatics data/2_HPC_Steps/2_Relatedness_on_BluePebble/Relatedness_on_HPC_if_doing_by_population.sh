@@ -18,7 +18,7 @@
 # This HPC script uses ANGSD and ngsRelate to find the pairwise relatednesses between each individual in the chosen population.
 
 # Choose the population here (e.g., 'Mbouda' or 'AfricanLaboratory'):
-cd /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica/PetiolataLouwsFarm
+cd /user/work/pk14885/Wasps/Completed_alignments/PetiolataLouwsFarm
 
 # -------------------------------------------------------------
 # KEEP A RECORD OF WHICH POPULATION WE ARE FOCUSING ON:
