@@ -3,14 +3,14 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
-#SBATCH --time=3-00:00:00
+#SBATCH --mem=20G
+#SBATCH --time=5-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-254
+#SBATCH --array=1-608
 # Set this to run for the total number of wasps in the relevant country (e.g., I currently have 233 samples listed in bam.filelist for SouthAfrica, so I would type --array=1-233 above).
 
 # -------------------- GENOME-WIDE HETEROZYGOSITY -------------
