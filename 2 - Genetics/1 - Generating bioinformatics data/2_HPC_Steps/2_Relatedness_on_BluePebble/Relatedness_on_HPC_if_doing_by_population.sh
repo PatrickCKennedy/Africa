@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Somalomo_Pop_Relatedness
+#SBATCH --job-name=Yaounde1_Pop_Relatedness
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
@@ -18,7 +18,7 @@
 # This HPC script uses ANGSD and ngsRelate to find the pairwise relatednesses between each individual in the chosen population.
 
 # Choose the population here (e.g., 'Mbouda' or 'AfricanLaboratory'):
-cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon/Somalomo
+cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon/Yaounde1
 
 # -------------------------------------------------------------
 # KEEP A RECORD OF WHICH POPULATION WE ARE FOCUSING ON:
