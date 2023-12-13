@@ -1,15 +1,3 @@
-#!/bin/bash
-
-#SBATCH --job-name=kmers_RESPECT
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=8
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=20G
-#SBATCH --time=0-05:00:00
-# "d-hh:mm:ss"
-#SBATCH --account=BISC020282
-# BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
-
 # PK
 # k-mer estimation for genome size prediction using the 'RESPECT' algorithm
 # Citation: https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1009449
@@ -19,7 +7,22 @@
 # I am currently on number 4 - getting a Gurobi academic licence. 
 # I've registered on the Gurobi website. To be issued a licence, I
 # just need to be connected to the university internet I make the request on
-# the website. Continue.
+# the website. My licence details:
+# My licence key: grbgetkey 00374c27-4011-420d-949b-a56e80009d15 (written to the local computer)
+# Licence number: 2453295
+# I have installed Python version 3.7.1 in a virtual environment called 'myenv' on the
+# laptop, following vincedjango's answer here: https://stackoverflow.com/questions/51125013/how-can-i-install-a-previous-version-of-python-3-in-macos-using-homebrew
+# i.e.:
+    ##conda init
+    ##conda create -n myenv python=3.7.1
+# To activate this environment, use:
+    ##conda activate myenv
+# To deactivate, use:
+    ##conda deactivate
+# After activating the 'myenv' environment, I installed RESPECT using 'python setup.py install' (https://github.com/shahab-sarmashghi/RESPECT)
+
+
+
 
 
 
