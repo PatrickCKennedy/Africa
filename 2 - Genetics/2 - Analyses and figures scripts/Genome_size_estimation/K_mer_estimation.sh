@@ -33,11 +33,7 @@ jellyfish count -t 8 \
 # The output will be called '19mer_out.histo'. Generate a histogram:
 jellyfish histo -o 19mer_out.histo 19mer_out
 
-
-
-# Alternative:
-##jellyfish count -m 21 -s 100M -t 10 -C <(zcat R1.fq.gz) <(zcat R2.fq.gz)
-##jellyfish histo -t 10 --high=1000000 mer_counts.jf > reads.histo
-# then load histogram in genomescope with k = m, read length = 150, max kmer cov = 1000000
-
+# Hmmm, the histogram doesn't have a peak - it just descends. Following that tutorial, it therefore isn't clear how to estimate 
+# a genome size. We could instead try using the 'RESPECT' programme (https://github.com/shahab-sarmashghi/RESPECT), which seems to be 
+# for low-coverage data.
 
