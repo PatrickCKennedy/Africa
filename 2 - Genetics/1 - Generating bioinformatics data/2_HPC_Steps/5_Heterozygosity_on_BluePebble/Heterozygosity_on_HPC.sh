@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Cam_Heterozygosity
+#SBATCH --job-name=SA_Heterozygosity
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
@@ -24,7 +24,7 @@
 # SET THE COUNTRY (and also set the array count in the SBATCH code above):
 
 # Choose whether to run this in the SouthAfrica or Cameroon folder on BluePebble:
-cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon
+cd /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica
  
 # -------------------------------------------------------------
 # LOAD THE MODULES ON THE CLUSTER:
