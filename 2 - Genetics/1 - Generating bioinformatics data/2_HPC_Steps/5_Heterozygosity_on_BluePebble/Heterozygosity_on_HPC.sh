@@ -97,7 +97,8 @@ angsd -i $SAMPLE \
  mkdir realSFS_results
  
  # "This is followed by the actual estimation using the realSFS subprogram of ANGSD" (https://github.com/DeondeJager/Buffalo_PopGenomics/blob/master/02-Data_analysis/12-Genome-wide_Heterozygosity_A_243_14.sh)
-realSFS $NAME.saf.idx -P 24 -fold 1 > realSFS_results/$NAME.est.ml
+REALSFS_on_BluePebble="/sw/apps/angsd-0.941/angsd/misc/realSFS"
+$REALSFS_on_BluePebble $NAME.saf.idx -P 24 -fold 1 > realSFS_results/$NAME.est.ml
 
 # -------------------------------------------------------------------
 # CLEAN-UP BY REMOVING INTERMEDIATE FILES FROM BLUEPEBBLE:
