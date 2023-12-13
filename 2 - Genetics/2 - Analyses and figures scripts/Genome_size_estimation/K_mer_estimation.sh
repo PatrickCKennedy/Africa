@@ -28,7 +28,7 @@ jellyfish count -t 8 \
 -C -m 19 -s 100M \
 -o 19mer_out \
 --min-qual-char=? \
-<(gzcat $myForwardRead) <(gzcat $myReverseRead)
+<(zcat $myForwardRead) <(zcat $myReverseRead)
 
 # The output will be called '19mer_out.histo'. Generate a histogram:
 jellyfish histo -o 19mer_out.histo 19mer_out
