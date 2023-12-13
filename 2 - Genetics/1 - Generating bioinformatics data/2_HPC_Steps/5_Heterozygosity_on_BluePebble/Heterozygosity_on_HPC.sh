@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
-#SBATCH --time=5-00:00:00
+#SBATCH --time=0-05:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --mail-user=pk14885@bristol.ac.uk
@@ -81,7 +81,6 @@ angsd -i $SAMPLE \
  -ref $REF \
  -anc $REF \
  -dosaf 1 \
- -fold 1 \
  -GL 1 \
  -nThreads 24 \
  -minmapq 30 \
@@ -98,7 +97,7 @@ angsd -i $SAMPLE \
  mkdir realSFS_results
  
  # "This is followed by the actual estimation using the realSFS subprogram of ANGSD" (https://github.com/DeondeJager/Buffalo_PopGenomics/blob/master/02-Data_analysis/12-Genome-wide_Heterozygosity_A_243_14.sh)
-realSFS $NAME.saf.idx -P 24 > realSFS_results/$NAME.est.ml
+realSFS $NAME.saf.idx -P 24 -fold 1 > realSFS_results/$NAME.est.ml
 
 # -------------------------------------------------------------------
 # CLEAN-UP BY REMOVING INTERMEDIATE FILES FROM BLUEPEBBLE:
