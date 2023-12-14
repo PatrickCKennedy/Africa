@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=bwa_NewSpeciesMaroua
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
-#SBATCH --time=0-05:00:00
+#SBATCH --time=0-12:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --mail-user=patrick.kennedy@bristol.ac.uk
