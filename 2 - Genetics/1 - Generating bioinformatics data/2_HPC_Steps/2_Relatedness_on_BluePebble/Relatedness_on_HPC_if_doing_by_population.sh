@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Maroua_Pop_Relatedness
+#SBATCH --job-name=Petiolata_Pop_Relatedness
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
@@ -18,7 +18,7 @@
 # This HPC script uses ANGSD and ngsRelate to find the pairwise relatednesses between each individual in the chosen population.
 
 # Choose the population here (e.g., 'Mbouda' or 'AfricanLaboratory'):
-cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon/Maroua
+cd /user/work/pk14885/Wasps/Completed_alignments/PetiolataLouwsFarm
 
 # -------------------------------------------------------------
 # KEEP A RECORD OF WHICH POPULATION WE ARE FOCUSING ON:
@@ -55,7 +55,12 @@ echo
     file_count=$(ls *.bam --file-type | grep -v '/$' | wc -l)
 
 # We will use this below, when we set -minInd in the angsd function to discard sites if fewer than a fifth of individuals have data for it:
-    my_minInd=$(($file_count/5))
+    ##my_minInd=$(($file_count/5))
+    # For B. petiolata, the file count is small (32), so we will not use any filtering there (i.e., minInd = 0)
+	my_minInd=0
+    
+    echo "my_minInd:"
+    echo $my_minInd
 
 # Make a folder for this wasp called 'ANGSD_results':
 	mkdir ANGSD_results
