@@ -35,3 +35,9 @@ Petiolata_plot <- ggplot(Petiolata_cofoundresses, aes(x=as.numeric(rab), fill="r
   geom_vline(xintercept = mean(as.numeric(Petiolata_cofoundresses$rab)), 
              linetype="dashed") + theme(legend.position = "none")
 Petiolata_plot
+
+# Mean relatedness between cofoundresses:
+mean(Petiolata_cofoundresses$rab)
+
+# And standard deviation:
+sd(Petiolata_cofoundresses$rab)
