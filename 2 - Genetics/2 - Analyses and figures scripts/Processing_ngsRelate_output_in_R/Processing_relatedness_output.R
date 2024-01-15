@@ -325,6 +325,55 @@ plot_grid(nonsisters_barplot,
           rel_widths  = c(1/15, 1/4))
 
 # -----------------------------------------------------------------------------
+# PROPORTION OF RELATEDNESSES THAT ARE NONRELATIVES OR VERY DISTANT RELATIVES
+
+Threshold_for_interpretting_as_nonrelatives = 0.15
+
+# Proportion of pairwise relatednesses that are <0.15 in Cameroon:
+Cameroon_total_nonrelatives_relatednesses <- dim(subset(Cameroon_cofoundresses, rab < Threshold_for_interpretting_as_nonrelatives))[1]
+Cameroon_total_relatednesses <- dim(Cameroon_cofoundresses)[1]
+Cameroon_Percent_of_relatednesses_that_are_nonrelatives <- (Cameroon_total_nonrelatives_relatednesses/Cameroon_total_relatednesses)*100
+Cameroon_Percent_of_relatednesses_that_are_nonrelatives
+
+# Proportion of pairwise relatednesses that are <0.15 in Cameroon:
+SA_total_nonrelatives_relatednesses <- dim(subset(SouthAfrican_cofoundresses, rab < Threshold_for_interpretting_as_nonrelatives))[1]
+SA_total_relatednesses <- dim(SouthAfrican_cofoundresses)[1]
+SA_Percent_of_relatednesses_that_are_nonrelatives <- (SA_total_nonrelatives_relatednesses/SA_total_relatednesses)*100
+SA_Percent_of_relatednesses_that_are_nonrelatives
+
+# Two-proportions Z test:
+prop.test(x = c(Cameroon_total_nonrelatives_relatednesses,SA_total_nonrelatives_relatednesses), 
+          n = c(Cameroon_total_relatednesses,SA_total_relatednesses), 
+          p = NULL, alternative = "two.sided", 
+          correct = TRUE)
+
+# IN THE ANALYSIS OF 15TH JAN 2024, THE PROPORTIONS WERE: 17.8% and 3.5%, when the threshold was rab<0.15.
+
+# -----------------------------------------------------------------------------
+# WHAT PERCENTAGE OF NESTS CONTAIN AT LEAST ONE NONRELATIVE OR DISTANT RELATIVE?
+
+# In Polistes dominula, Field & Leadbeater (2016) write: "In the Spanish populations, more than 80% of co-foundress 
+groups contain at least one foundress that is unrelated or only distantly 
+related to other group members" (https://royalsocietypublishing.org/doi/10.1098/rstb.2015.0093)
+# What is the equivalent percentage in Belonogaster juncea?
+
+# The minimum relatedness value on each nest:
+Nest_min <- aggregate(rab ~ ida_Tagging_nest_if_foundress, 
+                        Cofoundresses_data, 
+                        min)
+Nest_min <- merge(Nest_min, CountryList, by.x = "ida_Tagging_nest_if_foundress", by.y = "ida_Tagging_nest_if_foundress")
+
+nests_with_nonrelative_or_distant_relative <- subset(Nest_min,Nest_min$rab<Threshold_for_interpretting_as_nonrelatives)
+
+Cameroon_nests_with_nonrelative_or_distant_relative_COUNT <- dim(subset(nests_with_nonrelative_or_distant_relative,nests_with_nonrelative_or_distant_relative$Country=="Cameroon"))[[1]]
+SA_nests_with_nonrelative_or_distant_relative_COUNT <- dim(subset(nests_with_nonrelative_or_distant_relative,nests_with_nonrelative_or_distant_relative$Country=="SouthAfrica"))[[1]]
+
+Cameroon_Proportion_of_nests_with_nonrelative_or_distant_relative <- (Cameroon_nests_with_nonrelative_or_distant_relative_COUNT/dim(subset(Nest_min, Country == "Cameroon"))[1])*100
+SA_Proportion_of_nests_with_nonrelative_or_distant_relative <- (SA_nests_with_nonrelative_or_distant_relative_COUNT/dim(subset(Nest_min, Country == "SouthAfrica"))[1])*100
+
+# IN THE ANALYSIS OF 15TH JAN 2024, THE PROPORTIONS WERE: 25.3% and 7.0%, when the threshold was rab<0.15.
+
+# -----------------------------------------------------------------------------
 # AVERAGE RELATEDNESSES PER NEST:
 
 # Use the 'aggregrate' function to extract the mean relatedness on each nest:
