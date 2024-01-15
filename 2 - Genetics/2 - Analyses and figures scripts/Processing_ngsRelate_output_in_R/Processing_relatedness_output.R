@@ -14,34 +14,24 @@
 # we download these 'newres' files from BluePebble, and plot the results.
 
 # -----------------------------------------------------------------------------
-# PREPARE THE FILES:
-
-# Manually run the following bash commands.
-
-# (1) ON BLUEPEBBLE: Concatenate all the 'newres' files from the different populations into one file on BluePebble:
-##        cd /user/work/pk14885/Wasps/Completed_alignments
-##        cat */*/ANGSD_results/newres >> All.newres
-
-# (2) ON LOCAL COMPUTER: Download the 'All.newres' file from BluePebble to the laptop:
-##        scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/All.newres All.newres
-
-# The rest of the script is now in R.
-
-# TEMPORARY SECTION FOR LOADING IN THE DATA:
-
-
-# -----------------------------------------------------------------------------
 # IMPORT THE DATA TO R:
 
-# Import the 'All.new' file to R:
-          SA.2023 <- read.delim("~/SA.2023.newres")
-          Soa.2023 <- read.delim("~/Soa.2023.newres")
-          Messa.2023 <- read.delim("~/Messa.2023.newres")
-          Yaounde1.2023 <- read.delim("~/Desktop/Yaounde1.2023.newres")
-          Somalomo.2023 <- read.delim("~/Somalomo.2023.newres")
-          
 # Combine all the 'newres' files into one:
-All_newres <- rbind(SA.2023, Soa.2023, Messa.2023, Yaounde1.2023, Somalomo.2023)
+setwd("/Users/pk14885/Desktop/WaspCLIM_Publication_Datasets")
+          SA.2023 <- read.delim("Relatedness_datasets/SA.2023.newres")
+          Soa.2023 <- read.delim("Relatedness_datasets/Soa.2023.newres")
+          Messa.2023 <- read.delim("Relatedness_datasets/Messa.2023.newres")
+          Yaounde1.2023 <- read.delim("Relatedness_datasets/Yaounde1.2023.newres")
+          Somalomo.2023 <- read.delim("Relatedness_datasets/Somalomo.2023.newres")
+          Maroua.2023 <- read.delim("Relatedness_datasets/Maroua_newres")
+          Mbouda.2023 <- read.delim("Relatedness_datasets/Mbouda_newres")
+          All_newres <- rbind(SA.2023, 
+                              Soa.2023, 
+                              Messa.2023, 
+                              Yaounde1.2023, 
+                              Somalomo.2023,
+                              Maroua.2023,
+                              Mbouda.2023)
   
 # Because 'All_newres' is a concatenation of several 'newres' speadsheets, some of the rows
 # contain the headers. Remove these rows:
@@ -90,10 +80,10 @@ All <- subset(All, All$nSites > my_nSites_threshold)
 # tracking the BAM files, which is in the 'BAM_files' tab of the Wasp Tagging Excel file.
 
 # MANUALLY: Copy-paste the contents of the 'BAM_files' tab into a new Excel file. Name the file
-# 'temp_BAM_list' (saved as a CSV on the Desktop).
+# 'temp_BAM_list' (saved as a CSV in the Publications Dataset folder).
 
 # Now import the temp_BAM_list to R:
-temp_BAM_list <- read.csv("~/Desktop/temp_BAM_list.csv")
+temp_BAM_list <- read.csv("BAM_list/temp_BAM_list.csv")
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -210,7 +200,7 @@ my_plot <- ggplot(Cofoundresses_data) +
                  jitter.params = list(height = 0, width = 0.09),
                  outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
                  errorbar.draw = TRUE) + 
-  scale_fill_manual(values = myColors) + 
+  scale_fill_manual(values = myColors) +
   theme_classic(base_size = 12) + 
   theme(text = element_text(size=20)) +
   labs(y= "Relatedness", 
@@ -365,7 +355,7 @@ SA_total_cofoundress_nests <- dim(subset(Nest_max, Country == "SouthAfrica"))[1]
 SA_Percent_without_at_least_one_sister_pair <- (1-(SA_total_with_at_least_one_sister_pair/SA_total_cofoundress_nests))*100
 SA_Percent_without_at_least_one_sister_pair
 
-# That's quite striking. When I ran the script just now (31st May 2023), it showed 39.5% (49/81) of cofoundress nests
+# That's quite striking. When I ran the script just now (31st May 2023), it showed 39.5% (32/81) of cofoundress nests
 # did not involve any full-sisters in Cameroon, compared to just 7% (4/56) in South Africa.
 
 # -----------------------------------------------------------------------------
