@@ -1,7 +1,7 @@
 # The main script ('Processing_relatedness_output') is for the Belonogaster juncea samples.
 # This script plots the smaller sample of B. petiolata:
 
-PetiolataLouwsFarm <- read.delim("~/Desktop/WaspCLIM_Publication_Datasets/Relatedness_datatsets/petiolata_newres")
+PetiolataLouwsFarm <- read.delim("/Users/pk14885/Desktop/WaspCLIM_Publication_Datasets/Relatedness_datasets/petiolata_newres")
 View(PetiolataLouwsFarm)
 
 # Extract the tagging nest for each wasp (for B. petiolata, the nest ID is the 
