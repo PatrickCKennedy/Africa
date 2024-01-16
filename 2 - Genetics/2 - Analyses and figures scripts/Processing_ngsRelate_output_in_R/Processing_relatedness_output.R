@@ -361,6 +361,9 @@ related to other group members" (https://royalsocietypublishing.org/doi/10.1098/
 Nest_min <- aggregate(rab ~ ida_Tagging_nest_if_foundress, 
                         Cofoundresses_data, 
                         min)
+CountryList <- cbind(Cofoundresses_data$ida_Tagging_nest_if_foundress, Cofoundresses_data$ida_Country)
+CountryList <- unique(CountryList)
+colnames(CountryList) <- c("ida_Tagging_nest_if_foundress","Country")
 Nest_min <- merge(Nest_min, CountryList, by.x = "ida_Tagging_nest_if_foundress", by.y = "ida_Tagging_nest_if_foundress")
 
 nests_with_nonrelative_or_distant_relative <- subset(Nest_min,Nest_min$rab<Threshold_for_interpretting_as_nonrelatives)
@@ -373,6 +376,33 @@ SA_Proportion_of_nests_with_nonrelative_or_distant_relative <- (SA_nests_with_no
 
 # IN THE ANALYSIS OF 15TH JAN 2024, THE PROPORTIONS WERE: 25.3% and 7.0%, when the threshold was rab<0.15.
 
+# BOXPLOT FOR RELATEDNESS OF THE LEAST-RELATED INDIVIDUAL IN EACH GROUP:
+# Generate boxplots (following https://github.com/erocoar/ggpol):
+ggplot(Nest_min) + 
+  geom_boxjitter(aes(x = Country, 
+                     y = rab, 
+                     fill = Country),
+                 jitter.shape = 21, 
+                 jitter.color = NA, 
+                 jitter.alpha = 0.5,
+                 jitter.size = 1.5,
+                 jitter.params = list(height = 0, width = 0.09),
+                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                 errorbar.draw = TRUE) + 
+  scale_fill_manual(values = myColors) +
+  theme_classic(base_size = 12) + 
+  theme(text = element_text(size=20)) +
+  labs(y= "Relatedness", 
+       x = "Country") + 
+  theme(legend.position="none") + 
+  theme(aspect.ratio = 1.5) +
+  theme(axis.line.x.bottom=element_line(size=0.5)) +
+  theme(axis.line.y.left=element_line(size=0.5)) +
+  theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+        axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+
 # -----------------------------------------------------------------------------
 # AVERAGE RELATEDNESSES PER NEST:
 
@@ -380,9 +410,6 @@ SA_Proportion_of_nests_with_nonrelative_or_distant_relative <- (SA_nests_with_no
 Nest_means <- aggregate(rab ~ ida_Tagging_nest_if_foundress, 
           Cofoundresses_data, 
           mean)
-CountryList <- cbind(Cofoundresses_data$ida_Tagging_nest_if_foundress, Cofoundresses_data$ida_Country)
-CountryList <- unique(CountryList)
-colnames(CountryList) <- c("ida_Tagging_nest_if_foundress","Country")
 Nest_means <- merge(Nest_means, CountryList, by = "ida_Tagging_nest_if_foundress")
 
 # And the maximum relatedness value on each nest:
