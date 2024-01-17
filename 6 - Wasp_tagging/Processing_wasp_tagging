@@ -1,1 +1,143 @@
-Test
+# ----------------------------------------------------------------------
+# PROCESSING WASP TAGGING DATA:
+# ----------------------------------------------------------------------
+
+# BOXPLOTS AND ANOVA SCRIPT
+# Patrick
+
+# Save the wasp tagging datasheet as 'ToImportToR', import, then name it 'mydata':
+my_data <- ToImportToR
+
+# Remove any rows that have no measurements for Thorax size:
+my_data_without_NA <- my_data[!is.na(my_data$`Thorax size`),]
+View(my_data_without_NA)
+
+# If you want to remove any rows as not relevant, can do that here. For instance, 
+# might not want to plot the 'Unclassified' wasps on the plot, for which we can use:
+my_data_without_NA <- my_data_without_NA[!grepl("C Unclassified", my_data_without_NA$CountryPlusNestType),]
+
+# Load the libraries:
+library(ggplot2)
+library(ggthemes)
+library(ggpol)
+
+# Call the dataset 'dat'. This will be used for all plotting and stats:
+dat <- my_data_without_NA
+
+# Convert the column with the x-variable categories (or treatments) into a factor:
+dat$`CountryPlusNestType` <- as.factor(dat$`CountryPlusNestType`)
+
+# ----------------------------------------------------------------------
+# PLOT FIGURE FOR THE PAPER:
+
+my_x_variable <-  dat$`CountryPlusNestType`
+my_y_variable <-  dat$`Thorax size`
+my_color_variable <- dat$Country
+
+myColors <- c("#56ddc5","red")
+
+# Generate boxplots (following https://github.com/erocoar/ggpol):
+my_plot <- ggplot(dat) + 
+  geom_boxjitter(aes(x = my_x_variable, 
+                     y = my_y_variable, 
+                     fill = my_color_variable),
+                 jitter.shape = 21, 
+                 jitter.color = NA, 
+                 jitter.alpha = 0.5,
+                 jitter.size = 0.3,
+                 jitter.params = list(height = 0, width = 0.09),
+                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                 errorbar.draw = TRUE) + 
+  scale_fill_manual(values = myColors) + 
+  theme_classic(base_size = 12) + 
+  theme(text = element_text(size=20)) +
+  labs(y= "Body size (Thorax size)", 
+       x = "Social role") + 
+  theme(legend.position="none") + 
+  theme(aspect.ratio = 1.5) +
+  theme(axis.line.x.bottom=element_line(size=0.5)) +
+  theme(axis.line.y.left=element_line(size=0.5)) +
+  theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+        axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+my_plot
+
+# ----------------------------------------------------------------------
+# STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
+
+# Run ANOVA:
+res_aov <- aov(my_y_variable ~ my_x_variable, 
+               data = dat)
+
+# Check for normality (https://statsandr.com/blog/anova-in-r/):
+      # First, with histogram:
+      hist(res_aov$residuals)
+      # Second, with Q-Q plot:
+      library(car)
+      qqPlot(res_aov$residuals, id = FALSE) # id = FALSE to remove point identification
+      # Third, with Shapiro-Wilk test:
+      shapiro.test(res_aov$residuals)
+      # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
+
+# Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
+      leveneTest(my_y_variable ~ my_x_variable, 
+                 data = dat)
+      # If p<0.05, reject the null hypothesis of a normal distribution.
+      # You should also look at the scatter on the boxplot.
+
+# Compute descriptive stats (means and standard deviations):
+      aggregate(my_y_variable ~ my_x_variable, 
+                data = dat,
+                function(x) round(c(mean = mean(x), sd = sd(x)), 2))
+
+# Use the 'report' package to get a report on what your ANOVA results mean:
+library("report")
+report(res_aov)
+
+# Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
+library(multcomp)
+post_test <- glht(res_aov,
+                  linfct = mcp(my_x_variable = "Tukey"))
+summary(post_test)
+# Here is the explanation of the results: "In the output of the Tukey HSD test, 
+# we are interested in the table displayed after Linear Hypotheses:, and more 
+# precisely, in the first and last column of the table. The first column shows the 
+# comparisons which have been made; the last column (Pr(>|t|)) shows the adjusted7 
+# p-values for each comparison (with the null hypothesis being the two groups are 
+# equal and the alternative hypothesis being the two groups are different). It is these 
+# adjusted p-values that are used to test whether two groups are significantly different 
+# or not, and we can be confident that the entire set of comparisons collectively 
+# has an error rate of 0.05." (https://statsandr.com/blog/anova-in-r/)
+
+# You can visualise the Tukey post-hoc results:
+par(mar = c(3, 8, 3, 3))
+plot(post_test)
+# If the confidence interval doesn't cross the zero line, the relevant groups are significantly different.
+
+# -------------------------------------------
+# ADD THE STATS COMPARISONS TO THE BOXPLOT:
+
+# To get this to work, it seems that we have to run the Tukey HSD test using a different
+# package, and then plot that on the graph (following https://stackoverflow.com/questions/48625620/adding-tukeys-significance-letters-to-boxplot):
+
+# First, run the Tukey tests again, but using the 'agricolae' package instead:
+
+library(agricolae)
+library(tidyverse)
+
+dat.summarized = dat %>% group_by(`CountryPlusNestType`) %>% summarize(Max.my_y_variable=max(`Thorax size`))
+
+hsd=HSD.test(aov(my_y_variable ~ my_x_variable, 
+                     data=dat), "my_x_variable", group=T)
+
+# Now plot the post-hoc test letters on the graph:
+my_plot <- my_plot + geom_text(data=dat.summarized,
+           aes(x=`CountryPlusNestType`,y=0.2+Max.my_y_variable,
+               label=hsd$groups$groups),
+           vjust=0)
+
+# Export the graph as a PDF ready for the paper:
+    pdf("NAMETHEGRAPHHERE.pdf",height=3)
+    my_plot + theme(aspect.ratio = 1.5)
+    dev.off()
