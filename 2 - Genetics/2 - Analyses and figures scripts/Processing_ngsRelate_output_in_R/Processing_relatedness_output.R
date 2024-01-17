@@ -188,6 +188,8 @@ my_color_variable <- Cofoundresses_data$ida_Country
 
 myColors <- c("#56ddc5","red")
 
+myfontsize <- 10
+
 # Generate boxplots (following https://github.com/erocoar/ggpol):
 my_plot <- ggplot(Cofoundresses_data) + 
   geom_boxjitter(aes(x = my_x_variable, 
@@ -201,18 +203,17 @@ my_plot <- ggplot(Cofoundresses_data) +
                  outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
                  errorbar.draw = TRUE) + 
   scale_fill_manual(values = myColors) +
-  theme_classic(base_size = 12) + 
-  theme(text = element_text(size=20)) +
+  scale_x_discrete(labels=c("C","SA")) +
+  theme_cowplot(font_size = myfontsize) + 
   labs(y= "Relatedness", 
        x = "Country") + 
   theme(legend.position="none") + 
-  theme(aspect.ratio = 1.5) +
   theme(axis.line.x.bottom=element_line(size=0.5)) +
   theme(axis.line.y.left=element_line(size=0.5)) +
-  theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
-        axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
-        axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
-        axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+  theme(axis.text.x = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "black", size = myfontsize, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+        axis.title.x = element_text(color = "black", size = myfontsize, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
 my_plot
 
 # -----------------------------------------------------------------------------
@@ -223,40 +224,47 @@ mySouthAfricaColour <- "red"
 
 # Cameroon only:
 Cameroon_plot <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(rab), fill=ida_Country)) + 
-  geom_histogram(aes(y = ..density..),
-                 fill = myCameroonColour, 
-                 alpha = 0.8, bins = 60) +
-  geom_density(alpha = 0.4, adjust = 0.1) +
-  theme_classic() + 
-  labs(y= "Density", 
-       x = "Co-foundress relatedness") + 
-  scale_fill_manual( values = c(myCameroonColour)) + 
-  scale_x_continuous(limits = c(-0.01,0.9), expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) + 
-  geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$rab)), 
-             linetype="dashed") + theme(legend.position = "none")
-  
+    geom_histogram(aes(y = ..density..),
+                   fill = myCameroonColour, 
+                   alpha = 0.8, bins = 20) +
+    geom_density(alpha = 0.4, adjust = 0.1) +
+    theme_cowplot(font_size = myfontsize) + 
+    labs(y= "Density", 
+         x = "Co-foundress relatedness") + 
+    scale_fill_manual( values = c(myCameroonColour)) + 
+    scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
+    scale_y_continuous(breaks = seq(0,10,by = 5),expand = c(0, 0)) + 
+    geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$rab)), 
+               linetype="dashed") + theme(legend.position = "none")
+
 # South Africa only:
 SA_plot <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_Country)) + 
-  geom_histogram(aes(y = ..density..),
-                 fill = mySouthAfricaColour, 
-                 alpha = 0.8, bins = 50) +
-  geom_density(alpha = 0.2, adjust = 1.5) +
-  theme_classic() + 
-  labs(y= "Density", 
-       x = "Co-foundress relatedness") + 
-  scale_fill_manual( values = c(mySouthAfricaColour)) + 
-  scale_x_continuous(limits = c(-0.01,0.9), expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) + 
-  geom_vline(xintercept = mean(as.numeric(SouthAfrican_cofoundresses$rab)), 
-             linetype="dashed") + theme(legend.position = "none")
+    geom_histogram(aes(y = ..density..),
+                   fill = mySouthAfricaColour, 
+                   alpha = 0.8, bins =20) +
+    geom_density(alpha = 0.2, adjust = 1.5) +
+    theme_cowplot(font_size = myfontsize) + 
+    labs(y= "Density", 
+         x = "Co-foundress relatedness") + 
+    scale_fill_manual( values = c(mySouthAfricaColour)) + 
+    scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
+    scale_y_continuous(breaks = seq(0,15,by = 5),expand = c(0, 0)) + 
+    geom_vline(xintercept = mean(as.numeric(SouthAfrican_cofoundresses$rab)), 
+               linetype="dashed") + theme(legend.position = "none")
 
 # Plot both plots as panels:
 library(gridExtra)
 grid.arrange(SA_plot,Cameroon_plot)
 
+# Mean relatednesses in each country:
+mean(as.numeric(SouthAfrican_cofoundresses$rab))
+sd(as.numeric(SouthAfrican_cofoundresses$rab))
+
+mean(as.numeric(Cameroon_cofoundresses$rab))
+sd(as.numeric(Cameroon_cofoundresses$rab))
+
 # South Africa cofoundresses, showing separate densities for each population:
-SA_plot <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_Population)) +
+SA_plot2 <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_Population)) +
   geom_density(alpha = 0.5, adjust = 0.8, lty = "solid") +
   theme_classic() + 
   labs(y= "Density", 
@@ -266,7 +274,7 @@ SA_plot <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_Po
 SA_plot
 
 # Cameroonian cofoundresses, showing separate densities for each population:
-Cameroon_plot <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(rab),  fill=ida_Population)) +
+Cameroon_plot2 <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(rab),  fill=ida_Population)) +
   geom_density(alpha = 0.5, adjust = 0.4, lty = "solid") +
   theme_classic() + 
   labs(y= "Density", 
@@ -277,7 +285,26 @@ Cameroon_plot
 
 # Plot both plots as panels:
 library(gridExtra)
-grid.arrange(SA_plot,Cameroon_plot)
+grid.arrange(SA_plot2,Cameroon_plot2)
+
+# -----------------------------------------------------------------------------
+# COMBINE PLOTS FOR PUBLICATION IN PANEL:
+
+# Generate panel:
+library("cowplot")
+my_output_panel <- ggdraw() +
+draw_plot(my_plot,  x=0, y=0, width= .3, height=1) +
+draw_plot(Cameroon_plot,  x=.3, y=0, width= .7, height=.5) +
+draw_plot(SA_plot,  x=.3, y=.5, width= .7, height=.5)
+
+# Export as SVG file for publication:
+library(svglite)
+ggsave(filename = "my_output_panel.svg", 
+       plot = my_output_panel, 
+       height = 2.5,
+       width = 5, dpi = 200)
+# This file is now in the relevant folder, as an SVG file. 
+# Opening it will open Inkscape automatically.
 
 # -----------------------------------------------------------------------------
 # PROPORTION OF RELATEDNESSES THAT ARE NOT FULL SISTERS:
@@ -296,11 +323,25 @@ SA_total_relatednesses <- dim(SouthAfrican_cofoundresses)[1]
 SA_Percent_of_relatednesses_that_are_not_full_sisters <- (1-(SA_total_full_sister_relatednesses/SA_total_relatednesses))*100
 SA_Percent_of_relatednesses_that_are_not_full_sisters
 
+Cameroon_total_not_sisters <- Cameroon_total_relatednesses-Cameroon_total_full_sister_relatednesses
+SA_total_not_sisters <- SA_total_relatednesses-SA_total_full_sister_relatednesses
+
 # Two-proportions Z test:
 prop.test(x = c(Cameroon_total_not_sisters,SA_total_not_sisters), 
           n = c(Cameroon_total_relatednesses,SA_total_relatednesses), 
           p = NULL, alternative = "two.sided", 
           correct = TRUE)
+
+## OUTPUT OF ANALYSIS (17TH JAN 2024):
+## 2-sample test for equality of proportions with continuity correction
+## data:  c(Cameroon_total_not_sisters, SA_total_not_sisters) out of c(Cameroon_total_relatednesses, SA_total_relatednesses)
+## X-squared = 93.633, df = 1, p-value < 2.2e-16
+## alternative hypothesis: two.sided
+## 95 percent confidence interval:
+##  0.3290825 0.4980559
+## sample estimates:
+##    prop 1     prop 2 
+## 0.46551724 0.05194805 
 
 # Barplot showing the proportions of cofoundresses pairwise relatednesses that are full sisters, with '***' to denote the significant p-value from the test above:
 SA_total_not_sisters <- SA_total_relatednesses-SA_total_full_sister_relatednesses;
@@ -327,7 +368,7 @@ plot_grid(nonsisters_barplot,
 # -----------------------------------------------------------------------------
 # PROPORTION OF RELATEDNESSES THAT ARE NONRELATIVES OR VERY DISTANT RELATIVES
 
-Threshold_for_interpretting_as_nonrelatives = 0.15
+Threshold_for_interpretting_as_nonrelatives = 0.1
 
 # Proportion of pairwise relatednesses that are <0.15 in Cameroon:
 Cameroon_total_nonrelatives_relatednesses <- dim(subset(Cameroon_cofoundresses, rab < Threshold_for_interpretting_as_nonrelatives))[1]
@@ -347,14 +388,22 @@ prop.test(x = c(Cameroon_total_nonrelatives_relatednesses,SA_total_nonrelatives_
           p = NULL, alternative = "two.sided", 
           correct = TRUE)
 
-# IN THE ANALYSIS OF 15TH JAN 2024, THE PROPORTIONS WERE: 17.8% and 3.5%, when the threshold was rab<0.15.
+## OUTPUT OF ANALYSIS (17TH JAN 2024):
+## data:  c(Cameroon_total_nonrelatives_relatednesses, SA_total_nonrelatives_relatednesses) out of c(Cameroon_total_relatednesses, SA_total_relatednesses)
+## X-squared = 21.529, df = 1, p-value = 3.485e-06
+## alternative hypothesis: two.sided
+## 95 percent confidence interval:
+##  0.06175952 0.17663427
+## sample estimates:
+##     prop 1     prop 2 
+## 0.13218391 0.01298701 
 
 # -----------------------------------------------------------------------------
 # WHAT PERCENTAGE OF NESTS CONTAIN AT LEAST ONE NONRELATIVE OR DISTANT RELATIVE?
 
 # In Polistes dominula, Field & Leadbeater (2016) write: "In the Spanish populations, more than 80% of co-foundress 
-groups contain at least one foundress that is unrelated or only distantly 
-related to other group members" (https://royalsocietypublishing.org/doi/10.1098/rstb.2015.0093)
+# groups contain at least one foundress that is unrelated or only distantly 
+# related to other group members" (https://royalsocietypublishing.org/doi/10.1098/rstb.2015.0093)
 # What is the equivalent percentage in Belonogaster juncea?
 
 # The minimum relatedness value on each nest:
@@ -374,11 +423,25 @@ SA_nests_with_nonrelative_or_distant_relative_COUNT <- dim(subset(nests_with_non
 Cameroon_Proportion_of_nests_with_nonrelative_or_distant_relative <- (Cameroon_nests_with_nonrelative_or_distant_relative_COUNT/dim(subset(Nest_min, Country == "Cameroon"))[1])*100
 SA_Proportion_of_nests_with_nonrelative_or_distant_relative <- (SA_nests_with_nonrelative_or_distant_relative_COUNT/dim(subset(Nest_min, Country == "SouthAfrica"))[1])*100
 
-# IN THE ANALYSIS OF 15TH JAN 2024, THE PROPORTIONS WERE: 25.3% and 7.0%, when the threshold was rab<0.15.
+# Two-proportions Z test:
+prop.test(x = c(Cameroon_nests_with_nonrelative_or_distant_relative_COUNT, SA_nests_with_nonrelative_or_distant_relative_COUNT), 
+          n = c(dim(subset(Nest_min, Country == "Cameroon"))[1], dim(subset(Nest_min, Country == "SouthAfrica"))[1]), 
+          p = NULL, alternative = "two.sided", 
+          correct = TRUE)
+
+## ANALYSIS 17th JANUARY 2024:
+## data:  c(Cameroon_nests_with_nonrelative_or_distant_relative_COUNT, SA_nests_with_nonrelative_or_distant_relative_COUNT) out of c(dim(subset(Nest_min, Country == "Cameroon"))[1], dim(subset(Nest_min, Country == "SouthAfrica"))[1])
+## X-squared = 5.4225, df = 1, p-value = 0.01988
+## alternative hypothesis: two.sided
+## 95 percent confidence interval:
+##  0.0352649 0.2560054
+## sample estimates:
+##     prop 1     prop 2 
+## 0.18072289 0.03508772 
 
 # BOXPLOT FOR RELATEDNESS OF THE LEAST-RELATED INDIVIDUAL IN EACH GROUP:
 # Generate boxplots (following https://github.com/erocoar/ggpol):
-ggplot(Nest_min) + 
+least_related_plot <- ggplot(Nest_min) + 
   geom_boxjitter(aes(x = Country, 
                      y = rab, 
                      fill = Country),
@@ -387,21 +450,43 @@ ggplot(Nest_min) +
                  jitter.alpha = 0.5,
                  jitter.size = 1.5,
                  jitter.params = list(height = 0, width = 0.09),
-                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                 outlier.color = "white", outlier.fill = "white", outlier.shape = 21,
                  errorbar.draw = TRUE) + 
   scale_fill_manual(values = myColors) +
-  theme_classic(base_size = 12) + 
+  theme_cowplot(font_size = myfontsize) + 
+  scale_x_discrete(labels=c("C","SA")) +
   theme(text = element_text(size=20)) +
-  labs(y= "Relatedness", 
+  labs(y= "Minimum r", 
        x = "Country") + 
   theme(legend.position="none") + 
-  theme(aspect.ratio = 1.5) +
   theme(axis.line.x.bottom=element_line(size=0.5)) +
   theme(axis.line.y.left=element_line(size=0.5)) +
-  theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
-        axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
-        axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
-        axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+  theme(axis.text.x = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "black", size = myfontsize, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+        axis.title.x = element_text(color = "black", size = myfontsize, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+
+# -----------------------------------------------------------------------------
+# COMBINE PLOTS FOR PUBLICATION IN PANEL:
+
+# Generate panel:
+library("cowplot")
+my_output_panel <- ggdraw() +
+draw_plot(least_related_plot,  x=0, y=0, width= .3, height=1) +
+draw_plot(Cameroon_plot,  x=.3, y=0, width= .7, height=.5) +
+draw_plot(SA_plot,  x=.3, y=.5, width= .7, height=.5) + 
+draw_plot_label("a", x = 0, y = 1, size = myfontsize, fontface = "bold") +
+draw_plot_label("b", x = .3, y = 1, size = myfontsize, fontface = "bold") +
+draw_plot_label("c", x = .3, y = .5,size = myfontsize, fontface = "bold")
+
+# Export as SVG file for publication:
+library(svglite)
+ggsave(filename = "my_output_panel.svg", 
+       plot = my_output_panel, 
+       height = 2.5,
+       width = 5, dpi = 200)
+# This file is now in the relevant folder, as an SVG file. 
+# Opening it will open Inkscape automatically.
 
 # -----------------------------------------------------------------------------
 # AVERAGE RELATEDNESSES PER NEST:
@@ -531,9 +616,10 @@ plot_grid(nonsisters_barplot,
 
 # Following: http://www.sthda.com/english/articles/33-social-network-analysis/135-network-visualization-essentials-in-r/
 
-# List of all nests currently loaded in this R session:
-nestlist <- levels(as.factor(Cofoundresses_data$ida_Tagging_nest_if_foundress))
+# List of all nests from the chosen country:
+nestlist <- levels(as.factor(SouthAfrican_cofoundresses$ida_Tagging_nest_if_foundress))
 
+p <- list()
 for (nest in 1:length(nestlist)){
                   
                   # Enter your nest of interest here:
@@ -568,25 +654,28 @@ for (nest in 1:length(nestlist)){
                           my_edgelist$InferredKinship <- NA
                           my_edgelist$InferredKinship[my_edgelist$V3 < 0.1] <- "Unrelated (ideal r<0.1)"
                           my_edgelist$InferredKinship[my_edgelist$V3 > 0.1 & my_edgelist$V3 < 0.3] <- "Cousins (ideal r<0.1875)"
-                          my_edgelist$InferredKinship[my_edgelist$V3 > 0.3 & my_edgelist$V3 < 0.6] <- "Aunt-niece (ideal r=0.375)"
+                          my_edgelist$InferredKinship[my_edgelist$V3 > 0.3 & my_edgelist$V3 < 0.44] <- "Aunt-niece (ideal r=0.375)"
+                              my_edgelist$InferredKinship[my_edgelist$V3 > 0.44 & my_edgelist$V3 < 0.6] <- "Mother-daughter (ideal r=0.5)"
                           my_edgelist$InferredKinship[my_edgelist$V3 > 0.6] <- "Full sisters (ideal r=0.75)"
-                          my_edgelist$InferredKinship[my_edgelist$V3 > 0.8] <- "DUPLICATED WASP"
+                          
                   
                   # Choose the linetype for the different inferred kinships:
                           my_edgelist$linetype <- NA
                           my_edgelist$linetype[my_edgelist$InferredKinship == "Unrelated (ideal r<0.1)"] <- "dotted"
                           my_edgelist$linetype[my_edgelist$InferredKinship == "Cousins (ideal r<0.1875)"] <- "dotdash"
                           my_edgelist$linetype[my_edgelist$InferredKinship == "Aunt-niece (ideal r=0.375)"] <- "dashed"
+                          my_edgelist$linetype[my_edgelist$InferredKinship == "Mother-daughter (ideal r=0.5)"] <- "solid"
                           my_edgelist$linetype[my_edgelist$InferredKinship == "Full sisters (ideal r=0.75)"] <- "solid"
-                          my_edgelist$linetype[my_edgelist$InferredKinship == "DUPLICATED WASP"] <- "solid"
+                         
                           
                   # Choose the line colours for the different inferred kinships:
                           my_edgelist$my_line_colours <- NA
                           my_edgelist$my_line_colours[my_edgelist$InferredKinship == "Unrelated (ideal r<0.1)"] <- "grey"
                           my_edgelist$my_line_colours[my_edgelist$InferredKinship == "Cousins (ideal r<0.1875)"] <- "pink"
                           my_edgelist$my_line_colours[my_edgelist$InferredKinship == "Aunt-niece (ideal r=0.375)"] <- "turquoise"
+                              my_edgelist$my_line_colours[my_edgelist$InferredKinship == "Mother-daughter (ideal r=0.5)"] <- "green"
                           my_edgelist$my_line_colours[my_edgelist$InferredKinship == "Full sisters (ideal r=0.75)"] <- "navy"
-                          my_edgelist$my_line_colours[my_edgelist$InferredKinship == "DUPLICATED WASP"] <- "red"
+                          
                           
                   # Convert to tibble format:
                           edges <- as_tibble(my_edgelist)
@@ -615,15 +704,14 @@ for (nest in 1:length(nestlist)){
                           library(igraph)
                           library(ggraph)
                           net <- graph_from_data_frame(d=edges,vertices=nodes,directed=T)
-                          p <- ggraph(net,layout = 'linear', circular = TRUE) +
+                          p[[nest]] <- ggraph(net,layout = 'linear', circular = TRUE) +
                             geom_edge_fan(aes(linetype = linetype,
                                               color = my_line_colours) # You set linetype in the code above.
                             ) +
-                            geom_node_point(fill = "white", shape = 21, size = 3, color = "black") +
+                            geom_node_point(fill = "white", shape = 21, size = 1, color = "black") +
                             scale_edge_alpha(range = c(0,1)) +
                             scale_edge_width(range = c(0,1)) + 
-                            theme_graph() + 
-                            geom_node_text(aes(label=label),size=2, repel = TRUE) + 
+                            theme_graph() + ##geom_node_text(aes(label=label),size=2, repel = TRUE) +
                             scale_edge_linetype_manual(limits = as.factor(edges$linetype),
                                                        values = edges$linetype) +
                             scale_edge_color_manual(limits = as.factor(edges$my_line_colours), 
@@ -633,12 +721,15 @@ for (nest in 1:length(nestlist)){
                                   plot.background = element_rect(fill='transparent', color=NA))
                           
                     
-                          ggsave(p,filename=paste("myplot",Nest_of_interest,".pdf", sep=""), width = 2, height = 2) 
+                          ggsave(p[[nest]],filename=paste("myplot",Nest_of_interest,".pdf", sep=""), width = 2, height = 2) 
                           
                           
 } # end for-loop through each nest.
 
 # The diagrams are now available in the current directory, and can be imported into Illustrator/Powerpoint for arranging.
+
+margin = theme(plot.margin = unit(c(0,0,0,0), "cm"))
+grid.arrange(grobs = lapply(p, "+", margin))
 
 # -----------------------------------------------------------------------------
 # NETWORK DIAGRAM TO SHOW HOW MANY PARENTAL NESTS CONTRIBUTED TO EACH AGGREGATION:
