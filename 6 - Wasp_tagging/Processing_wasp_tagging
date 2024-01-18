@@ -165,7 +165,7 @@ winglength_plot <- ggplot(dat) +
   labs(y= "Wing length (mm)", 
        x = "Social role") + 
   theme(legend.position="none") + 
-  scale_y_continuous(breaks = seq(15,24,by = 2),expand = c(0, 0)) +
+  scale_y_continuous(breaks = seq(14,28,by = 2),expand = c(0, 2)) +
   theme(axis.line.x.bottom=element_line(size=0.5)) +
   theme(axis.line.y.left=element_line(size=0.5)) +
   theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
@@ -238,6 +238,7 @@ dominantsubordinatesizeplot <- ggplot(withoutNAs) +
   scale_fill_manual(values = myColors) + 
   theme_cowplot(font_size = myfontsize) + 
   theme(text = element_text(size=20)) +
+  scale_y_continuous(breaks = seq(14,28,by = 2),expand = c(0, 2)) +
   labs(y= "Wing length (mm)", 
        x = "Social role") + 
   theme(legend.position="none") + 
