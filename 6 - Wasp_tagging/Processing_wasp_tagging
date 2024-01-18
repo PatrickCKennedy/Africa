@@ -1,9 +1,7 @@
 # ----------------------------------------------------------------------
 # PROCESSING WASP TAGGING DATA:
 # ----------------------------------------------------------------------
-
-# BOXPLOTS AND ANOVA SCRIPT
-# Patrick
+myfontsize <- 10
 
 # Save the wasp tagging datasheet as 'ToImportToR', import, then name it 'mydata':
 my_data <- ToImportToR
@@ -30,17 +28,17 @@ dat$`CountryPlusNestType` <- as.factor(dat$`CountryPlusNestType`)
 # ----------------------------------------------------------------------
 # PLOT FIGURE FOR THE PAPER:
 
-my_x_variable <-  dat$`CountryPlusNestType`
-my_y_variable <-  dat$`Thorax size`
-my_color_variable <- dat$Country
+thoraxplot.my_x_variable <-  dat$`CountryPlusNestType`
+thoraxplot.my_y_variable <-  dat$`Thorax size`
+thoraxplot.my_color_variable <- dat$Country
 
 myColors <- c("#56ddc5","red")
 
 # Generate boxplots (following https://github.com/erocoar/ggpol):
 thoraxwidth_plot <- ggplot(dat) + 
-  geom_boxjitter(aes(x = my_x_variable, 
-                     y = my_y_variable, 
-                     fill = my_color_variable),
+  geom_boxjitter(aes(x = thoraxplot.my_x_variable, 
+                     y = thoraxplot.my_y_variable, 
+                     fill = thoraxplot.my_color_variable),
                  jitter.shape = 21, 
                  jitter.color = NA, 
                  jitter.alpha = 0.5,
@@ -49,12 +47,11 @@ thoraxwidth_plot <- ggplot(dat) +
                  outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
                  errorbar.draw = TRUE) + 
   scale_fill_manual(values = myColors) + 
-  theme_classic(base_size = 12) + 
+  theme_cowplot(font_size = myfontsize) + 
   theme(text = element_text(size=20)) +
-  labs(y= "Body size (Thorax width)", 
+  labs(y= "Thorax width (mm)", 
        x = "Social role") + 
   theme(legend.position="none") + 
-  theme(aspect.ratio = 1.5) +
   theme(axis.line.x.bottom=element_line(size=0.5)) +
   theme(axis.line.y.left=element_line(size=0.5)) +
   theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
@@ -67,7 +64,7 @@ thoraxwidth_plot
 # STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
 
 # Run ANOVA:
-res_aov <- aov(my_y_variable ~ my_x_variable, 
+res_aov <- aov(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
                data = dat)
 
 # Check for normality (https://statsandr.com/blog/anova-in-r/):
@@ -81,13 +78,13 @@ res_aov <- aov(my_y_variable ~ my_x_variable,
       # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
 
 # Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
-      leveneTest(my_y_variable ~ my_x_variable, 
+      leveneTest(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
                  data = dat)
-      # If p<0.05, reject the null hypothesis of a normal distribution.
+      # If p<0.05, reject the null hypothesis of equal variances.
       # You should also look at the scatter on the boxplot.
 
 # Compute descriptive stats (means and standard deviations):
-      aggregate(my_y_variable ~ my_x_variable, 
+      aggregate(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
                 data = dat,
                 function(x) round(c(mean = mean(x), sd = sd(x)), 2))
 
@@ -98,7 +95,7 @@ report(res_aov)
 # Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
 library(multcomp)
 post_test <- glht(res_aov,
-                  linfct = mcp(my_x_variable = "Tukey"))
+                  linfct = mcp(thoraxplot.my_x_variable = "Tukey"))
 summary(post_test)
 # Here is the explanation of the results: "In the output of the Tukey HSD test, 
 # we are interested in the table displayed after Linear Hypotheses:, and more 
@@ -126,36 +123,36 @@ plot(post_test)
 library(agricolae)
 library(tidyverse)
 
-dat.summarized = dat %>% group_by(`CountryPlusNestType`) %>% summarize(Max.my_y_variable=max(`Thorax size`))
+thorax.dat.summarized = dat %>% group_by(`CountryPlusNestType`) %>% summarize(thorax.Max.my_y_variable=max(`Thorax size`))
 
-hsd=HSD.test(aov(my_y_variable ~ my_x_variable, 
-                     data=dat), "my_x_variable", group=T)
+thorax.hsd=HSD.test(aov(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
+                     data=dat), "thoraxplot.my_x_variable", group=T)
 
 # Now plot the post-hoc test letters on the graph:
-my_plot <- my_plot + geom_text(data=dat.summarized,
-           aes(x=`CountryPlusNestType`,y=0.2+Max.my_y_variable,
-               label=hsd$groups$groups),
+thoraxwidth_plot <- thoraxwidth_plot + geom_text(data=thorax.dat.summarized,
+           aes(x=`CountryPlusNestType`,y=0.2+thorax.Max.my_y_variable,
+               label=thorax.hsd$groups$groups),
            vjust=0)
 
 # Export the graph as a PDF ready for the paper:
     pdf("NAMETHEGRAPHHERE.pdf",height=3)
-    my_plot + theme(aspect.ratio = 1.5)
+    thoraxwidth_plot + theme(aspect.ratio = 1.5)
     dev.off()
 
 # -------------------------------------------
 # WING LENGTH
 
-my_x_variable <-  dat$`CountryPlusNestType`
-my_y_variable <-  dat$`Wing length`
-my_color_variable <- dat$Country
+winglengthplot.my_x_variable <-  dat$`CountryPlusNestType`
+winglengthplot.my_y_variable <-  dat$`Wing length`
+winglengthplot.my_color_variable <- dat$Country
 
 myColors <- c("#56ddc5","red")
 
 # Generate boxplots (following https://github.com/erocoar/ggpol):
 winglength_plot <- ggplot(dat) + 
-  geom_boxjitter(aes(x = my_x_variable, 
-                     y = my_y_variable, 
-                     fill = my_color_variable),
+  geom_boxjitter(aes(x = winglengthplot.my_x_variable, 
+                     y = winglengthplot.my_y_variable, 
+                     fill = winglengthplot.my_color_variable),
                  jitter.shape = 21, 
                  jitter.color = NA, 
                  jitter.alpha = 0.5,
@@ -164,12 +161,11 @@ winglength_plot <- ggplot(dat) +
                  outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
                  errorbar.draw = TRUE) + 
   scale_fill_manual(values = myColors) + 
-  theme_classic(base_size = 12) + 
-  theme(text = element_text(size=20)) +
-  labs(y= "Body size (Thorax size)", 
+  theme_cowplot(font_size = myfontsize) + 
+  labs(y= "Wing length (mm)", 
        x = "Social role") + 
   theme(legend.position="none") + 
-  theme(aspect.ratio = 1.5) +
+  scale_y_continuous(breaks = seq(15,24,by = 2),expand = c(0, 0)) +
   theme(axis.line.x.bottom=element_line(size=0.5)) +
   theme(axis.line.y.left=element_line(size=0.5)) +
   theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
@@ -181,12 +177,27 @@ winglength_plot
 # ----------------------------------------------------------------------
 # STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
 
-t.test(dat$`Wing length` ~ dat$Country)
+# To get this to work, it seems that we have to run the Tukey HSD test using a different
+# package, and then plot that on the graph (following https://stackoverflow.com/questions/48625620/adding-tukeys-significance-letters-to-boxplot):
+
+# First, run the Tukey tests:
+winglength.dat.summarized = dat %>% group_by(`CountryPlusNestType`) %>% summarize(winglength.Max.my_y_variable=max(`Wing length`))
+
+winglength.hsd=HSD.test(aov(winglengthplot.my_y_variable ~ winglengthplot.my_x_variable, 
+                     data=dat), "winglengthplot.my_x_variable", group=T)
+
+# Now plot the post-hoc test letters on the graph:
+winglength_plot <- winglength_plot + geom_text(data=winglength.dat.summarized,
+           aes(x=`CountryPlusNestType`,y=0.2+winglength.Max.my_y_variable,
+               label=winglength.hsd$groups$groups),
+           vjust=0)
 
 # Export the graph as a PDF ready for the paper:
-pdf(""NAMETHEGRAPHHERE.pdf"",height=3)
-my_plot + theme(aspect.ratio = 1.5)
-dev.off()"
+    pdf("NAMETHEGRAPHHERE.pdf",height=3)
+    winglength_plot + theme(aspect.ratio = 1.5)
+    dev.off()
+
+winglength_plot + theme(aspect.ratio = 1.5)
 
 # ----------------------------------------------------------------------
 # IN CAMEROON, ARE DOMINANTS BIGGER THAN SUBORDINATES?
@@ -206,52 +217,145 @@ includedwasps <- subset(tempfile_ExperimentWaspsToImportToR,tempfile_ExperimentW
 # Remove rows with 'NA':
 withoutNAs <- drop_na(includedwasps,WingLength)
 
-my_x_variable <-  as.factor(withoutNAs$Category)
-my_y_variable <-  as.numeric(withoutNAs$WingLength)
-my_color_variable <- withoutNAs$Country
+dom_sub_size.my_x_variable <-  as.factor(withoutNAs$Category)
+dom_sub_size.my_y_variable <-  as.numeric(withoutNAs$WingLength)
+dom_sub_size.my_color_variable <- withoutNAs$Country
 
 myColors <- c("#56ddc5","red")
 
 # Generate boxplots (following https://github.com/erocoar/ggpol):
-my_plot <- ggplot(withoutNAs) + 
-  geom_boxjitter(aes(x = my_x_variable, 
-                     y = my_y_variable, 
-                     fill = my_color_variable),
+dominantsubordinatesizeplot <- ggplot(withoutNAs) + 
+  geom_boxjitter(aes(x = dom_sub_size.my_x_variable, 
+                     y = dom_sub_size.my_y_variable, 
+                     fill = dom_sub_size.my_color_variable),
                  jitter.shape = 21, 
                  jitter.color = NA, 
                  jitter.alpha = 0.5,
                  jitter.size = 0.6,
                  jitter.params = list(height = 0, width = 0.09),
-                 outlier.color = "white", outlier.fill = "white", outlier.shape = 21,
+                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
                  errorbar.draw = TRUE) + 
   scale_fill_manual(values = myColors) + 
-  theme_classic(base_size = 12) + 
+  theme_cowplot(font_size = myfontsize) + 
   theme(text = element_text(size=20)) +
-  labs(y= "Wing length", 
+  labs(y= "Wing length (mm)", 
        x = "Social role") + 
   theme(legend.position="none") + 
-  theme(aspect.ratio = 1.5) +
   theme(axis.line.x.bottom=element_line(size=0.5)) +
   theme(axis.line.y.left=element_line(size=0.5)) +
   theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
         axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
         axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
         axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
-my_plot
+dominantsubordinatesizeplot
+
+# Run ANOVA:
+dom_sub_size.res_aov <- aov(dom_sub_size.my_y_variable ~ dom_sub_size.my_x_variable, 
+               data = withoutNAs)
+
+# Check for normality (https://statsandr.com/blog/anova-in-r/):
+      # First, with histogram:
+      hist(dom_sub_size.res_aov$residuals)
+      # Second, with Q-Q plot:
+      library(car)
+      qqPlot(dom_sub_size.res_aov$residuals, id = FALSE) # id = FALSE to remove point identification
+      # Third, with Shapiro-Wilk test:
+      shapiro.test(dom_sub_size.res_aov$residuals)
+      # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
+
+# Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
+      leveneTest(dom_sub_size.my_y_variable ~ dom_sub_size.my_x_variable, 
+                 data = withoutNAs)
+      # If p<0.05, reject the null hypothesis of equal variances.
+      # You should also look at the scatter on the boxplot.
+
+# Compute descriptive stats (means and standard deviations):
+      aggregate(dom_sub_size.my_y_variable ~ dom_sub_size.my_x_variable, 
+                 data = withoutNAs,
+                 function(x) round(c(mean = mean(x), sd = sd(x)), 2))
+
+# Use the 'report' package to get a report on what your ANOVA results mean:
+library("report")
+report(dom_sub_size.res_aov)
+
+# Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
+library(multcomp)
+post_test <- glht(dom_sub_size.res_aov,
+                  linfct = mcp(dom_sub_size.my_x_variable = "Tukey"))
+summary(post_test)
 
 # ----------------------------------------------------------------------
 # STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
 
-t.test(withoutNAs$WingLength ~ withoutNAs$Category)
+# To get this to work, it seems that we have to run the Tukey HSD test using a different
+# package, and then plot that on the graph (following https://stackoverflow.com/questions/48625620/adding-tukeys-significance-letters-to-boxplot):
 
-library(lme4) # for the analysis
-model1 <- lmer(formula = withoutNAs$WingLength ~ 1 + withoutNAs$Category, 
-               data    = withoutNAs)
-summary(model1)
+# First, run the Tukey tests:
+dom_sub_size.dat.summarized = withoutNAs %>% group_by(Category) %>% summarize(dom_sub_size.Max.my_y_variable=max(WingLength))
+
+dom_sub_size.hsd=HSD.test(aov(dom_sub_size.my_y_variable ~ dom_sub_size.my_x_variable, 
+                     data=withoutNAs), "dom_sub_size.my_x_variable", group=T)
+
+# NOTE: The ordering of dom_sub_size.hsd$groups$groups is in a different order to the categories on the boxplot.
+# To get them in the right order, we use:
+library(rlist); my_alphabet_labels=list.reverse(dom_sub_size.hsd$groups$groups)
+# If adapting this script for other contexts, make sure you have the right letters for the right categories.
+
+# Now plot the post-hoc test letters on the graph:
+dominantsubordinatesizeplot <- dominantsubordinatesizeplot + geom_text(data=dom_sub_size.dat.summarized,
+           aes(x=Category,y=0.2+dom_sub_size.Max.my_y_variable,
+               label=my_alphabet_labels),
+           vjust=0)
+dominantsubordinatesizeplot
+
+
+
+
+
+# ----------------------------------------------------------------------
+# STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
+
+##library(lme4) # for the analysis
+##model1 <- lmer(formula = withoutNAs$WingLength ~ 1 + withoutNAs$Category, 
+##               data    = withoutNAs)
+##summary(model1)
 
 # Export the graph as a PDF ready for the paper:
 pdf("NAMETHEGRAPHHERE.pdf",height=3)
 my_plot + theme(aspect.ratio = 1.5)
 dev.off()
 
+
+
+
+
+
+
+
+
+
+
+
+# ----------------------------------------------------------------------
+# COMBINE PLOTS FOR PUBLICATION AS PANEL:
+
+# Generate panel:
+library("cowplot")
+my_output_panel2 <- ggdraw() +
+  draw_plot(thoraxwidth_plot, x=0, y=0, width= 0.3) +
+  draw_plot(winglength_plot,  x=.3, y=0, width= 0.3) +
+  draw_plot(dominantsubordinatesizeplot,  x=.6, y=0, width= 0.3) +
+  draw_plot_label("a", x = 0, y = 1, size = myfontsize, fontface = "bold") +
+  draw_plot_label("b", x = .3, y = 1, size = myfontsize, fontface = "bold") +
+  draw_plot_label("c", x = .6, y = 1, size = myfontsize, fontface = "bold")
+my_output_panel2
+
+# Export as SVG file for publication:
+library(svglite)
+ggsave(filename = "my_output_panel2.svg", 
+       plot = my_output_panel2, 
+       height = 2.5,
+       width = 5, dpi = 200)
+# This file is now in the relevant folder, as an SVG file. 
+# Opening it will open Inkscape automatically.
 
