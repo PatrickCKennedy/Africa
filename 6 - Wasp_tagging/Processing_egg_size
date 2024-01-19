@@ -1,1 +1,167 @@
 # EGG SIZE R SCRIPT
+
+# Copy-paste the ovary dissection results Excel sheet into its own document, and 
+# import it into R as 'tempfile_ImportDissectionResults':
+
+View(tempfile_ImportDissectionResults)
+
+# First, focus on the subset of the data that comprises rows with largest-egg measurements (keeping wasps with no oocytes as '0') *and* with dominance categorisations:
+WaspsWithEggMeasurementsAndDominanceCategorisation <- drop_na(tempfile_ImportDissectionResults,c(LargestEgg,FoundressDominanceCategory))
+View(WaspsWithEggMeasurementsAndDominanceCategorisation)
+WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg <- as.numeric(WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg)
+
+# There are two foundresses with no oocytes at all (both in South Africa). 
+# To plot largest egg sizes in all other wasps, we remove these wasps from the plot:
+WaspsWithEggMeasurementsAndDominanceCategorisation <- subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg>0)
+
+# Quick overview plot using violin plot:
+library(ggrain)
+ggplot(WaspsWithEggMeasurementsAndDominanceCategorisation, aes(x = FoundressDominanceCategory, y = LargestEgg, fill=Country)) +
+    geom_rain(rain.side = 'l') + theme_cowplot()
+
+# Generate boxplots (following https://github.com/erocoar/ggpol):
+largestegg.plot <- ggplot(WaspsWithEggMeasurementsAndDominanceCategorisation) + 
+  geom_boxjitter(aes(x = FoundressDominanceCategory, 
+                     y = LargestEgg, 
+                     fill = Country),
+                 jitter.shape = 21, 
+                 jitter.color = NA, 
+                 jitter.alpha = 0.5,
+                 jitter.size = 0.3,
+                 jitter.params = list(height = 0, width = 0.09),
+                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                 errorbar.draw = TRUE) + 
+  scale_fill_manual(values = myColors) + 
+  expand_limits(y=c(0,2.5)) +
+  scale_y_continuous(breaks = seq(0,2.3,by = 0.5),expand = c(0, 0)) +
+  theme_cowplot(font_size = myfontsize) + 
+  theme(text = element_text(size=20)) +
+  labs(y= "Largest egg (mm)", 
+       x = "Social role") + 
+  theme(legend.position="none") + 
+  theme(axis.line.x.bottom=element_line(size=0.5)) +
+  theme(axis.line.y.left=element_line(size=0.5)) +
+  theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+        axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+largestegg.plot
+
+# ----------------------------------------------------------------------
+# STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
+
+# Run ANOVA:
+largestegg.res_aov <- aov(LargestEgg ~ FoundressDominanceCategory, 
+               data = WaspsWithEggMeasurementsAndDominanceCategorisation)
+summary(largestegg.res_aov)
+
+# Check for normality (https://statsandr.com/blog/anova-in-r/):
+      # First, with histogram:
+      hist(largestegg.res_aov$residuals)
+      # Second, with Q-Q plot:
+      library(car)
+      qqPlot(largestegg.res_aov$residuals, id = FALSE) # id = FALSE to remove point identification
+      # Third, with Shapiro-Wilk test:
+      shapiro.test(largestegg.res_aov$residuals)
+      # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
+
+            # SHAPIRO-WILK OUTPUT (18th JANUARY 2024):
+            ## Shapiro-Wilk normality test
+            ## data:  largestegg.res_aov$residuals
+            ## W = 0.90699, p-value = 7.122e-08
+
+# Since the data is highly non-normal, we will use a Kruskal-Wallis test instead of ANOVA:
+
+largestegg.kruskal_wallis <- kruskal.test(LargestEgg ~ FoundressDominanceCategory, 
+            data = WaspsWithEggMeasurementsAndDominanceCategorisation)
+largestegg.kruskal_wallis
+
+          # KRUSKAL-WALLIS TEST OUTPUT (19TH JANUARY 2024):
+          ## Kruskal-Wallis rank sum test
+          ## data:  LargestEgg by FoundressDominanceCategory
+          ## Kruskal-Wallis chi-squared = 62.734, df = 3, p-value = 1.531e-13
+
+# Since there is a significant effect in the Kruskal-Wallis test, we can use Wilcox
+# tests for pairwise comparisons:
+
+pairwise.wilcox.test(WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg, 
+                    WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory,
+                    p.adjust.method = "BH")
+
+# Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
+      leveneTest(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
+                 data = dat)
+      # If p<0.05, reject the null hypothesis of equal variances.
+      # You should also look at the scatter on the boxplot.
+
+            # LEVENE'S TEST OUTPUT (18th JANUARY 2024):
+            ## 
+
+# Compute descriptive stats (means and standard deviations):
+      aggregate(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
+                data = dat,
+                function(x) round(c(mean = mean(x), sd = sd(x)), 2))
+
+# Use the 'report' package to get a report on what your ANOVA results mean:
+library("report")
+report(res_aov)
+
+            # REPORT FUNCTION OUTPUT (18th JANUARY 2024):
+            ## 
+
+# Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
+library(multcomp)
+post_test <- glht(res_aov,
+                  linfct = mcp(thoraxplot.my_x_variable = "Tukey"))
+summary(post_test)
+
+# You can visualise the Tukey post-hoc results:
+par(mar = c(3, 8, 3, 3))
+plot(post_test)
+# If the confidence interval doesn't cross the zero line, the relevant groups are significantly different.
+
+# The average thorax size of each category:
+# Temperate foundresses (SA F):
+        mean(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="SA F"])
+        sd(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="SA F"])
+# Tropical foundresses (Ca F):
+        mean(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="Ca F"])
+        sd(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="Ca F"])
+
+# Sample sizes:
+sum(thoraxplot.my_x_variable=="Ca F")
+sum(thoraxplot.my_x_variable=="SA F")
+sum(thoraxplot.my_x_variable=="C PE")
+
+# -------------------------------------------
+# ADD THE STATS COMPARISONS TO THE BOXPLOT:
+
+# To get this to work, it seems that we have to run the Tukey HSD test using a different
+# package, and then plot that on the graph (following https://stackoverflow.com/questions/48625620/adding-tukeys-significance-letters-to-boxplot):
+
+# First, run the Tukey tests again, but using the 'agricolae' package instead:
+
+library(agricolae)
+library(tidyverse)
+
+thorax.dat.summarized = dat %>% group_by(`CountryPlusNestType`) %>% summarize(thorax.Max.my_y_variable=max(`Thorax size`))
+
+thorax.hsd=HSD.test(aov(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
+                     data=dat), "thoraxplot.my_x_variable", group=T)
+
+# Now plot the post-hoc test letters on the graph:
+thoraxwidth_plot <- thoraxwidth_plot + geom_text(data=thorax.dat.summarized,
+           aes(x=`CountryPlusNestType`,y=0.2+thorax.Max.my_y_variable,
+               label=thorax.hsd$groups$groups),
+           vjust=0)
+thoraxwidth_plot
+
+
+
+
+
+
+
+
+
+
