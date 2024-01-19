@@ -12,7 +12,7 @@ View(my_data_without_NA)
 
 # If you want to remove any rows as not relevant, can do that here. For instance, 
 # might not want to plot the 'Unclassified' wasps on the plot, for which we can use:
-my_data_without_NA <- my_data_without_NA[!grepl("C Unclassified", my_data_without_NA$CountryPlusNestType),]
+my_data_without_NA <- my_data_without_NA[!grepl("Ca Unclassified", my_data_without_NA$CountryPlusNestType),]
 
 # Load the libraries:
 library(ggplot2)
@@ -47,6 +47,8 @@ thoraxwidth_plot <- ggplot(dat) +
                  outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
                  errorbar.draw = TRUE) + 
   scale_fill_manual(values = myColors) + 
+  expand_limits(y=c(0,6)) +
+  scale_y_continuous(breaks = seq(0,5,by = 1),expand = c(0, 0)) +
   theme_cowplot(font_size = myfontsize) + 
   theme(text = element_text(size=20)) +
   labs(y= "Thorax width (mm)", 
@@ -66,6 +68,7 @@ thoraxwidth_plot
 # Run ANOVA:
 res_aov <- aov(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
                data = dat)
+summary(res_aov)
 
 # Check for normality (https://statsandr.com/blog/anova-in-r/):
       # First, with histogram:
@@ -77,11 +80,21 @@ res_aov <- aov(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable,
       shapiro.test(res_aov$residuals)
       # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
 
+            # SHAPIRO-WILK OUTPUT (18th JANUARY 2024):
+            ## data:  res_aov$residuals
+            ## W = 0.99738, p-value = 0.131
+
 # Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
       leveneTest(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
                  data = dat)
       # If p<0.05, reject the null hypothesis of equal variances.
       # You should also look at the scatter on the boxplot.
+
+            # LEVENE'S TEST OUTPUT (18th JANUARY 2024):
+            ## Levene's Test for Homogeneity of Variance (center = median)
+            ## Df F value  Pr(>F)  
+            ## group   2  2.3766 0.09342 .
+            ## 944        
 
 # Compute descriptive stats (means and standard deviations):
       aggregate(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
@@ -91,6 +104,17 @@ res_aov <- aov(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable,
 # Use the 'report' package to get a report on what your ANOVA results mean:
 library("report")
 report(res_aov)
+
+            # REPORT FUNCTION OUTPUT (18th JANUARY 2024):
+            ## "The ANOVA (formula: thoraxplot.my_y_variable ~
+            ##   thoraxplot.my_x_variable) suggests that:
+            ##
+            ##     - The main effect of thoraxplot.my_x_variable is
+            ##    statistically significant and large (F(2, 944) =
+            ##     235.37, p < .001; Eta2 = 0.33, 95% CI [0.29, 1.00])
+            ##   
+            ##     Effect sizes were labelled following Field's (2013)
+            ##     recommendations." 
 
 # Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
 library(multcomp)
@@ -111,6 +135,19 @@ summary(post_test)
 par(mar = c(3, 8, 3, 3))
 plot(post_test)
 # If the confidence interval doesn't cross the zero line, the relevant groups are significantly different.
+
+# The average thorax size of each category:
+# Temperate foundresses (SA F):
+        mean(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="SA F"])
+        sd(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="SA F"])
+# Tropical foundresses (Ca F):
+        mean(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="Ca F"])
+        sd(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="Ca F"])
+
+# Sample sizes:
+sum(thoraxplot.my_x_variable=="Ca F")
+sum(thoraxplot.my_x_variable=="SA F")
+sum(thoraxplot.my_x_variable=="C PE")
 
 # -------------------------------------------
 # ADD THE STATS COMPARISONS TO THE BOXPLOT:
@@ -133,6 +170,7 @@ thoraxwidth_plot <- thoraxwidth_plot + geom_text(data=thorax.dat.summarized,
            aes(x=`CountryPlusNestType`,y=0.2+thorax.Max.my_y_variable,
                label=thorax.hsd$groups$groups),
            vjust=0)
+thoraxwidth_plot
 
 # Export the graph as a PDF ready for the paper:
     pdf("NAMETHEGRAPHHERE.pdf",height=3)
@@ -165,7 +203,9 @@ winglength_plot <- ggplot(dat) +
   labs(y= "Wing length (mm)", 
        x = "Social role") + 
   theme(legend.position="none") + 
-  scale_y_continuous(breaks = seq(14,28,by = 2),expand = c(0, 2)) +
+  expand_limits(y=c(0,26)) +
+  scale_y_continuous(breaks = seq(0,25,by = 5),expand = c(0, 0)) +
+  expand_limits(y=0) +
   theme(axis.line.x.bottom=element_line(size=0.5)) +
   theme(axis.line.y.left=element_line(size=0.5)) +
   theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
@@ -176,6 +216,46 @@ winglength_plot
 
 # ----------------------------------------------------------------------
 # STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
+
+wing.res_aov <- aov(winglengthplot.my_y_variable ~ winglengthplot.my_x_variable, 
+               data = dat)
+summary(wing.res_aov)
+
+ # Third, with Shapiro-Wilk test:
+      shapiro.test(wing.res_aov$residuals)
+      # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
+
+            # SHAPIRO-WILK OUTPUT (18th JANUARY 2024):
+            ## data:  wing.res_aov$residuals
+            ## W = 0.9839, p-value = 1.047e-08
+            # NOTE, THERE IS A SIGNIFICANT RESULT TO SHAPIRO-WILK.
+
+# Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
+      leveneTest(winglengthplot.my_y_variable ~ winglengthplot.my_x_variable, 
+                 data = dat)
+      # If p<0.05, reject the null hypothesis of equal variances.
+            ## Levene's Test for Homogeneity of Variance (center = median)
+            ##        Df F value Pr(>F)
+            ## group   2  0.6838  0.505
+            ##       944        
+
+report(wing.res_aov)
+        # REPORT OUTPUT (19TH JANUARY 2024):
+        ## The ANOVA (formula: winglengthplot.my_y_variable ~
+        ## winglengthplot.my_x_variable) suggests that:
+        ## 
+        ##   - The main effect of winglengthplot.my_x_variable
+        ## is statistically significant and large (F(2, 944) =
+        ## 116.10, p < .001; Eta2 = 0.20, 95% CI [0.16, 1.00])
+        ## 
+        ## Effect sizes were labelled following Field's (2013)
+        ## recommendations.
+
+# Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
+library(multcomp)
+wing.post_test <- glht(wing.res_aov,
+                  linfct = mcp(winglengthplot.my_x_variable = "Tukey"))
+summary(wing.post_test)
 
 # To get this to work, it seems that we have to run the Tukey HSD test using a different
 # package, and then plot that on the graph (following https://stackoverflow.com/questions/48625620/adding-tukeys-significance-letters-to-boxplot):
@@ -188,7 +268,7 @@ winglength.hsd=HSD.test(aov(winglengthplot.my_y_variable ~ winglengthplot.my_x_v
 
 # Now plot the post-hoc test letters on the graph:
 winglength_plot <- winglength_plot + geom_text(data=winglength.dat.summarized,
-           aes(x=`CountryPlusNestType`,y=0.2+winglength.Max.my_y_variable,
+           aes(x=`CountryPlusNestType`,y=1+winglength.Max.my_y_variable,
                label=winglength.hsd$groups$groups),
            vjust=0)
 
@@ -200,7 +280,7 @@ winglength_plot <- winglength_plot + geom_text(data=winglength.dat.summarized,
 winglength_plot + theme(aspect.ratio = 1.5)
 
 # ----------------------------------------------------------------------
-# IN CAMEROON, ARE DOMINANTS BIGGER THAN SUBORDINATES?
+# IN CAMEROON, ARE DOMINANTS BIGGER THAN SUBORDINATES? WING LENGTH:
 
 # We now focus just on the experiment wasps.
 
@@ -217,17 +297,20 @@ includedwasps <- subset(tempfile_ExperimentWaspsToImportToR,tempfile_ExperimentW
 # Remove rows with 'NA':
 withoutNAs <- drop_na(includedwasps,WingLength)
 
-dom_sub_size.my_x_variable <-  as.factor(withoutNAs$Category)
-dom_sub_size.my_y_variable <-  as.numeric(withoutNAs$WingLength)
-dom_sub_size.my_color_variable <- withoutNAs$Country
+# Focus first just on Cameroonian wasps:
+CameroonExperimentWasps <- subset(withoutNAs, withoutNAs$Country=="Ca")
+
+Cameroon.WINGS.dom_sub_size.my_x_variable <-  as.factor(CameroonExperimentWasps$Category)
+Cameroon.WINGS.dom_sub_size.my_y_variable <-  as.numeric(CameroonExperimentWasps$WingLength)
+Cameroon.WINGS.dom_sub_size.my_color_variable <- CameroonExperimentWasps$Country
 
 myColors <- c("#56ddc5","red")
 
 # Generate boxplots (following https://github.com/erocoar/ggpol):
-dominantsubordinatesizeplot <- ggplot(withoutNAs) + 
-  geom_boxjitter(aes(x = dom_sub_size.my_x_variable, 
-                     y = dom_sub_size.my_y_variable, 
-                     fill = dom_sub_size.my_color_variable),
+Cameroon.WINGS.dominantsubordinatesizeplot <- ggplot(CameroonExperimentWasps) + 
+  geom_boxjitter(aes(x = Cameroon.WINGS.dom_sub_size.my_x_variable, 
+                     y = Cameroon.WINGS.dom_sub_size.my_y_variable, 
+                     fill = Cameroon.WINGS.dom_sub_size.my_color_variable),
                  jitter.shape = 21, 
                  jitter.color = NA, 
                  jitter.alpha = 0.5,
@@ -238,7 +321,8 @@ dominantsubordinatesizeplot <- ggplot(withoutNAs) +
   scale_fill_manual(values = myColors) + 
   theme_cowplot(font_size = myfontsize) + 
   theme(text = element_text(size=20)) +
-  scale_y_continuous(breaks = seq(14,28,by = 2),expand = c(0, 2)) +
+  expand_limits(y=c(0,28)) +
+  scale_y_continuous(breaks = seq(0,28,by = 5),expand = c(0, 0)) +
   labs(y= "Wing length (mm)", 
        x = "Social role") + 
   theme(legend.position="none") + 
@@ -248,83 +332,290 @@ dominantsubordinatesizeplot <- ggplot(withoutNAs) +
         axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
         axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
         axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
-dominantsubordinatesizeplot
+Cameroon.WINGS.dominantsubordinatesizeplot
 
-# Run ANOVA:
-dom_sub_size.res_aov <- aov(dom_sub_size.my_y_variable ~ dom_sub_size.my_x_variable, 
-               data = withoutNAs)
+# Run Welch t-test:
+Cameroon.WINGS.dom_sub_size.Welch_t.test <- t.test(Cameroon.WINGS.dom_sub_size.my_y_variable ~ Cameroon.WINGS.dom_sub_size.my_x_variable, 
+               data = CameroonExperimentWasps)
+Cameroon.WINGS.dom_sub_size.Welch_t.test
 
-# Check for normality (https://statsandr.com/blog/anova-in-r/):
-      # First, with histogram:
-      hist(dom_sub_size.res_aov$residuals)
-      # Second, with Q-Q plot:
-      library(car)
-      qqPlot(dom_sub_size.res_aov$residuals, id = FALSE) # id = FALSE to remove point identification
-      # Third, with Shapiro-Wilk test:
-      shapiro.test(dom_sub_size.res_aov$residuals)
-      # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
+            # WELCH T-TEST OUTPUT (19TH JANUARY 2024):
+	          ## Welch Two Sample t-test
 
-# Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
-      leveneTest(dom_sub_size.my_y_variable ~ dom_sub_size.my_x_variable, 
-                 data = withoutNAs)
-      # If p<0.05, reject the null hypothesis of equal variances.
-      # You should also look at the scatter on the boxplot.
+            ## data:  Cameroon.WINGS.dom_sub_size.my_y_variable by Cameroon.WINGS.dom_sub_size.my_x_variable
+            ## t = 2.7334, df = 115.59, p-value = 0.007254
+            ## alternative hypothesis: true difference in means between group Ca D and group Ca S is not equal to 0
+            ## 95 percent confidence interval:
+            ##  0.1640164 1.0271810
+            ## sample estimates:
+            ## mean in group Ca D mean in group Ca S 
+            ##          19.65102          19.05542 
 
-# Compute descriptive stats (means and standard deviations):
-      aggregate(dom_sub_size.my_y_variable ~ dom_sub_size.my_x_variable, 
-                 data = withoutNAs,
-                 function(x) round(c(mean = mean(x), sd = sd(x)), 2))
+report(Cameroon.WINGS.dom_sub_size.Welch_t.test)
 
-# Use the 'report' package to get a report on what your ANOVA results mean:
-library("report")
-report(dom_sub_size.res_aov)
-
-# Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
-library(multcomp)
-post_test <- glht(dom_sub_size.res_aov,
-                  linfct = mcp(dom_sub_size.my_x_variable = "Tukey"))
-summary(post_test)
-
-# ----------------------------------------------------------------------
-# STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
-
-# To get this to work, it seems that we have to run the Tukey HSD test using a different
-# package, and then plot that on the graph (following https://stackoverflow.com/questions/48625620/adding-tukeys-significance-letters-to-boxplot):
-
-# First, run the Tukey tests:
-dom_sub_size.dat.summarized = withoutNAs %>% group_by(Category) %>% summarize(dom_sub_size.Max.my_y_variable=max(WingLength))
-
-dom_sub_size.hsd=HSD.test(aov(dom_sub_size.my_y_variable ~ dom_sub_size.my_x_variable, 
-                     data=withoutNAs), "dom_sub_size.my_x_variable", group=T)
-
-# NOTE: The ordering of dom_sub_size.hsd$groups$groups is in a different order to the categories on the boxplot.
-# To get them in the right order, we use:
-library(rlist); my_alphabet_labels=list.reverse(dom_sub_size.hsd$groups$groups)
-# If adapting this script for other contexts, make sure you have the right letters for the right categories.
-
-# Now plot the post-hoc test letters on the graph:
-dominantsubordinatesizeplot <- dominantsubordinatesizeplot + geom_text(data=dom_sub_size.dat.summarized,
-           aes(x=Category,y=0.2+dom_sub_size.Max.my_y_variable,
-               label=my_alphabet_labels),
-           vjust=0)
-dominantsubordinatesizeplot
+       # REPORT OUTPUT (19TH JANUARY 2024):
+	         
+          ## "Effect sizes were labelled following Cohen's (1988)
+          ## recommendations.
+          ## The Welch Two Sample t-test testing the difference of
+          ## Cameroon.WINGS.dom_sub_size.my_y_variable by
+          ## Cameroon.WINGS.dom_sub_size.my_x_variable (mean in group Ca D =
+          ## 19.65, mean in group Ca S = 19.06) suggests that the effect is
+          ## positive, statistically significant, and small (difference = 0.60,
+          ## 95% CI [0.16, 1.03], t(115.59) = 2.73, p = 0.007; Cohen's d =
+          ## 0.48, 95% CI [0.13, 0.83])"
 
 
+# Since Welch's t-test finds a significant effect, manually plot the significance letters on the graph using the following:
 
-
+        Cameroon.WINGS.dominantsubordinatesizeplot.annotation <- data.frame(
+           x = c(1, 2),
+           y = c(2+max(subset(CameroonExperimentWasps,CameroonExperimentWasps$Category=="Ca D")$WingLength),
+                 2+max(subset(CameroonExperimentWasps,CameroonExperimentWasps$Category=="Ca S")$WingLength)), 
+          label = c("a", "b"))
+        
+        # Add text
+        Cameroon.WINGS.dominantsubordinatesizeplot <- Cameroon.WINGS.dominantsubordinatesizeplot + 
+                geom_text(data=Cameroon.WINGS.dominantsubordinatesizeplot.annotation, 
+                          aes(x=x, y=y, label=label),
+                          size=4)
+        Cameroon.WINGS.dominantsubordinatesizeplot
 
 # ----------------------------------------------------------------------
-# STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
+# NOW THE SAME WING LENGTH DOMINANCE AND SUBORDINATE PLOT, BUT FOR SOUTH AFRICA:
 
-##library(lme4) # for the analysis
-##model1 <- lmer(formula = withoutNAs$WingLength ~ 1 + withoutNAs$Category, 
-##               data    = withoutNAs)
-##summary(model1)
+# Focus just on South African wasps:
+SAExperimentWasps <- subset(withoutNAs, withoutNAs$Country=="SA")
 
-# Export the graph as a PDF ready for the paper:
-pdf("NAMETHEGRAPHHERE.pdf",height=3)
-my_plot + theme(aspect.ratio = 1.5)
-dev.off()
+SA.WINGS.dom_sub_size.my_x_variable <-  as.factor(SAExperimentWasps$Category)
+SA.WINGS.dom_sub_size.my_y_variable <-  as.numeric(SAExperimentWasps$WingLength)
+SA.WINGS.dom_sub_size.my_color_variable <- SAExperimentWasps$Country
+
+# Generate boxplots (following https://github.com/erocoar/ggpol):
+SA.WINGS.dominantsubordinatesizeplot <- ggplot(SAExperimentWasps) + 
+  geom_boxjitter(aes(x = SA.WINGS.dom_sub_size.my_x_variable, 
+                     y = SA.WINGS.dom_sub_size.my_y_variable, 
+                     fill = SA.WINGS.dom_sub_size.my_color_variable),
+                 jitter.shape = 21, 
+                 jitter.color = NA, 
+                 jitter.alpha = 0.5,
+                 jitter.size = 0.6,
+                 jitter.params = list(height = 0, width = 0.09),
+                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                 errorbar.draw = TRUE) + 
+  scale_fill_manual(values = "red") + 
+  theme_cowplot(font_size = myfontsize) + 
+  theme(text = element_text(size=20)) +
+  expand_limits(y=c(0,28)) +
+  scale_y_continuous(breaks = seq(0,28,by = 5),expand = c(0, 0)) +
+  labs(y= "Wing length (mm)", 
+       x = "Social role") + 
+  theme(legend.position="none") + 
+  theme(axis.line.x.bottom=element_line(size=0.5)) +
+  theme(axis.line.y.left=element_line(size=0.5)) +
+  theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+        axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+SA.WINGS.dominantsubordinatesizeplot
+
+# Run Welch t-test:
+SA.WINGS.dom_sub_size.Welch_t.test <- t.test(SA.WINGS.dom_sub_size.my_y_variable ~ SA.WINGS.dom_sub_size.my_x_variable, 
+               data = SAExperimentWasps)
+SA.WINGS.dom_sub_size.Welch_t.test
+
+            # WELCH T-TEST OUTPUT (19TH JANUARY 2024):
+	          ## Welch Two Sample t-test
+            ## 	data:  SA.WINGS.dom_sub_size.my_y_variable by SA.WINGS.dom_sub_size.my_x_variable
+            ## 	t = 0.9514, df = 52.391, p-value = 0.3458
+            ## 	alternative hypothesis: true difference in means between group SA D and group SA S is not equal to 0
+            ## 	95 percent confidence interval:
+            ## 	 -0.2643798  0.7412611
+            ## 	sample estimates:
+            ## 	mean in group SA D mean in group SA S 
+            ## 	          21.18929           20.95085 
+
+report(SA.WINGS.dom_sub_size.Welch_t.test)
+
+       # REPORT OUTPUT (19TH JANUARY 2024):
+	         
+          ## "Effect sizes were labelled following Cohen's (1988) recommendations.
+          ## The Welch Two Sample t-test testing the difference of SA.WINGS.dom_sub_size.my_y_variable by
+          ## SA.WINGS.dom_sub_size.my_x_variable (mean in group SA D = 21.19, mean in group SA S = 20.95) suggests
+          ## that the effect is positive, statistically not significant, and small (difference = 0.24, 95% CI
+          ## [-0.26, 0.74], t(52.39) = 0.95, p = 0.346; Cohen's d = 0.21, 95% CI [-0.22, 0.64])"
+
+# Since Welch's t-test finds no significant effect, manually plot the SAME significance letters on the graph using the following:
+
+        SA.WINGS.dominantsubordinatesizeplot.annotation <- data.frame(
+           x = c(1, 2),
+           y = c(2+max(subset(SAExperimentWasps,SAExperimentWasps$Category=="SA D")$WingLength),
+                 2+max(subset(SAExperimentWasps,SAExperimentWasps$Category=="SA S")$WingLength)), 
+          label = c("a", "a"))
+        
+        # Add text
+        SA.WINGS.dominantsubordinatesizeplot <- SA.WINGS.dominantsubordinatesizeplot + 
+                geom_text(data=SA.WINGS.dominantsubordinatesizeplot.annotation, 
+                          aes(x=x, y=y, label=label),
+                          size=4)
+        SA.WINGS.dominantsubordinatesizeplot
+
+# ----------------------------------------------------------------------
+# IN CAMEROON, ARE DOMINANTS BIGGER THAN SUBORDINATES? NOW TURN TO THORAX WIDTH:
+
+Cameroon.THORAX.dom_sub_size.my_x_variable <-  as.factor(CameroonExperimentWasps$Category)
+Cameroon.THORAX.dom_sub_size.my_y_variable <-  as.numeric(CameroonExperimentWasps$ThoraxWidth)
+Cameroon.THORAX.dom_sub_size.my_color_variable <- CameroonExperimentWasps$Country
+
+myColors <- c("#56ddc5","red")
+
+# Generate boxplots (following https://github.com/erocoar/ggpol):
+Cameroon.THORAX.dominantsubordinatesizeplot <- ggplot(CameroonExperimentWasps) + 
+  geom_boxjitter(aes(x = Cameroon.THORAX.dom_sub_size.my_x_variable, 
+                     y = Cameroon.THORAX.dom_sub_size.my_y_variable, 
+                     fill = Cameroon.THORAX.dom_sub_size.my_color_variable),
+                 jitter.shape = 21, 
+                 jitter.color = NA, 
+                 jitter.alpha = 0.5,
+                 jitter.size = 0.6,
+                 jitter.params = list(height = 0, width = 0.09),
+                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                 errorbar.draw = TRUE) + 
+  scale_fill_manual(values = myColors) + 
+  theme_cowplot(font_size = myfontsize) + 
+  theme(text = element_text(size=20)) +
+  expand_limits(y=c(0,6)) +
+  scale_y_continuous(breaks = seq(0,5,by = 1),expand = c(0, 0)) +
+  labs(y= "Thorax width (mm)", 
+       x = "Social role") + 
+  theme(legend.position="none") + 
+  theme(axis.line.x.bottom=element_line(size=0.5)) +
+  theme(axis.line.y.left=element_line(size=0.5)) +
+  theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+        axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+Cameroon.THORAX.dominantsubordinatesizeplot
+
+# Run Welch t-test:
+Cameroon.THORAX.dom_sub_size.Welch_t.test <- t.test(Cameroon.THORAX.dom_sub_size.my_y_variable ~ Cameroon.THORAX.dom_sub_size.my_x_variable, 
+               data = CameroonExperimentWasps)
+Cameroon.THORAX.dom_sub_size.Welch_t.test
+
+           # WELCH T-TEST OUTPUT (19TH JANUARY 2024):
+           ## Welch Two Sample t-test
+           ## data:  Cameroon.THORAX.dom_sub_size.my_y_variable by Cameroon.THORAX.dom_sub_size.my_x_variable
+           ## t = 2.94, df = 99.413, p-value = 0.004082
+           ## alternative hypothesis: true difference in means between group Ca D and group Ca S is not equal to 0
+           ## 95 percent confidence interval:
+           ##  0.06307018 0.32490622
+           ## sample estimates:
+           ## mean in group Ca D mean in group Ca S 
+            ##         3.903265          3.709277 
+
+report(Cameroon.WINGS.dom_sub_size.Welch_t.test)
+
+          # REPORT OUTPUT (19TH JANUARY 2024):
+          ## "Effect sizes were labelled following Cohen's (1988) recommendations.
+          ## The Welch Two Sample t-test testing the difference of Cameroon.WINGS.dom_sub_size.my_y_variable by
+          ## Cameroon.WINGS.dom_sub_size.my_x_variable (mean in group Ca D = 19.65, mean in group Ca S = 19.06)
+          ## suggests that the effect is positive, statistically significant, and small (difference = 0.60, 95% CI
+          ## [0.16, 1.03], t(115.59) = 2.73, p = 0.007; Cohen's d = 0.48, 95% CI [0.13, 0.83])"
+
+# Since Welch's t-test finds a significant effect, manually plot the significance letters on the graph using the following:
+
+        Cameroon.THORAX.dominantsubordinatesizeplot.annotation <- data.frame(
+           x = c(1, 2),
+           y = c(0.4+max(subset(CameroonExperimentWasps,CameroonExperimentWasps$Category=="Ca D")$ThoraxWidth),
+                 0.4+max(subset(CameroonExperimentWasps,CameroonExperimentWasps$Category=="Ca S")$ThoraxWidth)), 
+          label = c("a", "b"))
+        
+        # Add text
+         Cameroon.THORAX.dominantsubordinatesizeplot <- Cameroon.THORAX.dominantsubordinatesizeplot + 
+                geom_text(data=Cameroon.THORAX.dominantsubordinatesizeplot.annotation, 
+                          aes(x=x, y=y, label=label),
+                          size=4)
+         Cameroon.THORAX.dominantsubordinatesizeplot
+
+# ----------------------------------------------------------------------
+# NOW DO THE SAME FOR SOUTH AFRICA (THORAX WIDTH IN DOMINANTS AND SUBORDINATES)
+
+SA.THORAX.dom_sub_size.my_x_variable <-  as.factor(SAExperimentWasps$Category)
+SA.THORAX.dom_sub_size.my_y_variable <-  as.numeric(SAExperimentWasps$ThoraxWidth)
+SA.THORAX.dom_sub_size.my_color_variable <- SAExperimentWasps$Country
+
+# Generate boxplots (following https://github.com/erocoar/ggpol):
+SA.THORAX.dominantsubordinatesizeplot <- ggplot(SAExperimentWasps) + 
+  geom_boxjitter(aes(x = SA.THORAX.dom_sub_size.my_x_variable, 
+                     y = SA.THORAX.dom_sub_size.my_y_variable, 
+                     fill = SA.THORAX.dom_sub_size.my_color_variable),
+                 jitter.shape = 21, 
+                 jitter.color = NA, 
+                 jitter.alpha = 0.5,
+                 jitter.size = 0.6,
+                 jitter.params = list(height = 0, width = 0.09),
+                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                 errorbar.draw = TRUE) + 
+  scale_fill_manual(values = "red") + 
+  theme_cowplot(font_size = myfontsize) + 
+  theme(text = element_text(size=20)) +
+  expand_limits(y=c(0,6)) +
+  scale_y_continuous(breaks = seq(0,5,by = 1),expand = c(0, 0)) +
+  labs(y= "Thorax width (mm)", 
+       x = "Social role") + 
+  theme(legend.position="none") + 
+  theme(axis.line.x.bottom=element_line(size=0.5)) +
+  theme(axis.line.y.left=element_line(size=0.5)) +
+  theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+        axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+SA.THORAX.dominantsubordinatesizeplot
+
+# Run Welch t-test:
+SA.THORAX.dom_sub_size.Welch_t.test <- t.test(SA.THORAX.dom_sub_size.my_y_variable ~ SA.THORAX.dom_sub_size.my_x_variable, 
+               data = SAExperimentWasps)
+SA.THORAX.dom_sub_size.Welch_t.test
+
+          # WELCH T-TEST OUTPUT (19TH JANUARY 2024):
+          ## 	Welch Two Sample t-test
+          ## data:  SA.THORAX.dom_sub_size.my_y_variable by SA.THORAX.dom_sub_size.my_x_variable
+          ## t = 0.11456, df = 55.808, p-value = 0.9092
+          ## alternative hypothesis: true difference in means between group SA D and group SA S is not equal to 0
+          ## 95 percent confidence interval:
+          ##  -0.1564963  0.1754802
+          ## sample estimates:
+          ## mean in group SA D mean in group SA S 
+          ##           4.578929           4.569437 
+
+report(SA.THORAX.dom_sub_size.Welch_t.test)
+
+          # REPORT OUTPUT (19TH JANUARY 2024):
+          ## "Effect sizes were labelled following Cohen's (1988) recommendations.
+          ## The Welch Two Sample t-test testing the difference of SA.THORAX.dom_sub_size.my_y_variable by
+          ## SA.THORAX.dom_sub_size.my_x_variable (mean in group SA D = 4.58, mean in group SA S = 4.57) suggests
+          ## that the effect is positive, statistically not significant, and very small (difference = 9.49e-03, 95%
+          ## CI [-0.16, 0.18], t(55.81) = 0.11, p = 0.909; Cohen's d = 0.02, 95% CI [-0.40, 0.45])
+
+# Since Welch's t-test finds no significant effect, manually plot the SAME significance letters on the graph using the following:
+
+        SA.THORAX.dominantsubordinatesizeplot.annotation <- data.frame(
+           x = c(1, 2),
+           y = c(0.4+max(subset(SAExperimentWasps,SAExperimentWasps$Category=="SA D")$ThoraxWidth),
+                 0.4+max(subset(SAExperimentWasps,SAExperimentWasps$Category=="SA S")$ThoraxWidth)), 
+          label = c("a", "a"))
+        
+        # Add text
+        SA.THORAX.dominantsubordinatesizeplot <- SA.THORAX.dominantsubordinatesizeplot + 
+                geom_text(data=SA.THORAX.dominantsubordinatesizeplot.annotation, 
+                          aes(x=x, y=y, label=label),
+                          size=4)
+        SA.THORAX.dominantsubordinatesizeplot
+
+# ----------------------------------------------------------------------
+# ARE LONE FOUNDRESSES BIGGER THAN MULTI-FOUNDRESSES?
+
+
 
 
 
@@ -343,9 +634,12 @@ dev.off()
 # Generate panel:
 library("cowplot")
 my_output_panel2 <- ggdraw() +
-  draw_plot(thoraxwidth_plot, x=0, y=0, width= 0.3) +
-  draw_plot(winglength_plot,  x=.3, y=0, width= 0.3) +
-  draw_plot(dominantsubordinatesizeplot,  x=.6, y=0, width= 0.3) +
+  draw_plot(thoraxwidth_plot, x=0, y=0.5, width= 0.3,height=0.5) +
+  draw_plot(winglength_plot,  x=.3, y=0.5, width= 0.3,height=0.5) +
+  draw_plot(Cameroon.THORAX.dominantsubordinatesizeplot,  x=0, y=0, width= 0.25,height=0.5) +
+  draw_plot(SA.THORAX.dominantsubordinatesizeplot,  x=.25, y=0, width= 0.25,height=0.5) +
+    draw_plot(Cameroon.WINGS.dominantsubordinatesizeplot,  x=.5, y=0, width= 0.25,height=0.5) +
+    draw_plot(SA.WINGS.dominantsubordinatesizeplot,  x=.75, y=0, width= 0.25,height=0.5) +
   draw_plot_label("a", x = 0, y = 1, size = myfontsize, fontface = "bold") +
   draw_plot_label("b", x = .3, y = 1, size = myfontsize, fontface = "bold") +
   draw_plot_label("c", x = .6, y = 1, size = myfontsize, fontface = "bold")
