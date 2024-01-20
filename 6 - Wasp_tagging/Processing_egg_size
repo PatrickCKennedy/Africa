@@ -1,5 +1,9 @@
 # EGG SIZE R SCRIPT
 
+library(tidyr)
+library(cowplot)
+library(ggpol)
+
 # Copy-paste the ovary dissection results Excel sheet into its own document, and 
 # import it into R as 'tempfile_ImportDissectionResults':
 
@@ -19,6 +23,9 @@ WaspsWithEggMeasurementsAndDominanceCategorisation <- subset(WaspsWithEggMeasure
 library(ggrain)
 ggplot(WaspsWithEggMeasurementsAndDominanceCategorisation, aes(x = FoundressDominanceCategory, y = LargestEgg, fill=Country)) +
     geom_rain(rain.side = 'l') + theme_cowplot()
+
+myColors <- c("#56ddc5","red")
+myfontsize <- 10
 
 # Generate boxplots (following https://github.com/erocoar/ggpol):
 largestegg.plot <- ggplot(WaspsWithEggMeasurementsAndDominanceCategorisation) + 
@@ -134,86 +141,6 @@ pairwise.wilcox.test(WaspsWithEggMeasurementsAndDominanceCategorisation$LargestE
 
 
 
-
-
-# -------------------------------------------
-# ADD THE STATS COMPARISONS TO THE BOXPLOT:
-
-# To get this to work, it seems that we have to run the Tukey HSD test using a different
-# package, and then plot that on the graph (following https://stackoverflow.com/questions/48625620/adding-tukeys-significance-letters-to-boxplot):
-
-# First, run the Tukey tests again, but using the 'agricolae' package instead:
-
-library(agricolae)
-library(tidyverse)
-
-thorax.dat.summarized = dat %>% group_by(`CountryPlusNestType`) %>% summarize(thorax.Max.my_y_variable=max(`Thorax size`))
-
-thorax.hsd=HSD.test(aov(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
-                     data=dat), "thoraxplot.my_x_variable", group=T)
-
-# Now plot the post-hoc test letters on the graph:
-thoraxwidth_plot <- thoraxwidth_plot + geom_text(data=thorax.dat.summarized,
-           aes(x=`CountryPlusNestType`,y=0.2+thorax.Max.my_y_variable,
-               label=thorax.hsd$groups$groups),
-           vjust=0)
-thoraxwidth_plot
-
-
-
-# -------------------------------------------
-# STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
-
-wing.res_aov <- aov(winglengthplot.my_y_variable ~ winglengthplot.my_x_variable, 
-               data = dat)
-summary(wing.res_aov)
-
- # Third, with Shapiro-Wilk test:
-      shapiro.test(wing.res_aov$residuals)
-      # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
-
-            # SHAPIRO-WILK OUTPUT (18th JANUARY 2024):
-            ## data:  wing.res_aov$residuals
-            ## W = 0.9839, p-value = 1.047e-08
-            # NOTE, THERE IS A SIGNIFICANT RESULT TO SHAPIRO-WILK.
-
-# Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
-      leveneTest(winglengthplot.my_y_variable ~ winglengthplot.my_x_variable, 
-                 data = dat)
-      # If p<0.05, reject the null hypothesis of equal variances.
-            ## Levene's Test for Homogeneity of Variance (center = median)
-            ##        Df F value Pr(>F)
-            ## group   2  0.6838  0.505
-            ##       944        
-
-report(wing.res_aov)
-        # REPORT OUTPUT (19TH JANUARY 2024):
-        ## The ANOVA (formula: winglengthplot.my_y_variable ~
-        ## winglengthplot.my_x_variable) suggests that:
-        ## 
-        ##   - The main effect of winglengthplot.my_x_variable
-        ## is statistically significant and large (F(2, 944) =
-        ## 116.10, p < .001; Eta2 = 0.20, 95% CI [0.16, 1.00])
-        ## 
-        ## Effect sizes were labelled following Field's (2013)
-        ## recommendations.
-
-# Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
-library(multcomp)
-wing.post_test <- glht(wing.res_aov,
-                  linfct = mcp(winglengthplot.my_x_variable = "Tukey"))
-summary(wing.post_test)
-
-# To get this to work, it seems that we have to run the Tukey HSD test using a different
-# package, and then plot that on the graph (following https://stackoverflow.com/questions/48625620/adding-tukeys-significance-letters-to-boxplot):
-
-# First, run the Tukey tests:
-winglength.dat.summarized = dat %>% group_by(`CountryPlusNestType`) %>% summarize(winglength.Max.my_y_variable=max(`Wing length`))
-
-winglength.hsd=HSD.test(aov(winglengthplot.my_y_variable ~ winglengthplot.my_x_variable, 
-                     data=dat), "winglengthplot.my_x_variable", group=T)
-
-# Now plot the post-
 
 
 
@@ -379,8 +306,8 @@ my_output_panel3
 
 # Export as SVG file for publication:
 library(svglite)
-ggsave(filename = "my_output_panel2.svg", 
-       plot = my_output_panel2, 
+ggsave(filename = "my_output_panel3.svg", 
+       plot = my_output_panel3, 
        height = 2.5,
        width = 5, dpi = 200)
 # This file is now in the relevant folder, as an SVG file. 
