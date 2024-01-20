@@ -9,6 +9,7 @@ View(tempfile_ImportDissectionResults)
 WaspsWithEggMeasurementsAndDominanceCategorisation <- drop_na(tempfile_ImportDissectionResults,c(LargestEgg,FoundressDominanceCategory))
 View(WaspsWithEggMeasurementsAndDominanceCategorisation)
 WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg <- as.numeric(WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg)
+WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory <- as.factor(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory)
 
 # There are two foundresses with no oocytes at all (both in South Africa). 
 # To plot largest egg sizes in all other wasps, we remove these wasps from the plot:
@@ -88,50 +89,52 @@ pairwise.wilcox.test(WaspsWithEggMeasurementsAndDominanceCategorisation$LargestE
                     WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory,
                     p.adjust.method = "BH")
 
-# Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
-      leveneTest(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
-                 data = dat)
-      # If p<0.05, reject the null hypothesis of equal variances.
-      # You should also look at the scatter on the boxplot.
+                        # WILCOX PAIRWISE TEST OUTPUT (20TH JANUARY 2024):
+                        ##	Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
+                        ##	
+                        ##	data:  WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg and WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory 
+                        ##	
+                        ##	     Ca D    Ca S    SA D   
+                        ##	Ca S 0.0019  -       -      
+                        ##	SA D 0.0019  6.7e-06 -      
+                        ##	SA S 5.5e-06 0.1952  7.0e-11
+                        ##	
+                        ##	P value adjustment method: BH 
+                        # (Note that *exact* p-values cannot be computed with ties).
 
-            # LEVENE'S TEST OUTPUT (18th JANUARY 2024):
-            ## 
+                        # In the Wilcox pairwise test output above, there is a significant 
+                        # difference between CA D all other categories (including SA D). The only categories
+                        # without a significant difference are CaS and SA S. We therefore add a,b,c,b as 
+                        # significance letters to the plot below.
 
-# Compute descriptive stats (means and standard deviations):
-      aggregate(thoraxplot.my_y_variable ~ thoraxplot.my_x_variable, 
-                data = dat,
-                function(x) round(c(mean = mean(x), sd = sd(x)), 2))
+# Since Wilcox pairwise comparisons find significant effects, *manually* plot the significance letters on the graph using the following:
 
-# Use the 'report' package to get a report on what your ANOVA results mean:
-library("report")
-report(res_aov)
+        largestegg.annotation <- data.frame(
+           x = c(1, 2, 3, 4),
+           y = c(0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Ca D")$LargestEgg),
+                 0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Ca S")$LargestEgg),
+                 0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="SA D")$LargestEgg),
+                 0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="SA S")$LargestEgg)),
+          label = c("a","b","c","b"))
+        
+        # Add text
+        largestegg.plot <- largestegg.plot + 
+                geom_text(data=largestegg.annotation, 
+                          aes(x=x, y=y, label=label),
+                          size=4)
+        largestegg.plot
 
-            # REPORT FUNCTION OUTPUT (18th JANUARY 2024):
-            ## 
 
-# Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
-library(multcomp)
-post_test <- glht(res_aov,
-                  linfct = mcp(thoraxplot.my_x_variable = "Tukey"))
-summary(post_test)
 
-# You can visualise the Tukey post-hoc results:
-par(mar = c(3, 8, 3, 3))
-plot(post_test)
-# If the confidence interval doesn't cross the zero line, the relevant groups are significantly different.
 
-# The average thorax size of each category:
-# Temperate foundresses (SA F):
-        mean(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="SA F"])
-        sd(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="SA F"])
-# Tropical foundresses (Ca F):
-        mean(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="Ca F"])
-        sd(thoraxplot.my_y_variable[thoraxplot.my_x_variable=="Ca F"])
 
-# Sample sizes:
-sum(thoraxplot.my_x_variable=="Ca F")
-sum(thoraxplot.my_x_variable=="SA F")
-sum(thoraxplot.my_x_variable=="C PE")
+
+
+
+
+
+
+
 
 # -------------------------------------------
 # ADD THE STATS COMPARISONS TO THE BOXPLOT:
@@ -158,6 +161,230 @@ thoraxwidth_plot
 
 
 
+# -------------------------------------------
+# STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
+
+wing.res_aov <- aov(winglengthplot.my_y_variable ~ winglengthplot.my_x_variable, 
+               data = dat)
+summary(wing.res_aov)
+
+ # Third, with Shapiro-Wilk test:
+      shapiro.test(wing.res_aov$residuals)
+      # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
+
+            # SHAPIRO-WILK OUTPUT (18th JANUARY 2024):
+            ## data:  wing.res_aov$residuals
+            ## W = 0.9839, p-value = 1.047e-08
+            # NOTE, THERE IS A SIGNIFICANT RESULT TO SHAPIRO-WILK.
+
+# Check for equality of variances (homogeneity) (https://statsandr.com/blog/anova-in-r/):
+      leveneTest(winglengthplot.my_y_variable ~ winglengthplot.my_x_variable, 
+                 data = dat)
+      # If p<0.05, reject the null hypothesis of equal variances.
+            ## Levene's Test for Homogeneity of Variance (center = median)
+            ##        Df F value Pr(>F)
+            ## group   2  0.6838  0.505
+            ##       944        
+
+report(wing.res_aov)
+        # REPORT OUTPUT (19TH JANUARY 2024):
+        ## The ANOVA (formula: winglengthplot.my_y_variable ~
+        ## winglengthplot.my_x_variable) suggests that:
+        ## 
+        ##   - The main effect of winglengthplot.my_x_variable
+        ## is statistically significant and large (F(2, 944) =
+        ## 116.10, p < .001; Eta2 = 0.20, 95% CI [0.16, 1.00])
+        ## 
+        ## Effect sizes were labelled following Field's (2013)
+        ## recommendations.
+
+# Now for post-hoc tests in the ANOVA, using Tukey's HSD test:
+library(multcomp)
+wing.post_test <- glht(wing.res_aov,
+                  linfct = mcp(winglengthplot.my_x_variable = "Tukey"))
+summary(wing.post_test)
+
+# To get this to work, it seems that we have to run the Tukey HSD test using a different
+# package, and then plot that on the graph (following https://stackoverflow.com/questions/48625620/adding-tukeys-significance-letters-to-boxplot):
+
+# First, run the Tukey tests:
+winglength.dat.summarized = dat %>% group_by(`CountryPlusNestType`) %>% summarize(winglength.Max.my_y_variable=max(`Wing length`))
+
+winglength.hsd=HSD.test(aov(winglengthplot.my_y_variable ~ winglengthplot.my_x_variable, 
+                     data=dat), "winglengthplot.my_x_variable", group=T)
+
+# Now plot the post-
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
+# NOW TURNING TO OVARY GRADE (A, B, C, AND D):
+
+View(tempfile_ImportDissectionResults)
+
+# First, focus on the subset of the data that comprises rows with stage categorisations *and* with dominance categorisations:
+WaspsWithStageAndDominanceCategorisation <- drop_na(tempfile_ImportDissectionResults,c(Stage,FoundressDominanceCategory))
+View(WaspsWithStageAndDominanceCategorisation)
+
+# For concision below, give it a smaller name ('q'):
+q<-WaspsWithStageAndDominanceCategorisation
+
+test <- data.frame( c("CA D","CA D","CA D","CA D","CA D",
+                      "CA S","CA S","CA S","CA S","CA S",
+                      "SA D","SA D","SA D","SA D","SA D",
+                      "SA S","SA S","SA S","SA S","SA S"),
+
+                    c("a","b","c","d","e","a","b","c","d","e","a","b","c","d","e","a","b","c","d","e"),
+                    c(
+sum(q$Stage=="a" & q$FoundressDominanceCategory=="Ca D"),
+sum(q$Stage=="b" & q$FoundressDominanceCategory=="Ca D"),
+sum(q$Stage=="c" & q$FoundressDominanceCategory=="Ca D"),
+sum(q$Stage=="d" & q$FoundressDominanceCategory=="Ca D"),
+sum(q$Stage=="e" & q$FoundressDominanceCategory=="Ca D"),
+
+sum(q$Stage=="a" & q$FoundressDominanceCategory=="Ca S"),
+sum(q$Stage=="b" & q$FoundressDominanceCategory=="Ca S"),
+sum(q$Stage=="c" & q$FoundressDominanceCategory=="Ca S"),
+sum(q$Stage=="d" & q$FoundressDominanceCategory=="Ca S"),
+sum(q$Stage=="e" & q$FoundressDominanceCategory=="Ca S"),
+
+sum(q$Stage=="a" & q$FoundressDominanceCategory=="SA D"),
+sum(q$Stage=="b" & q$FoundressDominanceCategory=="SA D"),
+sum(q$Stage=="c" & q$FoundressDominanceCategory=="SA D"),
+sum(q$Stage=="d" & q$FoundressDominanceCategory=="SA D"),
+sum(q$Stage=="e" & q$FoundressDominanceCategory=="SA D"),
+
+sum(q$Stage=="a" & q$FoundressDominanceCategory=="SA S"),
+sum(q$Stage=="b" & q$FoundressDominanceCategory=="SA S"),
+sum(q$Stage=="c" & q$FoundressDominanceCategory=="SA S"),
+sum(q$Stage=="d" & q$FoundressDominanceCategory=="SA S"),
+sum(q$Stage=="e" & q$FoundressDominanceCategory=="SA S")
+))
+colnames(test) <- c("Category","Stage","Count")
+
+ovarystage.plot <- ggplot(test, 
+       aes(fill=Stage, y=Count, x=Category)) + 
+    geom_bar(position="fill", stat="identity",colour="black", linewidth=0.3) + theme_cowplot() +   theme(axis.line.x.bottom=element_line(size=0.5))+
+    theme(axis.line.y.left=element_line(size=0.5)) +
+    labs(   y = "Proportion", 
+            x = "Social role") +
+    scale_y_continuous(breaks = seq(0,1,by = 0.2),expand = expansion(mult = c(0,0.05))) +
+    theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+          axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+          axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+          axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) + 
+    scale_fill_manual("", values = c("a" = "cornsilk", "b" = "azure", "c" = "darkslategray4","d" = "darkslategrey","e" = "white")) +
+    theme(legend.title = element_text(size = 8), 
+          legend.text = element_text(size = 8)) + 
+    theme(legend.key.size = unit(0.3, 'cm'))
+ovarystage.plot
+
+# STATISTICS ON OVARY GRADE:
+
+# We consider grades 'c' and 'd' to be 'active', and all other grades to be 'inactive'. We then use a
+# logistic regression on active versus inactive ovaries for the four categories.
+        # Add a column to say whether the wasp has c or d ovaries ('1' if so and '0' if not):
+        WaspsWithStageAndDominanceCategorisation$ActiveOrNot = NA
+        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="a"] = 0
+        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="b"] = 0
+        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="c"] = 1
+        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="d"] = 1
+        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="e"] = 0
+
+        # Run simple logistic regression with just one predictor variable:
+        model = glm(ActiveOrNot ~ FoundressDominanceCategory, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
+        summary(model)
+
+        # To make the comparisons relative to South African subordinates, we change the reference group to "SA S":
+        # Choose the reference group (following https://quantifyinghealth.com/logistic-regression-in-r-with-categorical-variables/):
+        WaspsWithStageAndDominanceCategorisation$FoundressDominanceCategory = relevel(factor(WaspsWithStageAndDominanceCategorisation$FoundressDominanceCategory), ref = "SA S")
+        
+        # Rerun simple logistic regression with the new reference group:
+        model = glm(ActiveOrNot ~ FoundressDominanceCategory, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
+        summary(model)
+
+                # SIMPLE LOGISTIC REGRESSION OUTPUT (20TH JANUARY 2024):
+                ## Call:
+                ## glm(formula = ActiveOrNot ~ FoundressDominanceCategory, family = "binomial", 
+                ##     data = WaspsWithStageAndDominanceCategorisation)
+                ## 
+                ## Coefficients:
+                ##                                Estimate Std. Error z value Pr(>|z|)    
+                ## (Intercept)                     -1.5939     0.3042  -5.239 1.61e-07 ***
+                ## FoundressDominanceCategoryCa D   3.7340     0.8071   4.627 3.72e-06 ***
+                ## FoundressDominanceCategoryCa S   1.2755     0.5554   2.297   0.0216 *  
+                ## FoundressDominanceCategorySA D   5.0279     1.0606   4.741 2.13e-06 ***
+                ## ---
+                ## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+                ## 
+                ## (Dispersion parameter for binomial family taken to be 1)
+                ## 
+                ##     Null deviance: 203.23  on 146  degrees of freedom
+                ## Residual deviance: 117.47  on 143  degrees of freedom
+                ## AIC: 125.47
+                ## 
+                ## Number of Fisher Scoring iterations: 6
+
+
+# ----------------------------------------------------------------------
+# COMBINE PLOTS FOR PUBLICATION AS PANEL:
+
+library("cowplot")
+my_output_panel3 <- ggdraw() +
+                        draw_plot(ovarystage.plot, x=0, y=0.5, width= 0.3,height=0.5) +
+                        draw_plot(largestegg.plot,  x=.3, y=0.5, width= 0.3,height=0.5) +
+                        draw_plot_label("a", x = 0, y = 1, size = myfontsize, fontface = "bold") +
+                        draw_plot_label("b", x = .3, y = 1, size = myfontsize, fontface = "bold") 
+my_output_panel3
+
+# Export as SVG file for publication:
+library(svglite)
+ggsave(filename = "my_output_panel2.svg", 
+       plot = my_output_panel2, 
+       height = 2.5,
+       width = 5, dpi = 200)
+# This file is now in the relevant folder, as an SVG file. 
+# Opening it will open Inkscape automatically.
 
 
 
