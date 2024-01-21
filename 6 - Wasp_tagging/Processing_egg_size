@@ -228,67 +228,6 @@ summary(model)
                         ## 
                         ## Number of Fisher Scoring iterations: 6
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # Run simple logistic regression with just one predictor variable:
-        model = glm(ActiveOrNot ~ FoundressDominanceCategory, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
-        summary(model)
-
-        # To make the comparisons relative to South African subordinates, we change the reference group to "SA S":
-        # Choose the reference group (following https://quantifyinghealth.com/logistic-regression-in-r-with-categorical-variables/):
-        WaspsWithStageAndDominanceCategorisation$FoundressDominanceCategory = relevel(factor(WaspsWithStageAndDominanceCategorisation$FoundressDominanceCategory), ref = "SA S")
-        
-        # Rerun simple logistic regression with the new reference group:
-        model = glm(ActiveOrNot ~ FoundressDominanceCategory, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
-        summary(model)
-
-                # SIMPLE LOGISTIC REGRESSION OUTPUT (20TH JANUARY 2024):
-                ## Call:
-                ## glm(formula = ActiveOrNot ~ FoundressDominanceCategory, family = "binomial", 
-                ##     data = WaspsWithStageAndDominanceCategorisation)
-                ## 
-                ## Coefficients:
-                ##                                Estimate Std. Error z value Pr(>|z|)    
-                ## (Intercept)                     -1.5939     0.3042  -5.239 1.61e-07 ***
-                ## FoundressDominanceCategoryCa D   3.7340     0.8071   4.627 3.72e-06 ***
-                ## FoundressDominanceCategoryCa S   1.2755     0.5554   2.297   0.0216 *  
-                ## FoundressDominanceCategorySA D   5.0279     1.0606   4.741 2.13e-06 ***
-                ## ---
-                ## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-                ## 
-                ## (Dispersion parameter for binomial family taken to be 1)
-                ## 
-                ##     Null deviance: 203.23  on 146  degrees of freedom
-                ## Residual deviance: 117.47  on 143  degrees of freedom
-                ## AIC: 125.47
-                ## 
-                ## Number of Fisher Scoring iterations: 6
-
-        # Mixed model involving nest as a random effect:
-library(lme4)
-        glmer(ActiveOrNot ~ FoundressDominanceCategory + Country + FoundressDominanceCategory*Country + (1 | `Nest (or nest collected on, in case of Cameroon)`),
-              data = WaspsWithStageAndDominanceCategorisation,
-    family = binomial)    
-
 # ----------------------------------------------------------------------
 # COMBINE PLOTS FOR PUBLICATION AS PANEL:
 
