@@ -145,8 +145,8 @@ View(WaspsWithStageAndDominanceCategorisation)
 # For concision below, give it a smaller name ('q'):
 q<-WaspsWithStageAndDominanceCategorisation
 
-test <- data.frame( c("CA D","CA D","CA D","CA D","CA D",
-                      "CA S","CA S","CA S","CA S","CA S",
+test <- data.frame( c("Ca D","Ca D","Ca D","Ca D","Ca D",
+                      "Ca S","Ca S","Ca S","Ca S","Ca S",
                       "SA D","SA D","SA D","SA D","SA D",
                       "SA S","SA S","SA S","SA S","SA S"),
 
