@@ -175,8 +175,34 @@ sum(q$Stage=="b" & q$FoundressDominanceCategory=="SA S"),
 sum(q$Stage=="c" & q$FoundressDominanceCategory=="SA S"),
 sum(q$Stage=="d" & q$FoundressDominanceCategory=="SA S"),
 sum(q$Stage=="e" & q$FoundressDominanceCategory=="SA S")
+),
+c(
+sum(q$FoundressDominanceCategory=="Ca D"),
+sum(q$FoundressDominanceCategory=="Ca D"),
+sum(q$FoundressDominanceCategory=="Ca D"),
+sum(q$FoundressDominanceCategory=="Ca D"),
+sum(q$FoundressDominanceCategory=="Ca D"),
+
+sum(q$FoundressDominanceCategory=="Ca S"),
+sum(q$FoundressDominanceCategory=="Ca S"),
+sum(q$FoundressDominanceCategory=="Ca S"),
+sum(q$FoundressDominanceCategory=="Ca S"),
+sum(q$FoundressDominanceCategory=="Ca S"),
+
+sum(q$FoundressDominanceCategory=="SA D"),
+sum(q$FoundressDominanceCategory=="SA D"),
+sum(q$FoundressDominanceCategory=="SA D"),
+sum(q$FoundressDominanceCategory=="SA D"),
+sum(q$FoundressDominanceCategory=="SA D"),
+
+sum(q$FoundressDominanceCategory=="SA S"),
+sum(q$FoundressDominanceCategory=="SA S"),
+sum(q$FoundressDominanceCategory=="SA S"),
+sum(q$FoundressDominanceCategory=="SA S"),
+sum(q$FoundressDominanceCategory=="SA S")
 ))
-colnames(test) <- c("Category","Stage","Count")
+colnames(test) <- c("Category","Stage","Count","TotalinCategory")
+test$Percentages <- test$Count/test$TotalinCategory*100
 
 ovarystage.plot <- ggplot(test, 
        aes(fill=Stage, y=Count, x=Category)) + 
