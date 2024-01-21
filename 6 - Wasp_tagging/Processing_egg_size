@@ -203,7 +203,7 @@ WaspsWithStageAndDominanceCategorisation$Stage_d_OrNot = 0
 WaspsWithStageAndDominanceCategorisation$Stage_d_OrNot[WaspsWithStageAndDominanceCategorisation$Stage=="d"] = 1
 
 model = glm(Stage_d_OrNot ~ DominanceCode + Country + Country*DominanceCode, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
-> summary(model)
+summary(model)
 
                         # LOGISTIC REGRESSION OUTPUT (21ST JANUARY 2024):
                         ## 
