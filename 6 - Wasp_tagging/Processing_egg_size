@@ -248,15 +248,57 @@ ovarystage.plot
 
 # STATISTICS ON OVARY GRADE:
 
-# We consider grades 'c' and 'd' to be 'active', and all other grades to be 'inactive'. We then use a
-# logistic regression on active versus inactive ovaries for the four categories.
-        # Add a column to say whether the wasp has c or d ovaries ('1' if so and '0' if not):
-        WaspsWithStageAndDominanceCategorisation$ActiveOrNot = NA
-        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="a"] = 0
-        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="b"] = 0
-        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="c"] = 1
-        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="d"] = 1
-        WaspsWithStageAndDominanceCategorisation$ActiveOrNot[WaspsWithStageAndDominanceCategorisation$Stage=="e"] = 0
+# Stage 'd' is maximum activity. We use a simple logistic regression with stage 'd' or not as response variable:
+
+WaspsWithStageAndDominanceCategorisation$Stage_d_OrNot = 0
+WaspsWithStageAndDominanceCategorisation$Stage_d_OrNot[WaspsWithStageAndDominanceCategorisation$Stage=="d"] = 1
+
+model = glm(Stage_d_OrNot ~ DominanceCode + Country + Country*DominanceCode, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
+> summary(model)
+
+                        # LOGISTIC REGRESSION OUTPUT (21ST JANUARY 2024):
+                        ## 
+                        ## Call:
+                        ## glm(formula = Stage_d_OrNot ~ DominanceCode + Country + Country * 
+                        ##     DominanceCode, family = "binomial", data = WaspsWithStageAndDominanceCategorisation)
+                        ## 
+                        ## Coefficients:
+                        ##                          Estimate Std. Error z value Pr(>|z|)    
+                        ## (Intercept)                0.4055     0.4564   0.888 0.374364    
+                        ## DominanceCodeS            -1.4351     0.6926  -2.072 0.038277 *  
+                        ## CountrySA                  1.5404     0.7029   2.192 0.028408 *  
+                        ## DominanceCodeS:CountrySA  -3.7163     1.0547  -3.524 0.000426 ***
+                        ## ---
+                        ## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+                        ## 
+                        ## (Dispersion parameter for binomial family taken to be 1)
+                        ## 
+                        ##     Null deviance: 186.505  on 147  degrees of freedom
+                        ## Residual deviance:  98.287  on 144  degrees of freedom
+                        ## AIC: 106.29
+                        ## 
+                        ## Number of Fisher Scoring iterations: 6
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         # Run simple logistic regression with just one predictor variable:
         model = glm(ActiveOrNot ~ FoundressDominanceCategory, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
@@ -292,6 +334,11 @@ ovarystage.plot
                 ## 
                 ## Number of Fisher Scoring iterations: 6
 
+        # Mixed model involving nest as a random effect:
+library(lme4)
+        glmer(ActiveOrNot ~ FoundressDominanceCategory + Country + FoundressDominanceCategory*Country + (1 | `Nest (or nest collected on, in case of Cameroon)`),
+              data = WaspsWithStageAndDominanceCategorisation,
+    family = binomial)    
 
 # ----------------------------------------------------------------------
 # COMBINE PLOTS FOR PUBLICATION AS PANEL:
