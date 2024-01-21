@@ -29,7 +29,7 @@ my_output_panel4
 library(svglite)
 ggsave(filename = "my_output_panel4.svg", 
        plot = my_output_panel4, 
-       height = 2.5,
-       width = 5, dpi = 200)
+       height = 5,
+       width = 6, dpi = 200)
 # This file is now in the relevant folder, as an SVG file. 
 # Opening it will open Inkscape automatically.
