@@ -502,25 +502,27 @@ Cameroon.THORAX.dom_sub_size.Welch_t.test <- t.test(Cameroon.THORAX.dom_sub_size
                data = CameroonExperimentWasps)
 Cameroon.THORAX.dom_sub_size.Welch_t.test
 
-           # WELCH T-TEST OUTPUT (19TH JANUARY 2024):
-           ## Welch Two Sample t-test
-           ## data:  Cameroon.THORAX.dom_sub_size.my_y_variable by Cameroon.THORAX.dom_sub_size.my_x_variable
-           ## t = 2.94, df = 99.413, p-value = 0.004082
-           ## alternative hypothesis: true difference in means between group Ca D and group Ca S is not equal to 0
-           ## 95 percent confidence interval:
-           ##  0.06307018 0.32490622
-           ## sample estimates:
-           ## mean in group Ca D mean in group Ca S 
-            ##         3.903265          3.709277 
+		   # WELCH T-TEST OUTPUT (19TH JANUARY 2024):
+		   ## Welch Two Sample t-test
+		   ## data:  Cameroon.THORAX.dom_sub_size.my_y_variable by Cameroon.THORAX.dom_sub_size.my_x_variable
+		   ## t = 2.94, df = 99.413, p-value = 0.004082
+		   ## alternative hypothesis: true difference in means between group Ca D and group Ca S is not equal to 0
+		   ## 95 percent confidence interval:
+		   ##  0.06307018 0.32490622
+		   ## sample estimates:
+		   ## mean in group Ca D mean in group Ca S 
+		    ##         3.903265          3.709277 
 
-report(Cameroon.WINGS.dom_sub_size.Welch_t.test)
-
-          # REPORT OUTPUT (19TH JANUARY 2024):
-          ## "Effect sizes were labelled following Cohen's (1988) recommendations.
-          ## The Welch Two Sample t-test testing the difference of Cameroon.WINGS.dom_sub_size.my_y_variable by
-          ## Cameroon.WINGS.dom_sub_size.my_x_variable (mean in group Ca D = 19.65, mean in group Ca S = 19.06)
-          ## suggests that the effect is positive, statistically significant, and small (difference = 0.60, 95% CI
-          ## [0.16, 1.03], t(115.59) = 2.73, p = 0.007; Cohen's d = 0.48, 95% CI [0.13, 0.83])"
+report(Cameroon.THORAX.dom_sub_size.Welch_t.test)
+	
+		# REPORT OUTPUT (19TH JANUARY 2024):
+		## "Effect sizes were labelled following Cohen's (1988) recommendations.
+		## The Welch Two Sample t-test testing the difference of
+		## Cameroon.THORAX.dom_sub_size.my_y_variable by
+		## Cameroon.THORAX.dom_sub_size.my_x_variable (mean in group Ca D = 3.90, mean in
+		## group Ca S = 3.71) suggests that the effect is positive, statistically significant,
+		## and medium (difference = 0.19, 95% CI [0.06, 0.32], t(99.41) = 2.94, p = 0.004;
+		## Cohen's d = 0.53, 95% CI [0.17, 0.89])"
 
 # Since Welch's t-test finds a significant effect, manually plot the significance letters on the graph using the following:
 
