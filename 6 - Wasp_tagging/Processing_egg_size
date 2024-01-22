@@ -58,6 +58,16 @@ largestegg.plot
 # ----------------------------------------------------------------------
 # STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
 
+# Sample sizes:
+sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Ca D")
+sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="SA D")
+sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Ca S")
+sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="SA S")
+
+
+
+
+
 # Run ANOVA:
 largestegg.res_aov <- aov(LargestEgg ~ FoundressDominanceCategory, 
                data = WaspsWithEggMeasurementsAndDominanceCategorisation)
