@@ -17,7 +17,7 @@ IncludeRelatedness = 0
 # with country. Almost all relatednesses are full-sister within the South African trials, whilst there is a lot of variation
 # within the Cameroonian trials. It may be inappropriate to include country in a model exploring the effects of relatedness.
 # To restrict the relatedness analysis only to Cameroon (where there is much more variation), set IncludeBothCountries to zero:
-IncludeBothCountries = 0
+IncludeBothCountries = 1
 
 # If including relatedness, you need to supply the relatedness values (average relatedness on each colony). Before running this script,
 # you should run 'Processing_relatedness_output.R'. Within that script, a dataframe
@@ -25,20 +25,34 @@ IncludeBothCountries = 0
 
 # ---------------------------------------------------------------------
 
-# Import the dataset to R and name it 'my_data':
-my_data <- ToImportToR
+# Import the transitions dataset to R and name it 'my_data':
+my_data <- Transitions_table_ToImportToR
 
 # Remove all rows that are not transitions:
-my_data <- my_data[!grepl("Not_a_transition", my_data$`Observation (k)`),]
+my_data <- my_data[!grepl("Not_a_transition", my_data$Observation_k),]
 View(my_data)
+
+# Make sure that interval time columns are in numeric format:
+my_data$AbsoluteIntervalTime <- as.numeric(my_data$AbsoluteIntervalTime)
+my_data$IntervalTime <- as.numeric(my_data$IntervalTime)
+my_data$TimeSinceTrialStart <- as.numeric(my_data$TimeSinceTrialStart)
 
 # Remove all intervals that are shorter than 5 minutes:
 my_data <- subset(my_data, AbsoluteIntervalTime>(5/60))
 
-# Make sure time information is numeric:
-my_data$AbsoluteIntervalTime <- as.numeric(my_data$AbsoluteIntervalTime)
-my_data$IntervalTime <- as.numeric(my_data$IntervalTime)
-my_data$TimeSinceTrialStart <- as.numeric(my_data$TimeSinceTrialStart)
+# Total number of retained transitions:
+dim(my_data)[[1]]
+
+# Total number of retained trials:
+length(unique(my_data$Trial))
+
+# -----------------------------------------------------------------------------
+# IMPORT THE TRIAL INFO TABLE:
+
+# Copy-paste the 'Trial_info_table' sheet of the Supplementary Material Excel file into
+# its own Excel file (called 'Trial_info_table'), and then import it into R:
+
+View(Trial_info_table) 
 
 # -----------------------------------------------------------------------------
 # Choose whether you want to exclude data after the first 3 days:
