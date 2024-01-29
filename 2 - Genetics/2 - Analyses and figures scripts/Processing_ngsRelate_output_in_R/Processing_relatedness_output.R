@@ -1,5 +1,6 @@
 # Patrick Kennedy
 # -----------------------------------------------------------------------------
+library(report)
 
 # PROCESSING AND PLOTTING THE RELATEDNESS OUTPUTS FROM ngsRELATE:
 
@@ -181,6 +182,7 @@ hist(as.numeric((Cameroon_cofoundresses$rab)))
 library(ggplot2)
 library(ggthemes)
 library(ggpol)
+library(cowplot)
 
 my_x_variable <-  as.factor(Cofoundresses_data$ida_Country)
 my_y_variable <-  as.numeric(Cofoundresses_data$rab)
@@ -889,12 +891,11 @@ dev.off()
 # new co-foundresses who were not from their tagging nest. For relatedness in the experimental 
 # nests, therefore, we need to look at the whole dataset ('All').
 
-# Manually import the 'Experiment wasps' table into R:
-temp_Experiment_wasps <- read_excel("Desktop/temp_Experiment_wasps.xlsx")
-View(temp_Experiment_wasps)
+# Manually import the 'Experiment wasps' table into R, as 'temp_Experiment_wasps_table':
+View(temp_Experiment_wasps_table)
 
 # Extract the subordinates only:
-Subordinates <- subset(temp_Experiment_wasps, Position == "Subordinate")
+Subordinates <- subset(temp_Experiment_wasps_table, Position == "Subordinate")
 View(Subordinates)
 
 # Add in relatednesses (focusing only on the subordinates for whom we have a relatedness to the dominant):
@@ -903,36 +904,51 @@ temp2 <- merge(Subordinates, All, by.x=c("WaspID","Who_is_dominant_on_this_nest"
 Subordinates <- rbind(temp1,temp2)
 Subordinates$rab <- as.numeric(Subordinates$rab)
 
+# Cameroonian experiment subordinates:
+Cameroon.ExperimentSubordinates <- subset(Subordinates, Country == "Ca")
+SA.ExperimentSubordinates <- subset(Subordinates, Country == "SA")
+
 # That provides the specific relatednesses of subordinates to dominants, albeit in a fairly small sample.
 # We can plot it here:
-            ggplot(Subordinates, aes(x=as.numeric(rab), fill=ida_Country)) + 
-              geom_histogram(aes(y = ..density..), 
-                             alpha = 0.8, bins = 40) +
-              geom_density(alpha = 0.4, adjust = 0.2) +
-              theme_classic() + 
-              labs(y= "Density", 
-                   x = "Experimental subordinate's relatedness to dominant") + 
-              scale_fill_manual( values = c(myCameroonColour, mySouthAfricaColour)) + 
-              scale_x_continuous(limits = c(-0.018,0.9), expand = c(0, 0)) +
-              scale_y_continuous(expand = c(0, 0)) + 
-              geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$rab)), 
-                         linetype="dashed")
+          Cameroon.ExperimentSubordinatesRelatednessPlot <- ggplot(Cameroon.ExperimentSubordinates, aes(x=as.numeric(rab), fill=ida_Country)) + 
+                        geom_histogram(aes(y = ..density..), alpha = 0.8, bins = 40) + geom_density(alpha = 0.4, adjust = 0.2) + theme_cowplot() + 
+                        labs(y= "Density", x = "Subordinate's relatedness to dominant") + scale_fill_manual( values = c(myCameroonColour, mySouthAfricaColour)) + scale_x_continuous(limits = c(-0.018,0.9), expand = c(0, 0)) +
+                        scale_y_continuous(expand = c(0, 0)) + geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$rab)), linetype="dashed")
+          Cameroon.ExperimentSubordinatesRelatednessPlot
+ 
+          SA.ExperimentSubordinatesRelatednessPlot <- ggplot(SA.ExperimentSubordinates, aes(x=as.numeric(rab))) + 
+                        geom_histogram(aes(y = ..density..), fill="red", alpha = 0.8, bins = 40) + geom_density(alpha = 0.4, adjust = 0.8,fill="red") + theme_cowplot() + 
+                        labs(y= "Density", x = "Subordinate's relatedness to dominant") + scale_fill_manual( values = c(myCameroonColour, mySouthAfricaColour)) + scale_x_continuous(limits = c(-0.018,0.9), expand = c(0, 0)) +
+                        scale_y_continuous(expand = c(0, 0)) + geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$rab)), linetype="dashed")
+          SA.ExperimentSubordinatesRelatednessPlot
+
+# Relatedness is near-uniformly full-sister in South Africa. However, there is variability in Cameroon. Does it predict likelihood of defection?
+
+# Simple logistic regression of relatedness to dominant against whether Cameroonian subordinates visited the prize nest at any time:
             
-# Simple logistic regression of relatedness to dominant against whether the subordinate visited 
-# the prize nest at any time:
-            
-            var1 <- Subordinates$DidThisWaspEverVisitPrize
-            var2 <- Subordinates$rab
+            var1 <- Cameroon.ExperimentSubordinates$DidThisWaspEverVisitPrize
+            var2 <- Cameroon.ExperimentSubordinates$rab
             
             # Run logistic regression on the data:
-            logistic_model <- glm(var1 ~ var2, data=Subordinates, family=binomial)
+            logistic_model <- glm(DidThisWaspEverVisitPrize ~ rab, 
+                                  data=Cameroon.ExperimentSubordinates, family=binomial)
             summary(logistic_model)
-                        # When I ran this on 30th May, the p-value was 0.0936, so relatedness (in that fairly small dataset) was not 
-                        # a significant predictor of whether subordinates ever visited the prize nest.
+            report(logistic_model)
+                        # OUTPUT (29TH JANUARY 2024) SHOWS NO SIGNIFICANT EFFECT OF RELATEDNESS
+                                        ## report() function output: "We fitted a logistic model (estimated using ML) to predict DidThisWaspEverVisitPrize
+                                        ## with rab (formula: DidThisWaspEverVisitPrize ~ rab). The model's explanatory power is
+                                        ## weak (Tjur's R2 = 0.04). The model's intercept, corresponding to rab = 0, is at 0.42
+                                        ## (95% CI [-0.70, 1.59], p = 0.464). Within this model:
+                                        ##   - The effect of rab is statistically non-significant and negative (beta = -1.64, 95%
+                                        ## CI [-4.06, 0.63], p = 0.164; Std. beta = -0.41, 95% CI [-1.01, 0.16])
+                                        ## Standardized parameters were obtained by fitting the model on a standardized version
+                                        ## of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using a
+                                        ## Wald z-distribution approximation.
+                                        ## Number of Fisher Scoring iterations: 4"
                         
             # To plot the logistic regression, you can use ggplot2:
-            ggplot(Subordinates, 
-                   aes(x=var2, y=var1)) + 
+            ggplot(Cameroon.ExperimentSubordinates, 
+                   aes(x=Cameroon.ExperimentSubordinates$rab, y=Cameroon.ExperimentSubordinates$DidThisWaspEverVisitPrize, )) + 
               geom_point() +
               stat_smooth(method="glm", color="red", se=FALSE,
                           method.args = list(family=binomial))    
@@ -949,7 +965,7 @@ Subordinates$rab <- as.numeric(Subordinates$rab)
   # MAKING A LOOP THROUGH ALL THE NESTS (HAVEN'T YET ADDED IN THE OVERARCHING LOOP OVER ALL THE NESTS - BUILDING IT HERE:)
 
 # Make sure the table is in dataframe format:
-temp_Experiment_wasps <- as.data.frame(temp_Experiment_wasps)
+temp_Experiment_wasps <- as.data.frame(temp_Experiment_wasps_table)
 
 # List all the trial nests:
 trials_list <- levels(as.factor(temp_Experiment_wasps$Trial_not_necessarily_tagging_nest))
@@ -1021,11 +1037,7 @@ colnames(MeanParticipantRelatednesses) <- c("Trial","MeanRelatedness", "wasp_dat
             
 # Focus on trials for which we have relatedness data:          
 MeanParticipantRelatednesses <- subset(MeanParticipantRelatednesses, MeanRelatedness != "NaN")
-
-# Which experiment wasps do we not have genomes for?
-missing_wasps <- as.data.frame(unique(temp_Experiment_wasps$WaspID[!temp_Experiment_wasps$WaspID %in% temp_BAM_list$WaspID]))
-colnames(missing_wasps) <- c("WaspID")
-missing_wasps <- merge(missing_wasps, temp_Experiment_wasps, by.x = "WaspID", by.y = "WaspID")
+MeanParticipantRelatednesses <- subset(MeanParticipantRelatednesses, Trial != "TWO TRIALS")
 
 # ------------------------------------------------------------------------------
 # BROOD RELATEDNESS:
