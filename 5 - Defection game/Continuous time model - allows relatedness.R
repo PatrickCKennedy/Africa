@@ -13,11 +13,11 @@
 # drops all trials for which there are no relatedness estimates). Otherwise, type '0':
 IncludeRelatedness = 0
 
-# If including relatedness, there is a potential bias introduced by the fact that relatedness is strongly correlated/colinear
-# with country. Almost all relatednesses are full-sister within the South African trials, whilst there is a lot of variation
-# within the Cameroonian trials. It may be inappropriate to include country in a model exploring the effects of relatedness.
-# To restrict the relatedness analysis only to Cameroon (where there is much more variation), set IncludeBothCountries to zero:
-IncludeBothCountries = 1
+                    # If including relatedness, there is a potential bias introduced by the fact that relatedness is strongly correlated/colinear
+                    # with country. Almost all relatednesses are full-sister within the South African trials, whilst there is a lot of variation
+                    # within the Cameroonian trials. It may be inappropriate to include country in a model exploring the effects of relatedness.
+                    # To restrict the relatedness analysis only to Cameroon (where there is much more variation), set IncludeBothCountries to zero:
+                    IncludeBothCountries = 1
 
 # If including relatedness, you need to supply the relatedness values (average relatedness on each colony). Before running this script,
 # you should run 'Processing_relatedness_output.R'. Within that script, a dataframe
@@ -45,6 +45,12 @@ dim(my_data)[[1]]
 
 # Total number of retained trials:
 length(unique(my_data$Trial))
+
+# Make sure that the e columns are in numeric format:
+my_data$e11 <- as.numeric(my_data$e11); my_data$e12 <- as.numeric(my_data$e12); my_data$e13 <- as.numeric(my_data$e13); my_data$e14 <- as.numeric(my_data$e14)
+my_data$e21 <- as.numeric(my_data$e21); my_data$e22 <- as.numeric(my_data$e22); my_data$e23 <- as.numeric(my_data$e23); my_data$e24 <- as.numeric(my_data$e24)
+my_data$e31 <- as.numeric(my_data$e31); my_data$e32 <- as.numeric(my_data$e32); my_data$e33 <- as.numeric(my_data$e33); my_data$e34 <- as.numeric(my_data$e34)
+my_data$e41 <- as.numeric(my_data$e41); my_data$e42 <- as.numeric(my_data$e42); my_data$e43 <- as.numeric(my_data$e43); my_data$e44 <- as.numeric(my_data$e44)
 
 # -----------------------------------------------------------------------------
 # IMPORT THE TRIAL INFO TABLE:
@@ -114,11 +120,14 @@ my_data$ColonyNumberCode = as.numeric(factor(my_data$Trial))
 # Do the same for the two countries, but where Cameroon is one and South Africa is zero:
 my_data$CountryCode = as.numeric(c("Cameroon" = "1", "South Africa" = "0")[my_data$Country])
 
-# JAGS hits the 'log density' error for the very long time intervals. We could censor the small number of observations
+# JAGS hits the 'log density' error for the very long time intervals. We therefore censor the small number of observations
 # that are greater than 100 hours to 100 (that includes the maximum one, which is 449 hours) to enable
-# fitting the model successfully? 
+# fitting the model successfully:
 my_data$IntervalTime <- as.numeric(my_data$IntervalTime)
 my_data$intervaltime_censored = ifelse(my_data$IntervalTime>100, 100, my_data$IntervalTime)
+
+# The number of censored intervals:
+dim(subset(my_data, my_data$IntervalTime > 100))[[1]]
 
 # -----------------------------------------------------------------------------
 # JAGS needs all of the data to be provided in one list (here called 'dat').
@@ -131,10 +140,10 @@ dat <- list("e" = e,
             "timeinterval" = as.numeric(my_data$intervaltime_censored),
             "Colony" = my_data$ColonyNumberCode,
             "Country" = my_data$CountryCode,
-            "totalsubordinates" = as.numeric(my_data$SubordinatesCount),
+            "totalsubordinates" = as.numeric(my_data$TrialSubordinatesCount),
             "colonyrelatedness" = colony_relatedness,
             "mean_relatedness" = mean_relatedness,
-            "mean_groupsize" = mean(as.numeric(my_data$SubordinatesCount)),
+            "mean_groupsize" = mean(as.numeric(my_data$TrialSubordinatesCount)),
             "IncludeRelatedness" = IncludeRelatedness,
             "IncludeBothCountries" = IncludeBothCountries
 )
@@ -444,7 +453,7 @@ jags.m <- jags.model( file = "myJAGSmodel.txt",
                       data = dat, 
                       inits = inits,
                       n.chains = NumberOfChainsRun,    # Number of chains to run.
-                      n.adapt = 100 ) # Number of steps in the adaptation phase. Make this about 5000.
+                      n.adapt = 1000 ) # Number of steps in the adaptation phase. 
 
 # ------------------------------------------------------------------------------------------
 # BURN-IN:
