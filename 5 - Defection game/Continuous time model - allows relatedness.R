@@ -27,6 +27,7 @@ IncludeRelatedness = 0
 
 # Import the transitions dataset to R and name it 'my_data':
 my_data <- Transitions_table_ToImportToR
+rm(Transitions_table_ToImportToR)
 
 # Remove all rows that are not transitions:
 my_data <- my_data[!grepl("Not_a_transition", my_data$Observation_k),]
@@ -63,8 +64,8 @@ View(Trial_info_table)
 # -----------------------------------------------------------------------------
 # Choose whether you want to exclude data after the first 3 days:
 # IF YES, RUN THESE TWO LINES. IF YOU WANT TO INCLUDE ALL DATA, REGARDLESS OF TIMEPOINT, COMMENT THEM OUT:
-##            Time_Threshold <- 24*3
-##            my_data <- subset(my_data, TimeSinceTrialStart < Time_Threshold)
+            Time_Threshold <- 24*3
+            my_data <- subset(my_data, TimeSinceTrialStart < Time_Threshold)
 # I think we should present both results side by side.
 
 # -----------------------------------------------------------------------------
@@ -453,19 +454,21 @@ jags.m <- jags.model( file = "myJAGSmodel.txt",
                       data = dat, 
                       inits = inits,
                       n.chains = NumberOfChainsRun,    # Number of chains to run.
-                      n.adapt = 1000 ) # Number of steps in the adaptation phase. 
+                      n.adapt = 100 ) # Number of steps in the adaptation phase. 
 
 # ------------------------------------------------------------------------------------------
 # BURN-IN:
 
-update(jags.m, n.iter = 1000)
-
+for (burn_in_sessions in 1:10){
+      update(jags.m, n.iter = 100)
+      gc()
+}
+        
 # -----------------------------------------------------------------------------------------------------------------------
 # OBTAIN ESTIMATES FOR THE REGRESSION SLOPE VALUES:
 
 # Monitor the following parameters:
 params <- c("CountryEffect",
-            "u12", "u13", "u21", "u24", "u31", "u34", "u42", "u43",
             "alpha[1,2]",
             "alpha[1,3]",
             "alpha[2,1]",
@@ -495,8 +498,8 @@ params <- c("CountryEffect",
 # Run JAGS and save the posterior samples:
 samps <- coda.samples( jags.m,
                        params,
-                       thin = 5,
-                       n.iter = 2000 )
+                       thin = 10,
+                       n.iter = 1000 )
 
 # Check for convergence using the Gelman-Rubin diagnostic:
 gelman.diag(samps) # statistics
@@ -504,7 +507,9 @@ gelman.plot(samps) # plot
 
 # View the results:
 my_quantiles <- summary(samps)$quantiles
+View(my_quantiles)
 my_effect_stats <- summary(samps)$statistics
+View(my_effect_stats)
 my_results <- cbind(my_quantiles, my_effect_stats)
 View(my_results)
 
@@ -553,7 +558,7 @@ View(my_results)
         samps2 <- coda.samples( jags.m,
                                params2,
                                thin = 4,
-                               n.iter = 200 )
+                               n.iter = 500 )
         
         # View the results:
         my_quantiles2 <- summary(samps2)$quantiles
@@ -649,7 +654,7 @@ combined <- rbind(dat1, dat2)
       colnames(my_PP_quantiles) <- c("Country","variable")
       my_PP_quantiles$name <- paste(my_PP_quantiles$Country, my_PP_quantiles$variable)
       
-      # The 'V' seems to vanish from the variable names. Add it back in:
+      # The 'V' vanishes from the variable names. Add it back in:
       my_PP_quantiles$variable <- sub("^", "V", my_PP_quantiles$variable)
       
       # Set up empty columns:
@@ -936,7 +941,7 @@ Arrows(x0 = 0.8,y0 = 0.9,
 # Add the state 2 posterior probability:
 draw.circle(x=1, y=1, radius=my_constant*mean(SouthAfricaResults$V2), col = "pink", border = "black")
 
-# Arrow etween states 1 and 3:
+# Arrow between states 1 and 3:
 Arrows(x0 = -0.1,y0 = 0.7,
        x1 = -0.1,y1 = 0.3,
        lwd = 0.1, arr.type = "triangle", arr.length = 0.3)
