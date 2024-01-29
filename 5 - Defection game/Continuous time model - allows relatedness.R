@@ -495,8 +495,8 @@ params <- c("CountryEffect",
 # Run JAGS and save the posterior samples:
 samps <- coda.samples( jags.m,
                        params,
-                       thin = 10,
-                       n.iter = 4000 )
+                       thin = 5,
+                       n.iter = 2000 )
 
 # Check for convergence using the Gelman-Rubin diagnostic:
 gelman.diag(samps) # statistics
