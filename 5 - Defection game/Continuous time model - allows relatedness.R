@@ -459,7 +459,6 @@ jags.m <- jags.model( file = "myJAGSmodel.txt",
 # BURN-IN:
 
 update(jags.m, n.iter = 1000)
-# This should be reasonably sized. Currently just 100 for practice.
 
 # -----------------------------------------------------------------------------------------------------------------------
 # OBTAIN ESTIMATES FOR THE REGRESSION SLOPE VALUES:
@@ -496,8 +495,8 @@ params <- c("CountryEffect",
 # Run JAGS and save the posterior samples:
 samps <- coda.samples( jags.m,
                        params,
-                       thin = 4,
-                       n.iter = 600 )
+                       thin = 10,
+                       n.iter = 4000 )
 
 # Check for convergence using the Gelman-Rubin diagnostic:
 gelman.diag(samps) # statistics
