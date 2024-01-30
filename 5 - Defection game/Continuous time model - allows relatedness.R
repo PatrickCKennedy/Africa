@@ -41,12 +41,6 @@ my_data$TimeSinceTrialStart <- as.numeric(my_data$TimeSinceTrialStart)
 # Remove all intervals that are shorter than 5 minutes:
 my_data <- subset(my_data, AbsoluteIntervalTime>(5/60))
 
-# Total number of retained transitions:
-dim(my_data)[[1]]
-
-# Total number of retained trials:
-length(unique(my_data$Trial))
-
 # Make sure that the e columns are in numeric format:
 my_data$e11 <- as.numeric(my_data$e11); my_data$e12 <- as.numeric(my_data$e12); my_data$e13 <- as.numeric(my_data$e13); my_data$e14 <- as.numeric(my_data$e14)
 my_data$e21 <- as.numeric(my_data$e21); my_data$e22 <- as.numeric(my_data$e22); my_data$e23 <- as.numeric(my_data$e23); my_data$e24 <- as.numeric(my_data$e24)
@@ -64,9 +58,15 @@ View(Trial_info_table)
 # -----------------------------------------------------------------------------
 # Choose whether you want to exclude data after the first 3 days:
 # IF YES, RUN THESE TWO LINES. IF YOU WANT TO INCLUDE ALL DATA, REGARDLESS OF TIMEPOINT, COMMENT THEM OUT:
-            Time_Threshold <- 24*3
-            my_data <- subset(my_data, TimeSinceTrialStart < Time_Threshold)
+ ##           Time_Threshold <- 24*3
+ ##           my_data <- subset(my_data, TimeSinceTrialStart < Time_Threshold)
 # I think we should present both results side by side.
+
+# Total number of retained transitions:
+dim(my_data)[[1]]
+
+# Total number of retained trials:
+length(unique(my_data$Trial))
 
 # -----------------------------------------------------------------------------
 # INCLUDING RELATEDNESSES:
@@ -459,11 +459,13 @@ jags.m <- jags.model( file = "myJAGSmodel.txt",
 # ------------------------------------------------------------------------------------------
 # BURN-IN:
 
-for (burn_in_sessions in 1:10){
+for (burn_in_sessions in 1:60){
       update(jags.m, n.iter = 100)
       gc()
 }
-        
+
+# FOR THE FINAL RUN, I THINK THIS SHOULD GO FOR MUCH LONGER, AS THE PSRF IS STILL HIGH FOR A COUPLE OF PARAMETERS
+
 # -----------------------------------------------------------------------------------------------------------------------
 # OBTAIN ESTIMATES FOR THE REGRESSION SLOPE VALUES:
 
@@ -498,8 +500,8 @@ params <- c("CountryEffect",
 # Run JAGS and save the posterior samples:
 samps <- coda.samples( jags.m,
                        params,
-                       thin = 10,
-                       n.iter = 1000 )
+                       thin = 5,
+                       n.iter = 500 )
 
 # Check for convergence using the Gelman-Rubin diagnostic:
 gelman.diag(samps) # statistics
@@ -557,7 +559,7 @@ View(my_results)
         # Run JAGS and save the posterior samples:
         samps2 <- coda.samples( jags.m,
                                params2,
-                               thin = 4,
+                               thin = 5,
                                n.iter = 500 )
         
         # View the results:
@@ -648,8 +650,7 @@ combined <- rbind(dat1, dat2)
 
 # Plotting 95% prediction intervals:
 
-      # To do this, I think we should use the quantile function? So we would have 95% quantiles, which 
-      # would be from quantile 2.5 to quantile 97.5? Here is my attempt at that:
+      # Using the quantile function:
       my_PP_quantiles <- as.data.frame(unique(cbind(combined$Country, combined$variable)))
       colnames(my_PP_quantiles) <- c("Country","variable")
       my_PP_quantiles$name <- paste(my_PP_quantiles$Country, my_PP_quantiles$variable)
@@ -670,6 +671,7 @@ combined <- rbind(dat1, dat2)
         my_PP_quantiles[i,"lower"] <- quantile(x, .255, type=1)
         my_PP_quantiles[i,"mean"] <- mean(x)
       }
+      my_PP_quantiles <- drop_na(my_PP_quantiles,mean)
     
       # Reorder rows alphabetically so that each country's V1s are next to each other, etc.:
       my_PP_quantiles <- my_PP_quantiles[order(my_PP_quantiles$variable),]
@@ -705,23 +707,6 @@ combined <- rbind(dat1, dat2)
         labs(y= "Game state", 
              x = "Posterior predictive probability")
     
-# ---------------------------------------------------
-# SANITY-CHECK BY COMPARING AGAINST THE ACTUAL PROPORTIONS OF TIME SPENT STAYING IN EACH CATEGORY:
-      # SECTION TO BE CONTINUED
-
-# For each nest, calculate the proportion of its observations that are each of e11, e22, e33, or e44.
-
-# First, make a list of all trials in the data:
-trial_list <- levels(as.factor(my_data$Trial))
-
-# Loop through each trial to calculate the summary statistics:
-
-for (trial in 1:length(trial_list)){
-  
-  
-  
-  
-}
 # -----------------------------------------------------------------------------------------------------------------------
 # POSTERIOR PREDICTION 2: COMPARING LOW AND HIGH RELATEDNESS
 
@@ -882,8 +867,57 @@ combined <- rbind(dat1, dat2)
         labs(y= "Game state", 
              x = "Posterior predictive probability")
  
+# ---------------------------------------------------
+# GENERAL STATISTICS USING RAW INDIVIDUAL WASP-RECORD COUNTS:
 
+# Copy-paste the 'Experiment_wasps_table' sheet of the Supplementary Material into its own
+# Excel file, and then import it into R for analysis:
+View(temp_Experiment_wasps_table)
 
+# As you can see from the table, some wasps participated on more than one trial. There is a summation
+# row for each of these wasps. To avoid double-counting, we need to exclude this. One trial (A3-7) is 
+# also listed as 'Exclude', because dominance statuses on A3-7 were ambiguous. We therefore exclude 
+# these trials from further analysis:
+myExperimentWaspsTable <- subset(temp_Experiment_wasps_table, UseSummedDataOnlyForParticipantsInMultipleTrials=="Include")
+
+# Total wasp records involving the focal wasp a dominant...
+          # ...on the focal nest:
+              TotalDominantOnPrizeCount = sum(subset(myExperimentWaspsTable,Position=="Dominant")$TotalPrizeObservations)
+              TotalDominantOnPrizeCount
+          # ...on the prize nest:
+              TotalDominantOnFocalCount = sum(subset(myExperimentWaspsTable,Position=="Dominant")$TotalFocalObservations)
+              TotalDominantOnFocalCount
+          # ...on the control nest:
+              TotalDominantOnControlCount = sum(subset(myExperimentWaspsTable,Position=="Dominant")$TotalControlObservations)
+              TotalDominantOnControlCount
+          # ...combined:
+              TotalDominantCounts = TotalDominantOnControlCount+TotalDominantOnFocalCount+TotalDominantOnPrizeCount
+              TotalDominantCounts
+
+# The percantage of dominant records on the prize nest is therefore:
+              (TotalDominantOnPrizeCount/TotalDominantCounts)*100
+
+# Total wasp records involving the focal wasp as a subordinate...
+          # ...on the focal nest:
+              TotalSubordinateOnPrizeCount = sum(subset(myExperimentWaspsTable,Position=="Subordinate")$TotalPrizeObservations)
+              TotalSubordinateOnPrizeCount
+          # ...on the prize nest:
+              TotalSubordinateOnFocalCount = sum(subset(myExperimentWaspsTable,Position=="Subordinate")$TotalFocalObservations)
+              TotalSubordinateOnFocalCount
+          # ...on the control nest:
+              TotalSubordinateOnControlCount = sum(subset(myExperimentWaspsTable,Position=="Subordinate")$TotalControlObservations)
+              TotalSubordinateOnControlCount
+          # ...combined:
+              TotalSubordinateCounts = TotalSubordinateOnControlCount+TotalSubordinateOnFocalCount+TotalSubordinateOnPrizeCount
+              TotalSubordinateCounts
+
+# The percentage of subordinate records on the prize nest is therefore:
+              (TotalSubordinateOnPrizeCount/TotalSubordinateCounts)*100
+
+# Total dominant wasps in the dataset (i.e., this - of course - is the same as the number of trials, as each trial has one dominant):
+          dim(subset(myExperimentWaspsTable,Position=="Dominant"))[[1]]
+# Total subordinate wasps in the dataset:
+          dim(subset(myExperimentWaspsTable,Position=="Subordinate"))[[1]]
 
 
 
@@ -908,7 +942,16 @@ myMarkovPlot <- function(this_country_results){
     # Set the colour scheme to the right country:
     if(this_country_results$Country[1] == "Cameroon"){my_color = "#56ddc5"}
     if(this_country_results$Country[1] == "SouthAfrica"){my_color = "red"}
-    
+ 
+    # We scale the circles so that their *area* is proportional to the stationary distribution, which gives
+    # the following radii:
+    my_constant = 1
+    State1_radius = my_constant*sqrt(mean(this_country_results$V1)/(3.14159))
+    State2_radius = my_constant*sqrt(mean(this_country_results$V2)/(3.14159))
+    State3_radius = my_constant*sqrt(mean(this_country_results$V3)/(3.14159))
+    State4_radius = my_constant*sqrt(mean(this_country_results$V4)/(3.14159))
+
+
     plot(df$x, df$y, 
          xlim = c(-State1_radius,1+State2_radius), 
          ylim = c(-State4_radius, 1+State1_radius), 
@@ -916,15 +959,6 @@ myMarkovPlot <- function(this_country_results){
          asp = 1,
          xaxt = "n", yaxt = "n", frame.plot = FALSE,
          xlab="", ylab="")
-    
-    # We scale the circles so that their *area* is proportional to the stationary distribution, which gives
-    # the following radii:
-    
-    my_constant = 1
-    State1_radius = my_constant*sqrt(mean(this_country_results$V1)/(3.14159))
-    State2_radius = my_constant*sqrt(mean(this_country_results$V2)/(3.14159))
-    State3_radius = my_constant*sqrt(mean(this_country_results$V3)/(3.14159))
-    State4_radius = my_constant*sqrt(mean(this_country_results$V4)/(3.14159))
     
     # Add in the transition arrows:
     library(shape)
