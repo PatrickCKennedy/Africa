@@ -919,13 +919,53 @@ myExperimentWaspsTable <- subset(temp_Experiment_wasps_table, UseSummedDataOnlyF
 # Total subordinate wasps in the dataset:
           dim(subset(myExperimentWaspsTable,Position=="Subordinate"))[[1]]
 
+# ---------------------------------------------------------------------------------
+# CHARACTERISTICS OF WASPS WHO VISIT THE PRIZE NEST:
 
+# Focus just on subordinates who have largest egg data:
+SubordinatesWithLargestEggData <- subset(myExperimentWaspsTable,LargestEgg != "Not available" & Position == "Subordinate")
+SubordinatesWithLargestEggData$LargestEgg <- as.numeric(SubordinatesWithLargestEggData$LargestEgg)
 
+SubordinatesWithLargestEggData$MoreThan25PercentOnPrize <- ifelse(SubordinatesWithLargestEggData$`Proportion of observations on prize`>0.25, 1, 0)
 
+library(report)
+model1 <- glm(MoreThan25PercentOnPrize ~ LargestEgg + Country, 
+                 data = SubordinatesWithLargestEggData, 
+                 family = binomial)
+summary(model1)
+report(model1)
 
+# Note that we are treating each wasp as the replicate. This means that, for the minority of wasps who 
+# participated in more than one nest, we have summed their data from their trials and used that as their 
+# visit counts.
 
-
-
+          # LOGISTIC MODEL REPORT R OUTPUT (30TH JANUARY 2024):
+          ## "We fitted a logistic model (estimated using ML) to predict MoreThan25PercentOnPrize with LargestEgg and
+          ## Country (formula: MoreThan25PercentOnPrize ~ LargestEgg + Country). The model's explanatory power is
+          ## moderate (Tjur's R2 = 0.22). The model's intercept, corresponding to LargestEgg = 0 and Country = Ca, is
+          ## at -3.53 (95% CI [-5.96, -1.58], p = 0.001). Within this model:
+          ##   - The effect of LargestEgg is statistically significant and positive (beta = 2.10, 95% CI [0.95, 3.44],
+          ## p < .001; Std. beta = 1.12, 95% CI [0.51, 1.83])
+          ##   - The effect of Country [SA] is statistically non-significant and positive (beta = 0.49, 95% CI [-1.09,
+          ## 2.32], p = 0.564; Std. beta = 0.49, 95% CI [-1.09, 2.32])
+          ## Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95%
+          ## Confidence Intervals (CIs) and p-values were computed using a Wald z-distribution approximation."
+                    
+# Plot that logistic regression for largest egg using marginal effects (using https://stackoverflow.com/questions/64222986/plotting-logistic-regression-with-multiple-predictors  and  https://strengejacke.github.io/ggeffects/articles/introduction_plotmethod.html):
+library(ggeffects)
+dat <- ggpredict(model1, terms = c("LargestEgg"))
+            # To plot the model using base R:
+                    plot(dat)
+            # To plot the model using ggplot:
+ggplot(dat, aes(x = x, y = predicted)) +
+    geom_ribbon(aes(ymax = conf.high, ymin = conf.low), alpha = 0.15) +
+    geom_line() + 
+    theme_cowplot() + theme(legend.position = "none") +
+    geom_point(data = SubordinatesWithLargestEggData, 
+               aes(x=LargestEgg,
+                   y=MoreThan25PercentOnPrize,color=Country), alpha = 0.1) + 
+    scale_colour_manual(values = c("#56ddc5","red")) +
+    labs(y= ">25% on prize", x = "Largest egg (mm)") 
 
 
 
