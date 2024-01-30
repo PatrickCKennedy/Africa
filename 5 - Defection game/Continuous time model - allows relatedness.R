@@ -897,65 +897,91 @@ combined <- rbind(dat1, dat2)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 # ---------------------------------------------------
-# MAKE A MARKOV TRANSITIONS DIAGRAM:
+# MAKE A MARKOV TRANSITIONS DIAGRAM FOR EACH COUNTRY:
 
 # Plotting circles (following https://finnstats.com/index.php/2022/04/20/how-to-add-circles-in-plots-in-r/):
 library(plotrix)
 df <- data.frame(x=c(0, 1, 0, 1),y=c(0, 0, 1, 1))
-plot(df$x, df$y, xlim = c(-0.5,1.5), ylim = c(0, 1.6), col = "white", asp = 1)
+myMarkovPlot <- function(this_country_results){
+    
+    # Set the colour scheme to the right country:
+    if(this_country_results$Country[1] == "Cameroon"){my_color = "#56ddc5"}
+    if(this_country_results$Country[1] == "SouthAfrica"){my_color = "red"}
+    
+    plot(df$x, df$y, 
+         xlim = c(-State1_radius,1+State2_radius), 
+         ylim = c(-State4_radius, 1+State1_radius), 
+         col = "white", 
+         asp = 1,
+         xaxt = "n", yaxt = "n", frame.plot = FALSE,
+         xlab="", ylab="")
+    
+    # We scale the circles so that their *area* is proportional to the stationary distribution, which gives
+    # the following radii:
+    
+    my_constant = 1
+    State1_radius = my_constant*sqrt(mean(this_country_results$V1)/(3.14159))
+    State2_radius = my_constant*sqrt(mean(this_country_results$V2)/(3.14159))
+    State3_radius = my_constant*sqrt(mean(this_country_results$V3)/(3.14159))
+    State4_radius = my_constant*sqrt(mean(this_country_results$V4)/(3.14159))
+    
+    # Add in the transition arrows:
+    library(shape)
+    
+    # Add the state 1 posterior probability circle:
+    draw.circle(x=0, y=1, radius=my_constant*State1_radius, col = my_color, border = "black")
+    
+    # Add the state 2 posterior probability:
+    draw.circle(x=1, y=1, radius=my_constant*State2_radius, col = my_color, border = "black")
+    
+    # Add the state 3 posterior probability:
+    draw.circle(x=0, y=0, radius=my_constant*State3_radius, col = my_color, border = "black")
+    
+    # Add the state 4 posterior probability:
+    draw.circle(x=1, y=0, radius=my_constant*State4_radius, col = my_color, border = "black")
+    
+    # Arrow between states 1 and 2:
+    Arrows(code = 3, x0 = State1_radius+0.05,y0 = 1,
+           x1 = 1-(State2_radius+0.05),y1 = 1,
+           lwd = 1, arr.length=0.2, arr.type = "curved", col = "black",arr.adj = 1)
+    
+    # Arrow between states 1 and 3:
+    Arrows(code = 3, x0 = 0,y0 = State3_radius+0.05,
+           x1 = 0,y1 = 1-(State1_radius+0.05), 
+           lwd = 1,arr.length=0.2, arr.type = "curved",arr.adj = 1)
+    
+    
+    # Arrow between states 2 and 4:
+    Arrows(code = 3, x0 = 1,y0 = State4_radius+0.05,
+           x1 = 1,y1 = 1-(State2_radius+0.05),
+           lwd = 1, arr.length=0.2,arr.type = "curved", col = "black",arr.adj = 1)
+    
+    # Arrow between states 3 and 4:
+    Arrows(code = 3, x0 = 1-(State4_radius+0.05),y0 = 0,
+           x1 = State3_radius+0.05,y1 = 0, 
+           lwd = 1, arr.length=0.2,arr.type = "curved",arr.adj = 1)
+    
+    # Add state number to each circle:
+    text(x=0,y=1,"1",col="white")
+    text(x=1,y=1,"2",col="white")
+    text(x=0,y=0,"3",col="white")
+    text(x=1,y=0,"4",col="white")
+    
+    # Add 'Stay' and 'Switch' to the axes:
+    axis(1, at=c(0,1), labels=c("S stays","S switches"), col="white")
+    if(this_country_results$Country[1] == "Cameroon"){axis(2, at=c(0,1), labels=c("D stays","D switches"), col="white")}
+}
 
-# NOTE: FOR NOW, I WILL SCALE THE CIRCLES USING THE RADIUS. BUT WE SHOULD PROBABLY
-# FIGURE OUT HOW TO SCALE THEM BY THE AREA.
+# You can now generate the two countries' predicted Markov stationary distribution plots using:
+myMarkovPlot(CameroonResults)
+myMarkovPlot(SouthAfricaResults)
 
-my_constant = 0.4
-
-# Add in the transition arrows:
-library(shape)
-
-# Arrow between states 1 and 2:
-Arrows(x0 = 0.4,y0 = 1.1,
-       x1 = 0.7,y1 = 1.1,
-       lwd = 2, arr.type = "triangle", col = "lightblue")
-
-# Add the state 1 posterior probability circle:
-draw.circle(x=0, y=1, radius=my_constant*mean(SouthAfricaResults$V1), col = "lightblue", border = "black")
-
-# Arrow between states 2 and 1:
-Arrows(x0 = 0.8,y0 = 0.9,
-       x1 = 0.5,y1 = 0.9,
-       lwd = 2, arr.type = "triangle", col = "pink")
-
-# Add the state 2 posterior probability:
-draw.circle(x=1, y=1, radius=my_constant*mean(SouthAfricaResults$V2), col = "pink", border = "black")
-
-# Arrow between states 1 and 3:
-Arrows(x0 = -0.1,y0 = 0.7,
-       x1 = -0.1,y1 = 0.3,
-       lwd = 0.1, arr.type = "triangle", arr.length = 0.3)
-Arrows(x0 = 0.1,y0 = 0.2,
-       x1 = 0.1,y1 = 0.5,
-       lwd = 0.1, arr.type = "triangle",
-       arr.length = 0.3)
-
-# Add the state 3 posterior probability:
-draw.circle(x=0, y=0, radius=my_constant*mean(SouthAfricaResults$V3), col = "orange", border = "black")
-
-# Add the state 4 posterior probability:
-draw.circle(x=1, y=0, radius=my_constant*mean(SouthAfricaResults$V4), col = "grey", border = "black")
-
-text(0, 1.4, "Home")
-text(1, 1.4, "Prize")
+# Plot them into a panel:
+par(mar=c(0.1, 0.1, 0.1, 0.1), mfrow=c(2,2),
+    oma = c(1, 2, 0.1, 0.1))
+myMarkovPlot(CameroonResults)
+    title(outer=FALSE,main="a",line =-0.7,adj=0)
+myMarkovPlot(SouthAfricaResults)
+    title(outer=FALSE,main="b",line =-0.7,adj=0)
 
