@@ -920,7 +920,7 @@ myExperimentWaspsTable <- subset(temp_Experiment_wasps_table, UseSummedDataOnlyF
           dim(subset(myExperimentWaspsTable,Position=="Subordinate"))[[1]]
 
 # ---------------------------------------------------------------------------------
-# CHARACTERISTICS OF WASPS WHO VISIT THE PRIZE NEST:
+# CHARACTERISTICS OF WASPS WHO VISIT THE PRIZE NEST (USING THE EXPERIMENT WASPS SHEET):
 
 # Focus just on subordinates who have largest egg data:
 SubordinatesWithLargestEggData <- subset(myExperimentWaspsTable,LargestEgg != "Not available" & Position == "Subordinate")
@@ -967,6 +967,15 @@ ggplot(dat, aes(x = x, y = predicted)) +
     scale_colour_manual(values = c("#56ddc5","red")) +
     labs(y= ">25% on prize", x = "Largest egg (mm)") 
 
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# For plotting the transition probabilities in the Markov diagram,
+# we convert the continuous-time Q matrix (where each row sums to 0) 
+# to its implied transition probability P matrix (where each row sums to 1),
+# by taking the matrix exponential of Q:
+
+library(Matrix)
+SouthAfrica_Pmatrix <- expm(SouthAfrica_Qmatrix)
+Cameroon_Pmatrix <- expm(Cameroon_Qmatrix)
 
 
 
@@ -1058,4 +1067,291 @@ myMarkovPlot(CameroonResults)
     title(outer=FALSE,main="a",line =-0.7,adj=0)
 myMarkovPlot(SouthAfricaResults)
     title(outer=FALSE,main="b",line =-0.7,adj=0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# - - - - - - - - - - - - - - - - - - -
+# PROVIDING A CURVED ARROW FUNCTION TO BE USED IN THE FOLLOWING SECTION:
+# NOTE: The following functions (in the indented section) are due to: https://stackoverflow.com/questions/73906615/how-to-draw-curved-arrows-with-exact-start-and-end-points
+# ...which provides a function for plotting curved arrows:
+                                            # helper functions to convert between radians and degrees
+                                            deg2rad <- function (deg){
+                                              stopifnot(is.numeric(deg))
+                                              (rad <- (pi/180) * deg)
+                                            }
+                                            
+                                            rad2deg <- function (rad){
+                                              stopifnot(is.numeric(rad))
+                                              (deg <- rad/(pi/180))
+                                            }
+                                            
+                                            # function to calculate the points on an arc between two points
+                                            # position 1: x0, y0
+                                            # position 2: x1, y1
+                                            # number of points in resulting arc line: n
+                                            # degrees of the arc connecting the points (positive is counter-clockwise, 
+                                            # negative is clockwise): arcdeg
+                                            calcArc <- function(x0 = 1, y0 = 1, x1 = 4, y1 = 6, arcdeg = 30, n = 50){
+                                              
+                                              if(abs(arcdeg)>-359.9 & abs(arcdeg)>359.9){stop("angle of arc (arcdeg) must be between -359.9 and 359.9")}
+                                              
+                                              anglerad <- atan2(y = y1-y0, x = x1-x0) # angle between points
+                                              midpt <- list(x = mean(c(x0,x1)), y = mean(c(y0,y1))) # midpoint coordinates of chord
+                                              arcrad <- deg2rad(deg = arcdeg) # angle of arc in radians
+                                              chordlength <- sqrt((x1-x0)^2 + (y1-y0)^2) # length between points
+                                              r <- abs((chordlength/2) / sin(arcrad/2)) # radius of circle
+                                              
+                                              # angle from midpoint to circle center
+                                              lut <- data.frame(
+                                                lessthan180 = c(TRUE, TRUE, FALSE, FALSE), 
+                                                sign = c(1, -1, 1, -1), 
+                                                rotation = c(90, -90, -90, 90))
+                                              hit <- which(lut$lessthan180 == (abs(arcdeg) < 180) & lut$sign == sign(arcdeg))
+                                              anglecen <- anglerad + deg2rad(lut$rotation[hit])
+                                              
+                                              # length of midpoint to circle center
+                                              midpt2cenpt <- sqrt(r^2 - (chordlength/2)^2) 
+                                              
+                                              # calculate center point
+                                              cenpt <- list(x = midpt$x + midpt2cenpt*cos(anglecen), 
+                                                y = midpt$y + midpt2cenpt*sin(anglecen))
+                                              
+                                              # angle from circle center to arc
+                                              anglecen2arc <- anglecen + ifelse(abs(arcdeg)<180, deg2rad(180), 0)
+                                            
+                                              # produce vector of arc with n points
+                                              arc <- data.frame(
+                                                rad = seq(
+                                                  from = anglecen2arc - arcrad/2,
+                                                  to = anglecen2arc + arcrad/2, 
+                                                  length.out = n
+                                                )
+                                              )
+                                              arc$x <- cenpt$x + r*cos(arc$rad)
+                                              arc$y <- cenpt$y + r*sin(arc$rad)
+                                              
+                                              return(arc)
+                                            }
+                                            
+                                            # function drawing the results of calcArc as a line or arrow.
+                                            # makes a conversion in plotting region units in order to maintain a circular arc
+                                            addArc <- function(x0 = 1, y0 = 1, x1 = 4, y1 = 6, arcdeg = 30, n = 50, 
+                                              t = "l", col = 1, lty = 1, lwd = 1, 
+                                              arrowlength = NULL, arrowangle = 30, arrowcode = 2,
+                                              result = FALSE,
+                                              ...){
+                                              
+                                              # calculate arc
+                                              arc <- calcArc(x0 = x0, y0 = y0, x1 = x1, y1 = y1, arcdeg = arcdeg, n = n)
+                                            
+                                              # calculate arc in device units
+                                              FROM = "user"
+                                              TO = "chars"
+                                              
+                                              x0 <- grconvertX(x0, from = FROM, to = TO)
+                                              x1 <- grconvertX(x1, from = FROM, to = TO)
+                                              y0 <- grconvertY(y0, from = FROM, to = TO)
+                                              y1 <- grconvertY(y1, from = FROM, to = TO)
+                                              arc2 <- calcArc(x0 = x0, y0 = y0, x1 = x1, y1 = y1, arcdeg = arcdeg, n = n)
+                                              names(arc2) <- c("rad", "xusr", "yusr")
+                                              
+                                              arc <- cbind(arc, arc2[,c("xusr", "yusr")])
+                                              
+                                              # convert back to user coordinates
+                                              arc$xusr <- grconvertX(arc$xusr, from = TO, to = FROM)
+                                              arc$yusr <- grconvertY(arc$yusr, from = TO, to = FROM)
+                                              
+                                              lines(yusr ~ xusr, data = arc, t = t, 
+                                                col = col, lty = lty, lwd = lwd, ...)
+                                              if(!is.null(arrowlength)){
+                                                arrows(x0 = arc$xusr[n-1], x1 = arc$xusr[n], y0 = arc$yusr[n-1], y1 = arc$yusr[n], 
+                                                  length = arrowlength, code = arrowcode, angle = arrowangle, 
+                                                  col = col, lty = lty, lwd = lwd, ...)
+                                              }
+                                              
+                                              if(result){return(arc)}
+                                              }
+# - - - - - - - - - - - - - - - - - - -
+
+
+
+# ---------------------------------------------------
+# MAKE A MARKOV TRANSITIONS DIAGRAM FOR EACH COUNTRY:
+
+# Plotting circles (following https://finnstats.com/index.php/2022/04/20/how-to-add-circles-in-plots-in-r/):
+library(plotrix)
+df <- data.frame(x=c(0, 1, 0, 1),y=c(0, 0, 1, 1))
+myMarkovPlot <- function(this_country_results){
+    
+    # Set the colour scheme to the right country:
+    if(this_country_results$Country[1] == "Cameroon"){my_color = "#56ddc5"}
+    if(this_country_results$Country[1] == "SouthAfrica"){my_color = "red"}
+ 
+    # We scale the circles so that their *area* is proportional to the stationary distribution, which gives
+    # the following radii:
+    my_constant = 1
+    State1_radius = my_constant*sqrt(mean(this_country_results$V1)/(3.14159))
+    State2_radius = my_constant*sqrt(mean(this_country_results$V2)/(3.14159))
+    State3_radius = my_constant*sqrt(mean(this_country_results$V3)/(3.14159))
+    State4_radius = my_constant*sqrt(mean(this_country_results$V4)/(3.14159))
+
+
+    plot(df$x, df$y, 
+         xlim = c(-State1_radius,1+State2_radius), 
+         ylim = c(-State4_radius, 1+State1_radius), 
+         col = "white", 
+         asp = 1,
+         xaxt = "n", yaxt = "n", frame.plot = FALSE,
+         xlab="", ylab="")
+    
+    # Add in the transition arrows:
+    library(shape)
+    
+    # Add the state 1 posterior probability circle:
+    draw.circle(x=0, y=1, radius=my_constant*State1_radius, col = my_color, border = "black")
+    
+    # Add the state 2 posterior probability:
+    draw.circle(x=1, y=1, radius=my_constant*State2_radius, col = my_color, border = "black")
+    
+    # Add the state 3 posterior probability:
+    draw.circle(x=0, y=0, radius=my_constant*State3_radius, col = my_color, border = "black")
+    
+    # Add the state 4 posterior probability:
+    draw.circle(x=1, y=0, radius=my_constant*State4_radius, col = my_color, border = "black")
+
+
+my_arcdeg = 40
+myarrowspacing = 0.05
+  
+    # Arrow between states 1 and 2:
+    addArc(x0 = State1_radius+0.05, y0 = 1-myarrowspacing, 
+           x1 = 1-(State2_radius+0.05),y1 = 1-myarrowspacing, 
+           arcdeg = my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[1,2])
+
+    # Arrow between states 3 and 1:
+    addArc(x0 = myarrowspacing,y0 = State3_radius+0.05,
+          x1 = myarrowspacing,y1 = 1-(State1_radius+0.05), 
+           arcdeg = my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[3,1])
+
+    # Arrow between states 4 and 2:
+    addArc(x0 = 1+myarrowspacing,y0 = State4_radius+0.05,
+          x1 = 1+myarrowspacing,y1 = 1-(State2_radius+0.05),
+           arcdeg = my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[4,2])
+
+    # Arrow between states 4 and 3:
+    addArc(x0 = 1-(State4_radius+0.05),y0 = myarrowspacing,
+           x1 = State3_radius+0.05,y1 = myarrowspacing, 
+           arcdeg = my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[4,3])
+
+    # Arrow between states 2 and 1:
+    addArc(x1 = State1_radius+0.05, y1 = 1+myarrowspacing, 
+           x0 = 1-(State2_radius+0.05),y0 = 1+myarrowspacing, 
+           arcdeg = my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[2,1])
+
+    # Arrow between states 1 and 3:
+    addArc(x1 = -myarrowspacing,y1 = State3_radius+0.05,
+          x0 = -myarrowspacing,y0 = 1-(State1_radius+0.05), 
+           arcdeg = my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[1,3])
+
+    # Arrow between states 2 and 4:
+    addArc(x1 = 1-myarrowspacing,y1 = State4_radius+0.05,
+          x0 = 1-myarrowspacing,y0 = 1-(State2_radius+0.05),
+           arcdeg = my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[2,4])
+
+    # Arrow between states 3 and 4:
+    addArc(x1 = 1-(State4_radius+0.05),y1 = -myarrowspacing,
+           x0 = State3_radius+0.05,y0 = -myarrowspacing, 
+           arcdeg = my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[3,4])
+  
+     # Arrow between states 1 and 4:
+    addArc(x0 = 0-myarrowspacing+State1_radius*sin(45*(pi/180)),y0 = 1-2*myarrowspacing-(State1_radius*sin(45*(pi/180))),
+       x1 = 1-(State4_radius*sin(45*(pi/180)))-2*myarrowspacing,y1 = State4_radius*sin(45*(pi/180)),
+       arcdeg = 0.5*my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[1,4])
+
+ # Arrow between states 4 and 1:
+  addArc(x1 = 0+myarrowspacing+State1_radius*sin(45*(pi/180)),y1 = 1-(State1_radius*sin(45*(pi/180))),
+       x0 = 1-(State4_radius*sin(45*(pi/180)))-myarrowspacing,y0 = State4_radius*sin(45*(pi/180))+myarrowspacing,
+       arcdeg = 0.5*my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[4,1])
+
+ # Arrow between states 2 and 3:
+  addArc(x0 = 1-myarrowspacing-State2_radius*sin(45*(pi/180)),y0 = 1-(State2_radius*sin(45*(pi/180))),
+       x1 = (State4_radius*sin(45*(pi/180)))-myarrowspacing,y1 = State4_radius*sin(45*(pi/180))+myarrowspacing,
+       arcdeg = 0.5*my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[2,3])
+  
+# Arrow between states 3 and 2:
+addArc(x1 = 1-State2_radius*sin(45*(pi/180)),y1 = 1-(State2_radius*sin(45*(pi/180)))-myarrowspacing,
+       x0 = (State4_radius*sin(45*(pi/180)))+myarrowspacing,y0 = State4_radius*sin(45*(pi/180))+myarrowspacing,
+       arcdeg = 0.5*my_arcdeg, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[3,2])
+
+# Self-arrow for state 1:
+addArc(x0 = (State1_radius*sin(45*(pi/180)))+myarrowspacing,y0 = 1+0.01+State1_radius*sin(45*(pi/180))+myarrowspacing,
+       x1 = 0.05+(State1_radius*sin(45*(pi/180)))+myarrowspacing,y1 = 1-0.1+State1_radius*sin(45*(pi/180))+myarrowspacing,
+       arcdeg=-300, col = 4, arrowlength = 0.1, lwd = SouthAfrica_Pmatrix[1,1])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    # Add state number to each circle:
+    text(x=0,y=1,"1",col="white")
+    text(x=1,y=1,"2",col="white")
+    text(x=0,y=0,"3",col="white")
+    text(x=1,y=0,"4",col="white")
+    
+    # Add 'Stay' and 'Switch' to the axes:
+    axis(1, at=c(0,1), labels=c("S stays","S switches"), col="white")
+    if(this_country_results$Country[1] == "Cameroon"){axis(2, at=c(0,1), labels=c("D stays","D switches"), col="white")}
+}
+
+# You can now generate the two countries' predicted Markov stationary distribution plots using:
+myMarkovPlot(CameroonResults)
+myMarkovPlot(SouthAfricaResults)
+
+# Plot them into a panel:
+par(mar=c(0.1, 0.1, 0.1, 0.1), mfrow=c(2,2),
+    oma = c(1, 2, 0.1, 0.1))
+myMarkovPlot(CameroonResults)
+    title(outer=FALSE,main="a",line =-0.7,adj=0)
+myMarkovPlot(SouthAfricaResults)
+    title(outer=FALSE,main="b",line =-0.7,adj=0)
+
+
 
