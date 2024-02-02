@@ -459,12 +459,21 @@ jags.m <- jags.model( file = "myJAGSmodel.txt",
 # ------------------------------------------------------------------------------------------
 # BURN-IN:
 
-for (burn_in_sessions in 1:60){
+for (burn_in_sessions in 1:200){
       update(jags.m, n.iter = 100)
       gc()
+      # In case RStudio crashes, save the current update to the workspace:
+      
+      save("defection_game_update_backup.RData")
 }
 
-# FOR THE FINAL RUN, I THINK THIS SHOULD GO FOR MUCH LONGER, AS THE PSRF IS STILL HIGH FOR A COUPLE OF PARAMETERS
+        # If reinitialising the model from a saved workspace, set the initial values to the last values that the model reached:
+        jags.m <- jags.model( file = "myJAGSmodel.txt",
+                      data = dat, 
+                      inits = _________________,
+                      n.chains = NumberOfChainsRun,    # Number of chains to run.
+                      n.adapt = 100 ) # Number of steps in the adaptation phase. 
+
 
 # -----------------------------------------------------------------------------------------------------------------------
 # OBTAIN ESTIMATES FOR THE REGRESSION SLOPE VALUES:
@@ -500,8 +509,8 @@ params <- c("CountryEffect",
 # Run JAGS and save the posterior samples:
 samps <- coda.samples( jags.m,
                        params,
-                       thin = 5,
-                       n.iter = 500 )
+                       thin = 10,
+                       n.iter = 1000 )
 
 # Check for convergence using the Gelman-Rubin diagnostic:
 gelman.diag(samps) # statistics
