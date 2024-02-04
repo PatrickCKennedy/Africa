@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Soa_SFS
+#SBATCH --job-name=Maroua_SFS
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
@@ -16,7 +16,7 @@
 # --------------------------------------------------------------------------
 
 # First, set the working directory to the folder of everyone's BAM files:
-	cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon/Soa
+	cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon/Maroua
  
 # --------------------------------------------------------------------------
 # KEEP A RECORD OF WHICH POPULATION WE ARE FOCUSING ON:
