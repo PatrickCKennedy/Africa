@@ -459,21 +459,26 @@ jags.m <- jags.model( file = "myJAGSmodel.txt",
 # ------------------------------------------------------------------------------------------
 # BURN-IN:
 
-for (burn_in_sessions in 1:200){
-      update(jags.m, n.iter = 100)
+for (burn_in_sessions in 1:10){
+      update(jags.m, n.iter = 1000)
       gc()
       # In case RStudio crashes, save the current update to the workspace:
-      
-      save("defection_game_update_backup.RData")
+      save.image(file="defection_game_update_backup.RData")
 }
+# (When you use the gelman.diag() function below, return to this loop and continue running burn-in sessions if Gelman-Rubin diagnostic is too high.)
 
-        # If reinitialising the model from a saved workspace, set the initial values to the last values that the model reached:
-        jags.m <- jags.model( file = "myJAGSmodel.txt",
-                      data = dat, 
-                      inits = _________________,
-                      n.chains = NumberOfChainsRun,    # Number of chains to run.
-                      n.adapt = 100 ) # Number of steps in the adaptation phase. 
-
+        # If reinitialising and rerunning the model from a saved workspace, set the initial values to the last values that the model reached.
+        # For simplicity, you can reinitialise the chains using the values reached for chain 1 (and then run for a large number of iterations
+        # to re-expand the search space):
+        ##                  load("defection_game_update_backup.RData")  
+        ##                  reinitialisation_inits = jags.m$state()
+        ##                           library(rjags)
+        ##                           load.module("msm")
+        ##                           jags.m <- jags.model( file = "myJAGSmodel.txt",
+        ##                                  data = dat, 
+        ##                                  inits = reinitialisation_inits,
+        ##                                  n.chains = NumberOfChainsRun,    # Number of chains to run.
+        ##                                  n.adapt = 100 ) # Number of steps in the adaptation phase. 
 
 # -----------------------------------------------------------------------------------------------------------------------
 # OBTAIN ESTIMATES FOR THE REGRESSION SLOPE VALUES:
@@ -509,7 +514,7 @@ params <- c("CountryEffect",
 # Run JAGS and save the posterior samples:
 samps <- coda.samples( jags.m,
                        params,
-                       thin = 10,
+                       thin = 1,
                        n.iter = 1000 )
 
 # Check for convergence using the Gelman-Rubin diagnostic:
