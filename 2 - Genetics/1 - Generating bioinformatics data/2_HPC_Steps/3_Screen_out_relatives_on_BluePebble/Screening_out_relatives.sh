@@ -61,7 +61,7 @@ ToKeep <- subset(ToKeep, mean_nSites > nSites_Threshold)
 # for this population (i.e., this is a bam.filelist with only non-relatives remaining):
 write.table(ToKeep, file = 'nonrelatives.bam.filelist.txt', sep = "\t", row.names = FALSE, col.names = FALSE, quote = FALSE)
 
-# Now end the interactive R session:
+# Now end the interactive R session: 
 quit()
 
 # - - - - - - - - - - - - END OF R INTERACTIVE SESSION - - - - - - - - - - - - - - -
