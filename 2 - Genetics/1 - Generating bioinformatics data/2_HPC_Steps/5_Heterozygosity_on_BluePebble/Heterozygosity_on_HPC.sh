@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Cam_Heterozygosity
+#SBATCH --job-name=SA_Heterozygosity
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
@@ -10,8 +10,8 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-608
-# Set this to run for the total number of wasps in the relevant country (e.g., I currently have 233 samples listed in bam.filelist for SouthAfrica, so I would type --array=1-233 above).
+#SBATCH --array=1-312
+# Set this to run for the total number of wasps in the relevant country (e.g., I currently have 608 samples listed in bam.filelist for Cameroon, so I would type --array=1-608 above).
 
 # -------------------- GENOME-WIDE HETEROZYGOSITY -------------
 
