@@ -2,10 +2,10 @@
 
 #SBATCH --job-name=Transposable_elements
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=42
+#SBATCH --ntasks-per-node=4
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=200G
-#SBATCH --time=5-00:00:00
+#SBATCH --mem=100G
+#SBATCH --time=6-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --account=BISC020282
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
@@ -21,7 +21,7 @@
 cd /user/work/pk14885/Running_EDTA
 module load apps/singularity/1.1.3
 singularity shell -B/user/work/pk14885/Running_EDTA:/mnt /user/work/pk14885/EDTA.sif <<EOF
-EDTA.pl --genome /mnt/B_junceaGenome.FINAL.fasta --species others --sensitive 0 --threads 42 
+EDTA.pl --genome /mnt/B_junceaGenome.FINAL.fasta --species others --sensitive 0 --threads 4 
 EOF
 # Here, 'sensitive' is set to '0', which means that EDTA will not also use RepeatModeller to
 # check for any additional TEs. You can change it to '1' to add in a RepeatModeller step (which is
