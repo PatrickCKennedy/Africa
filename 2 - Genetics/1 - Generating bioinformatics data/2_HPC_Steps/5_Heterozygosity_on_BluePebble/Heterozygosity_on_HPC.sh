@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=SA_Heterozygosity
+#SBATCH --job-name=Cam_Heterozygosity
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
