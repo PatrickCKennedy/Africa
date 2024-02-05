@@ -13,7 +13,7 @@ thiswaspname="LOUW19PETIO"
 # -------------------------------------------------------------
 # NOTE ABOUT VERSIONS OF SAMTOOLS AND BCFTOOLS:
 
-# Using bioconda, I finally managed to download old versions of samtools and bcftools (1.1 and 1.2, respectively), as the newer versions no longer have the commands needed for the PSMC pipeline, apparently (especially the vcfutils.pl part). Hopefully these two will work. I used:
+# Using bioconda, I downloaded old versions of samtools and bcftools (1.1 and 1.2, respectively), as the newer versions no longer have the commands needed for the PSMC pipeline (especially the vcfutils.pl part). I used:
 #conda install -c bioconda samtools=1.1
 #conda install -c bioconda bcftools=1.2
 
