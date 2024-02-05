@@ -22,7 +22,7 @@ module load apps/picard/2.27.5
 # BWA ALIGNMENT
 
 # Set the working directory to the folder containing the uploaded wasps:
-cd /user/work/pk14885/Wasps_Dec2023
+cd /user/work/pk14885/NewSpeciesWellsMerged
 
 bwa mem /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta MarouaNewSpeciesWellsMerged_1.fastq.gz MarouaNewSpeciesWellsMerged_2.fastq.gz > MarouaNewSpeciesWellsMerged.output.sam
 
