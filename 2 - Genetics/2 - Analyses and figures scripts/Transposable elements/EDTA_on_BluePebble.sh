@@ -5,7 +5,7 @@
 #SBATCH --ntasks-per-node=42
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=200G
-#SBATCH --time=14-00:00:00
+#SBATCH --time=7-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --account=BISC020282
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
