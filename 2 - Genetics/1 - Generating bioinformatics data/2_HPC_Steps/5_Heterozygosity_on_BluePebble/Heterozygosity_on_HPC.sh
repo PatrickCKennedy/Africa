@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=20G
-#SBATCH --time=0-06:00:00
+#SBATCH --time=0-07:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --mail-user=pk14885@bristol.ac.uk
