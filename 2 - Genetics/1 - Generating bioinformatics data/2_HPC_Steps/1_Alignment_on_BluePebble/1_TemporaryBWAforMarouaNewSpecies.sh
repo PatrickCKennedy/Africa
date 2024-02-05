@@ -106,7 +106,7 @@ bam clipOverlap --in MarouaNewSpeciesWellsMerged.before.removal.of.overlaps.bam 
 
 # Make directories to store the separate outputs in if they do not already exist (that's that the '-p' command is for):
 
-cd /user/work/pk14885/Wasps_Dec2023
+cd /user/work/pk14885/NewSpeciesWellsMerged
 mkdir -p Completed_alignments
 mkdir -p Depth_records
 mkdir -p Duplicate_metrics
