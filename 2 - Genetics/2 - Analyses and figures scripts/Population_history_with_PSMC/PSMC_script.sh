@@ -27,6 +27,7 @@ REFERENCE="/Volumes/Patricks_LaCie_Genomics_Harddrive/3_Reference_Genome/Complet
 
 # Run the pipeline to prepare the wasp for PSMC (this is the pipeline recommended here [https://github.com/lh3/psmc], but with 'view' changed to 'call' [following the bit under 'Consensus calling' here: https://github.com/samtools/bcftools/wiki/HOWTOs#consensus-calling] because apparently 'view' was superceded by 'call' in versions of bcftools higher than 1.0):
 samtools mpileup -uf $REFERENCE ${thiswaspname}.mergedbams.bam | bcftools call -c | vcfutils.pl vcf2fq -d 10 -D 100 | gzip > diploid.fq.gz
+# That is the time-consuming step. Leave it to run overnight.
 
 # -------------------------------------------------------------
 # STEP 2: USE THE PROGRAMME 'fq2psmcfa':
