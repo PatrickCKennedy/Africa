@@ -42,7 +42,7 @@ psmc -N30 -t5 -r1 -p "28*2+3+5" -o my_diploid.psmc diploid.psmcfa
 # Plot the result:
 psmc_plot.pl -g 1 -u 3.6e-09 diploid my_diploid.psmc
 # -g is the 'number of years per generation'. For South Africa, this should be 1, I guess. For Cameroon, what should it be? Tindo et al. (2002) found a mean colony cycle of 7 months. So perhaps we should assume a generation time of 7 months, assuming most reproductives are produced at the end of the colony cycle. So that would be 7/12=0.583 years per generation... So almost twice as fast as the generation time in South Africa.
-# How about the mutation rate (-u)?! That same paper above (https://www.biorxiv.org/content/10.1101/2019.12.20.884403v1.full.pdf) says in the text that they used 3.46 x 10^-9 mutations per based per generation, since that is the mutation rate estimate for Drosophila (they cite Keightley et al., 2009). Oo, in bumblebees it is apparently "3.6 × 10−9 per haploid genome per generation" (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5854123/). So perhaps we should go with bumblebees.
+# For mutation rate ('-u'): in bumblebees, mutuation rate is "3.6 × 10−9 per haploid genome per generation" (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5854123/).
 
 # Periods in climate history that might be worth annotating on the plot:
 # ARIDITY IN AFRICA between 23,000 and 14,500 years ago: see the "Last Glacial Aridity Maximum" section here (https://www.esd.ornl.gov/projects/qen/nercAFRICA.html). The map seems to imply that the Congo Basin was extensive savanna during this period.
