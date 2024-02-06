@@ -38,10 +38,11 @@ fq2psmcfa -q20 diploid.fq.gz > diploid.psmcfa
 # Now run PSMC:
 psmc -N30 -t5 -r1 -p "28*2+3+5" -o my_diploid.psmc diploid.psmcfa
 # e.g., https://www.biorxiv.org/content/10.1101/2019.12.20.884403v1.full.pdf uses  -p "28*2+3+5"
+# That should take around 10-15 minutes to run.
     
 # Plot the result:
 psmc_plot.pl -g 1 -u 3.6e-09 diploid my_diploid.psmc
-# -g is the 'number of years per generation'. For South Africa, this should be 1, I guess. For Cameroon, what should it be? Tindo et al. (2002) found a mean colony cycle of 7 months. So perhaps we should assume a generation time of 7 months, assuming most reproductives are produced at the end of the colony cycle. So that would be 7/12=0.583 years per generation... So almost twice as fast as the generation time in South Africa.
+# -g is the 'number of years per generation'. For South Africa, this should be 1. For Cameroon, Tindo et al. (2002) found a mean colony cycle of 7 months. So we assume a generation time of 7 months, assuming most reproductives are produced at the end of the colony cycle (i.e., 7/12=0.583 years per generation, almost twice as fast as the generation time in South Africa).
 # For mutation rate ('-u'): in bumblebees, mutuation rate is "3.6 × 10−9 per haploid genome per generation" (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5854123/).
 
 # Periods in climate history that might be worth annotating on the plot:
