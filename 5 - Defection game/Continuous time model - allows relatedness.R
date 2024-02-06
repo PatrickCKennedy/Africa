@@ -514,8 +514,8 @@ params <- c("CountryEffect",
 # Run JAGS and save the posterior samples:
 samps <- coda.samples( jags.m,
                        params,
-                       thin = 1,
-                       n.iter = 1000 )
+                       thin = 100,
+                       n.iter = 15000 )
 
 # Check for convergence using the Gelman-Rubin diagnostic:
 gelman.diag(samps) # statistics
@@ -538,7 +538,7 @@ View(my_results)
   # Now plot the caterpillar plot:
         library(scales)
         library(ggplot2)
-        ggplot() +
+         parameters_significance_plot <- ggplot() +
           geom_segment(data = my_results, 
                        aes(x = my_results$`2.5%`, 
                            y = effect_name, 
@@ -556,7 +556,7 @@ View(my_results)
           theme(text = element_text(size=12)) +
           labs(y= "Predictor", 
                x = "Effect")
-
+          parameters_significance_plot
 # -----------------------------------------------------------------------------------------------------------------------
 # NOW THAT THE MCMC HAS RUN, WE CAN WORK OUT THE STATIONARY DISTRIBUTION (GET THE PREDICTIVE POSTERIOR DISTRIBUTION FOR THE STATIONARY DISTRIBUTION):
 # The two sections below look at the between-country comparison and the relatedness comparison. Note that the relatedness comparison is plotted for Cameroon only, 
@@ -573,9 +573,13 @@ View(my_results)
         # Run JAGS and save the posterior samples:
         samps2 <- coda.samples( jags.m,
                                params2,
-                               thin = 5,
-                               n.iter = 500 )
-        
+                               thin = 1,
+                               n.iter = 1000 )
+
+        # Check for convergence using the Gelman-Rubin diagnostic:
+        gelman.diag(samps2) # statistics
+        gelman.plot(samps2) # plot
+                
         # View the results:
         my_quantiles2 <- summary(samps2)$quantiles
         my_effect_stats2 <- summary(samps2)$statistics
@@ -677,7 +681,7 @@ combined <- rbind(dat1, dat2)
       my_PP_quantiles$lower <- NA
       my_PP_quantiles$mean <- NA
 
-      for (i in 1: dim(my_quantiles)[1]){
+      for (i in 1: dim(my_PP_quantiles)[1]){
         this_country <- my_PP_quantiles[i,1]
         this_variable <- my_PP_quantiles[i,2]
         x <- subset(combined, Country == this_country & variable == this_variable)$value
@@ -696,7 +700,7 @@ combined <- rbind(dat1, dat2)
       library(scales)
       library(ggplot2)
       my_color_variable <- my_PP_quantiles$Country
-      ggplot() +
+      PP_quantiles_plot <- ggplot() +
         geom_segment(data = my_PP_quantiles, 
                      aes(x = my_PP_quantiles$upper, 
                          y = my_PP_quantiles$name, 
@@ -716,11 +720,11 @@ combined <- rbind(dat1, dat2)
         scale_color_manual(values=c("Cameroon"="turquoise", "SouthAfrica"="red")) +
         theme_classic() + 
         theme(legend.position="none") + 
-        theme(text = element_text(size=12)) +
+         theme(text = element_text(size=15),axis.text=element_text(colour="black")) +
         scale_y_discrete(labels = c('1','1',  '2','2',  '3','3',  '4','4')) +
         labs(y= "Game state", 
-             x = "Posterior predictive probability")
-    
+             x = "Probability")
+    PP_quantiles_plot
 # -----------------------------------------------------------------------------------------------------------------------
 # POSTERIOR PREDICTION 2: COMPARING LOW AND HIGH RELATEDNESS
 
@@ -881,107 +885,9 @@ combined <- rbind(dat1, dat2)
         labs(y= "Game state", 
              x = "Posterior predictive probability")
  
-# ---------------------------------------------------
-# GENERAL STATISTICS USING RAW INDIVIDUAL WASP-RECORD COUNTS:
-
-# Copy-paste the 'Experiment_wasps_table' sheet of the Supplementary Material into its own
-# Excel file, and then import it into R for analysis:
-View(temp_Experiment_wasps_table)
-
-# As you can see from the table, some wasps participated on more than one trial. There is a summation
-# row for each of these wasps. To avoid double-counting, we need to exclude this. One trial (A3-7) is 
-# also listed as 'Exclude', because dominance statuses on A3-7 were ambiguous. We therefore exclude 
-# these trials from further analysis:
-myExperimentWaspsTable <- subset(temp_Experiment_wasps_table, UseSummedDataOnlyForParticipantsInMultipleTrials=="Include")
-
-# Total wasp records involving the focal wasp a dominant...
-          # ...on the focal nest:
-              TotalDominantOnPrizeCount = sum(subset(myExperimentWaspsTable,Position=="Dominant")$TotalPrizeObservations)
-              TotalDominantOnPrizeCount
-          # ...on the prize nest:
-              TotalDominantOnFocalCount = sum(subset(myExperimentWaspsTable,Position=="Dominant")$TotalFocalObservations)
-              TotalDominantOnFocalCount
-          # ...on the control nest:
-              TotalDominantOnControlCount = sum(subset(myExperimentWaspsTable,Position=="Dominant")$TotalControlObservations)
-              TotalDominantOnControlCount
-          # ...combined:
-              TotalDominantCounts = TotalDominantOnControlCount+TotalDominantOnFocalCount+TotalDominantOnPrizeCount
-              TotalDominantCounts
-
-# The percantage of dominant records on the prize nest is therefore:
-              (TotalDominantOnPrizeCount/TotalDominantCounts)*100
-
-# Total wasp records involving the focal wasp as a subordinate...
-          # ...on the focal nest:
-              TotalSubordinateOnPrizeCount = sum(subset(myExperimentWaspsTable,Position=="Subordinate")$TotalPrizeObservations)
-              TotalSubordinateOnPrizeCount
-          # ...on the prize nest:
-              TotalSubordinateOnFocalCount = sum(subset(myExperimentWaspsTable,Position=="Subordinate")$TotalFocalObservations)
-              TotalSubordinateOnFocalCount
-          # ...on the control nest:
-              TotalSubordinateOnControlCount = sum(subset(myExperimentWaspsTable,Position=="Subordinate")$TotalControlObservations)
-              TotalSubordinateOnControlCount
-          # ...combined:
-              TotalSubordinateCounts = TotalSubordinateOnControlCount+TotalSubordinateOnFocalCount+TotalSubordinateOnPrizeCount
-              TotalSubordinateCounts
-
-# The percentage of subordinate records on the prize nest is therefore:
-              (TotalSubordinateOnPrizeCount/TotalSubordinateCounts)*100
-
-# Total dominant wasps in the dataset (i.e., this - of course - is the same as the number of trials, as each trial has one dominant):
-          dim(subset(myExperimentWaspsTable,Position=="Dominant"))[[1]]
-# Total subordinate wasps in the dataset:
-          dim(subset(myExperimentWaspsTable,Position=="Subordinate"))[[1]]
-
 # ---------------------------------------------------------------------------------
-# CHARACTERISTICS OF WASPS WHO VISIT THE PRIZE NEST (USING THE EXPERIMENT WASPS SHEET):
+# MARKOV TRANSITIONS DIAGRAM FOR EACH COUNTRY:
 
-# Focus just on subordinates who have largest egg data:
-SubordinatesWithLargestEggData <- subset(myExperimentWaspsTable,LargestEgg != "Not available" & Position == "Subordinate")
-SubordinatesWithLargestEggData$LargestEgg <- as.numeric(SubordinatesWithLargestEggData$LargestEgg)
-
-SubordinatesWithLargestEggData$MoreThan25PercentOnPrize <- ifelse(SubordinatesWithLargestEggData$`Proportion of observations on prize`>0.25, 1, 0)
-
-library(report)
-model1 <- glm(MoreThan25PercentOnPrize ~ LargestEgg + Country, 
-                 data = SubordinatesWithLargestEggData, 
-                 family = binomial)
-summary(model1)
-report(model1)
-
-# Note that we are treating each wasp as the replicate. This means that, for the minority of wasps who 
-# participated in more than one nest, we have summed their data from their trials and used that as their 
-# visit counts.
-
-          # LOGISTIC MODEL REPORT R OUTPUT (30TH JANUARY 2024):
-          ## "We fitted a logistic model (estimated using ML) to predict MoreThan25PercentOnPrize with LargestEgg and
-          ## Country (formula: MoreThan25PercentOnPrize ~ LargestEgg + Country). The model's explanatory power is
-          ## moderate (Tjur's R2 = 0.22). The model's intercept, corresponding to LargestEgg = 0 and Country = Ca, is
-          ## at -3.53 (95% CI [-5.96, -1.58], p = 0.001). Within this model:
-          ##   - The effect of LargestEgg is statistically significant and positive (beta = 2.10, 95% CI [0.95, 3.44],
-          ## p < .001; Std. beta = 1.12, 95% CI [0.51, 1.83])
-          ##   - The effect of Country [SA] is statistically non-significant and positive (beta = 0.49, 95% CI [-1.09,
-          ## 2.32], p = 0.564; Std. beta = 0.49, 95% CI [-1.09, 2.32])
-          ## Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95%
-          ## Confidence Intervals (CIs) and p-values were computed using a Wald z-distribution approximation."
-                    
-# Plot that logistic regression for largest egg using marginal effects (using https://stackoverflow.com/questions/64222986/plotting-logistic-regression-with-multiple-predictors  and  https://strengejacke.github.io/ggeffects/articles/introduction_plotmethod.html):
-library(ggeffects)
-dat <- ggpredict(model1, terms = c("LargestEgg"))
-            # To plot the model using base R:
-                    plot(dat)
-            # To plot the model using ggplot:
-ggplot(dat, aes(x = x, y = predicted)) +
-    geom_ribbon(aes(ymax = conf.high, ymin = conf.low), alpha = 0.15) +
-    geom_line() + 
-    theme_cowplot() + theme(legend.position = "none") +
-    geom_point(data = SubordinatesWithLargestEggData, 
-               aes(x=LargestEgg,
-                   y=MoreThan25PercentOnPrize,color=Country), alpha = 0.1) + 
-    scale_colour_manual(values = c("#56ddc5","red")) +
-    labs(y= ">25% on prize", x = "Largest egg (mm)") 
-
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # For plotting the transition probabilities in the Markov diagram,
 # we convert the continuous-time Q matrix (where each row sums to 0) 
 # to its implied transition probability P matrix (where each row sums to 1),
@@ -991,29 +897,8 @@ library(Matrix)
 SouthAfrica_Pmatrix <- expm(SouthAfrica_Qmatrix)
 Cameroon_Pmatrix <- expm(Cameroon_Qmatrix)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # - - - - - - - - - - - - - - - - - - -
-# PROVIDING A CURVED ARROW FUNCTION TO BE USED IN THE FOLLOWING SECTION:
+# PROVIDING A CURVED ARROW FUNCTION TO BE USED IN THE MARKOV TRANSITIONS DIAGRAMS:
 # NOTE: The following functions (in the indented section) are due to: https://stackoverflow.com/questions/73906615/how-to-draw-curved-arrows-with-exact-start-and-end-points
 # ...which provides a function for plotting curved arrows:
                                             # helper functions to convert between radians and degrees
@@ -1114,12 +999,6 @@ Cameroon_Pmatrix <- expm(Cameroon_Qmatrix)
                                               if(result){return(arc)}
                                               }
 # - - - - - - - - - - - - - - - - - - -
-
-
-
-# ---------------------------------------------------
-# MAKE A MARKOV TRANSITIONS DIAGRAM FOR EACH COUNTRY:
-
 # Plotting circles (following https://finnstats.com/index.php/2022/04/20/how-to-add-circles-in-plots-in-r/):
 library(plotrix)
 df <- data.frame(x=c(0, 1, 0, 1),y=c(0, 0, 1, 1))
@@ -1147,6 +1026,8 @@ myMarkovPlot <- function(this_country_results,this_country_Pmatrix){
           
           # Add in the transition arrows:
           library(shape)
+          myedgecolor <- "black"
+          my_edge_constant <- 5
           
           # Add the state 1 posterior probability circle:
           draw.circle(x=0, y=1, radius=my_constant*State1_radius, col = my_color, border = "black")
@@ -1267,6 +1148,231 @@ myMarkovPlot(CameroonResults,Cameroon_Pmatrix)
     title(outer=FALSE,main="a",line =-0.7,adj=0)
 myMarkovPlot(SouthAfricaResults,SouthAfrica_Pmatrix)
     title(outer=FALSE,main="b",line =-0.7,adj=0)
+
+# -----------------------------------------------------------------------------------------------------------------------------------------------
+# GENERAL STATISTICS USING RAW INDIVIDUAL WASP-RECORD COUNTS:
+
+# Copy-paste the 'Experiment_wasps_table' sheet of the Supplementary Material into its own
+# Excel file, and then import it into R for analysis:
+View(temp_Experiment_wasps_table)
+
+# As you can see from the table, some wasps participated on more than one trial. There is a summation
+# row for each of these wasps. To avoid double-counting, we need to exclude this. One trial (A3-7) is 
+# also listed as 'Exclude', because dominance statuses on A3-7 were ambiguous. We therefore exclude 
+# these trials from further analysis:
+myExperimentWaspsTable <- subset(temp_Experiment_wasps_table, UseSummedDataOnlyForParticipantsInMultipleTrials=="Include")
+
+# Total wasp records involving the focal wasp a dominant...
+          # ...on the focal nest:
+              TotalDominantOnPrizeCount = sum(subset(myExperimentWaspsTable,Position=="Dominant")$TotalPrizeObservations)
+              TotalDominantOnPrizeCount
+          # ...on the prize nest:
+              TotalDominantOnFocalCount = sum(subset(myExperimentWaspsTable,Position=="Dominant")$TotalFocalObservations)
+              TotalDominantOnFocalCount
+          # ...on the control nest:
+              TotalDominantOnControlCount = sum(subset(myExperimentWaspsTable,Position=="Dominant")$TotalControlObservations)
+              TotalDominantOnControlCount
+          # ...combined:
+              TotalDominantCounts = TotalDominantOnControlCount+TotalDominantOnFocalCount+TotalDominantOnPrizeCount
+              TotalDominantCounts
+
+# The percantage of dominant records on the prize nest is therefore:
+              (TotalDominantOnPrizeCount/TotalDominantCounts)*100
+
+# Total wasp records involving the focal wasp as a subordinate...
+          # ...on the focal nest:
+              TotalSubordinateOnPrizeCount = sum(subset(myExperimentWaspsTable,Position=="Subordinate")$TotalPrizeObservations)
+              TotalSubordinateOnPrizeCount
+          # ...on the prize nest:
+              TotalSubordinateOnFocalCount = sum(subset(myExperimentWaspsTable,Position=="Subordinate")$TotalFocalObservations)
+              TotalSubordinateOnFocalCount
+          # ...on the control nest:
+              TotalSubordinateOnControlCount = sum(subset(myExperimentWaspsTable,Position=="Subordinate")$TotalControlObservations)
+              TotalSubordinateOnControlCount
+          # ...combined:
+              TotalSubordinateCounts = TotalSubordinateOnControlCount+TotalSubordinateOnFocalCount+TotalSubordinateOnPrizeCount
+              TotalSubordinateCounts
+
+# The percentage of subordinate records on the prize nest is therefore:
+              (TotalSubordinateOnPrizeCount/TotalSubordinateCounts)*100
+
+# Total dominant wasps in the dataset (i.e., this - of course - is the same as the number of trials, as each trial has one dominant):
+          dim(subset(myExperimentWaspsTable,Position=="Dominant"))[[1]]
+# Total subordinate wasps in the dataset:
+          dim(subset(myExperimentWaspsTable,Position=="Subordinate"))[[1]]
+
+# ---------------------------------------------------------------------------------
+# CHARACTERISTICS OF WASPS WHO VISIT THE PRIZE NEST (USING THE EXPERIMENT WASPS SHEET):
+
+myExperimentWaspsTable$MoreThan25PercentOnPrize <- ifelse(myExperimentWaspsTable$`Proportion of observations on prize`>0.25, 1, 0)
+myExperimentWaspsTable$LargestEgg <- as.numeric(myExperimentWaspsTable$LargestEgg)
+
+# Focus just on subordinates who have wing length data:
+SubordinatesWithWingLengthData <- subset(myExperimentWaspsTable, WingLength != "NA" & Position == "Subordinate")
+
+library(report)
+model1 <- glm(MoreThan25PercentOnPrize ~ WingLength + Country + WingLength*Country, 
+                 data = WaspsWithWingLengthData, 
+                 family = binomial)
+summary(model1)
+report(model1)
+
+# Note that we are treating each wasp as the replicate. This means that, for the minority of wasps who 
+# participated in more than one nest, we have summed their data from their trials and used that as their 
+# visit counts.
+
+          # LOGISTIC MODEL REPORT R OUTPUT (5th FEBRUARY 2024):
+          ## "We fitted a logistic model (estimated using ML) to predict MoreThan25PercentOnPrize with WingLength and Country (formula:
+          ## MoreThan25PercentOnPrize ~ WingLength + Country + WingLength * Country). The model's explanatory power is moderate (Tjur's R2 = 0.13).
+          ## The model's intercept, corresponding to WingLength = 0 and Country = Ca, is at 3.78 (95% CI [-3.03, 10.89], p = 0.281). Within this
+          ## model:
+          ##   - The effect of WingLength is statistically non-significant and negative (beta = -0.25, 95% CI [-0.62, 0.11], p = 0.183; Std. beta =
+          ## -0.39, 95% CI [-0.99, 0.17])
+          ##   - The effect of Country [SA] is statistically significant and positive (beta = 17.29, 95% CI [3.89, 32.66], p = 0.017; Std. beta =
+          ## 0.35, 95% CI [-0.62, 1.34])
+          ##   - The effect of WingLength × Country [SA] is statistically significant and negative (beta = -0.85, 95% CI [-1.62, -0.18], p = 0.018;
+          ## Std. beta = -1.34, 95% CI [-2.55, -0.28])
+          ## Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence Intervals (CIs) and
+          ## p-values were computed using a Wald z-distribution approximation."
+
+          # MARGINAL EFFECT PLOT: COUNTRY AND WING LENGTH INTERACTION in model1:
+                country_marginal_effects <- ggpredict(model1, terms = c("WingLength[all]","Country"))
+                # Base R plot:
+                plot(country_marginal_effects) + theme_cowplot()
+                # ggplot version:
+                plotting_Ca <- subset(country_marginal_effects,group == "Ca")
+                plotting_SA <- subset(country_marginal_effects,group == "SA")
+                wing_and_country_interaction_plot <- ggplot() +
+                    geom_ribbon(data = plotting_Ca, aes(x = x, y = predicted,ymax = conf.high, ymin = conf.low), alpha = 0.3, fill = "#56ddc5") +
+                    geom_ribbon(data = plotting_SA, aes(x = x, y = predicted,ymax = conf.high, ymin = conf.low), alpha = 0.3, fill = "red") +
+                    geom_line(data = plotting_Ca, aes(x = x, y = predicted), col = "#56ddc5") + 
+                    geom_line(data = plotting_SA, aes(x = x, y = predicted), col = "red") + 
+                    theme_cowplot() + theme(legend.position = "none") +
+                    geom_point(data = SubordinatesWithWingLengthData, 
+                                aes(x=WingLength,
+                                    y=MoreThan25PercentOnPrize,color=Country), alpha = 0.2) + 
+                    scale_colour_manual(values = c("#56ddc5","red")) +
+                    scale_y_continuous(breaks=c(0,1)) +
+                    labs(y= "Interested", x = "Wing length (mm)")
+                 wing_and_country_interaction_plot
+
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Now focus on subordinates for whom we have largest egg data:
+
+
+# Focus just on subordinates who have wing length data:
+SubordinatesWithEggLengthData <- subset(myExperimentWaspsTable, LargestEgg != "NA" & Position == "Subordinate")
+
+library(report)
+model2 <- glm(MoreThan25PercentOnPrize ~ LargestEgg + Country + LargestEgg*Country, 
+                 data = SubordinatesWithEggLengthData, 
+                 family = binomial)
+summary(model2)
+report(model2)
+
+# The interaction term is not significant, but LargestEgg becomes highly significant once the interaction is dropped:
+
+library(report)
+model2b <- glm(MoreThan25PercentOnPrize ~ LargestEgg + Country, 
+                 data = SubordinatesWithEggLengthData, 
+                 family = binomial)
+summary(model2b)
+report(model2b)
+
+        # MODEL 2B REPORT:
+        ## "We fitted a logistic model (estimated using ML) to predict MoreThan25PercentOnPrize with LargestEgg and Country
+        ## (formula: MoreThan25PercentOnPrize ~ LargestEgg + Country). The model's explanatory power is moderate (Tjur's R2
+        ## = 0.22). The model's intercept, corresponding to LargestEgg = 0 and Country = Ca, is at -3.53 (95% CI [-5.96,
+        ## -1.58], p = 0.001). Within this model:
+        ##   - The effect of LargestEgg is statistically significant and positive (beta = 2.10, 95% CI [0.95, 3.44], p < .001;
+        ## Std. beta = 1.12, 95% CI [0.51, 1.83])
+        ##   - The effect of Country [SA] is statistically non-significant and positive (beta = 0.49, 95% CI [-1.09, 2.32], p
+        ## = 0.564; Std. beta = 0.49, 95% CI [-1.09, 2.32])
+        ## Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95%
+        ## Confidence Intervals (CIs) and p-values were computed using a Wald z-distribution approximation."
+
+                     # MARGINAL EFFECT PLOT FOR MODEL 2b:
+                              egg_marginal_effects <- ggpredict(model2b, terms = c("LargestEgg[all]"))
+                              # Base R plot:
+                              plot(SA_egg_marginal_effects) + theme_cowplot()
+                              # ggplot version:
+                              egg_plot <- ggplot() +
+                                  geom_ribbon(data = SA_egg_marginal_effects, aes(x = x, y = predicted,ymax = conf.high, ymin = conf.low), alpha = 0.3, fill = "grey") +
+                                  geom_line(data = SA_egg_marginal_effects, aes(x = x, y = predicted), col = "black") + 
+                                  theme_cowplot() + theme(legend.position = "none") +
+                                  geom_point(data = SubordinatesWithEggLengthData, 
+                                             aes(x=LargestEgg,
+                                                 y=MoreThan25PercentOnPrize,color=Country), alpha = 0.2) + 
+                                  scale_colour_manual(values = c("#56ddc5","red")) +
+                                  scale_y_continuous(breaks=c(0,1)) +
+                                  labs(y= "Interested", x = "Largest egg (mm)")
+                              egg_plot
+
+# HMMM. BUT IT COULD BE RELATED TO THE FACT THAT THE EGG SIZE DATA SET IS HIGHLY IMBALANCED - MANY MORE SOUTH AFRICAN WASPS.
+# MAYBE WE SHOULD ONLY FOCUS ON SOUTH AFRICA HERE THEREFORE????
+        # Sample sizes:
+          dim(subset(SubordinatesWithEggLengthData, Country == "SA"))[[1]]
+          dim(subset(SubordinatesWithEggLengthData, Country == "Ca"))[[1]]
+          
+          # i.e. there are 52 South African subordinates but only 12 Cameroonian subordinates.
+
+# Here, therefore, is the model focusing just on South African subordinates:
+SA_SubordinatesWithEggLengthData <- subset(SubordinatesWithEggLengthData, Country == "SA")
+model3 <- glm(MoreThan25PercentOnPrize ~ LargestEgg, 
+                 data = SA_SubordinatesWithEggLengthData, 
+                 family = binomial)
+summary(model3)
+report(model3)
+
+              # REPORT OUTPUT FOR SOUTH AFRICAN EGG SIZE ONLY (MODEL3) (6TH FEB 2024):
+              ## "We fitted a logistic model (estimated using ML) to predict MoreThan25PercentOnPrize with LargestEgg (formula:
+              ## MoreThan25PercentOnPrize ~ LargestEgg). The model's explanatory power is moderate (Tjur's R2 = 0.20). The model's
+              ## intercept, corresponding to LargestEgg = 0, is at -2.91 (95% CI [-4.57, -1.55], p < .001). Within this model:
+              ##   - The effect of LargestEgg is statistically significant and positive (beta = 1.97, 95% CI [0.72, 3.40], p = 0.003; Std.
+              ## beta = 1.02, 95% CI [0.38, 1.77])
+              ## Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence
+              ## Intervals (CIs) and p-values were computed using a Wald z-distribution approximation."
+
+               # MARGINAL EFFECT PLOT: COUNTRY AND WING LENGTH INTERACTION in model3:
+                SA_egg_marginal_effects <- ggpredict(model3, terms = c("LargestEgg[all]"))
+                # Base R plot:
+                plot(SA_egg_marginal_effects) + theme_cowplot()
+                # ggplot version:
+                SA_egg_plot <- ggplot() +
+                    geom_ribbon(data = SA_egg_marginal_effects, aes(x = x, y = predicted,ymax = conf.high, ymin = conf.low), alpha = 0.3, fill = "red") +
+                    geom_line(data = SA_egg_marginal_effects, aes(x = x, y = predicted), col = "red") + 
+                    theme_cowplot() + theme(legend.position = "none") +
+                    geom_point(data = SA_SubordinatesWithEggLengthData, 
+                                aes(x=LargestEgg,
+                                    y=MoreThan25PercentOnPrize,color=Country), alpha = 0.2) + 
+                    scale_y_continuous(breaks=c(0,1)) +
+                    labs(y= "Interested", x = "Largest egg (mm)")
+                 SA_egg_plot
+
+
+# ---------------------------------------------------------------------------------
+# PANEL CONTAINING LARGEST EGG PLOT AND PP_QUANTILES PLOT:
+
+library(cowplot)
+plot_grid(PP_quantiles_plot,egg_plot,
+          wing_and_country_interaction_plot,
+          labels = c("c","d","e","f"))
+
+# ---------------------------------------------------------------------------------
+# 
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
