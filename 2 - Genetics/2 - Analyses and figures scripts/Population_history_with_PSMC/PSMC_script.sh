@@ -80,10 +80,10 @@ psmc_plot.pl -g 1 -u 3.6e-09 -R bootstraplines bootstraps.psmc
 # Following this website (https://openwetware.org/wiki/Schumer_lab:_Commonly_used_workflows#Demographic_Inference_with_PSMC), "add 2 columns noting your population and if it was a bootstrap or not" (i.e., write "primary" or "bootstrap"):
 
         # First, the primary line:
-        awk '{print $0, "\t", "Magaliesberg_Petio","\t", "primary"}' primary_psmc.0.txt > species_nonbootstrap.txt
+        awk '{print $0, "\t", "MarouaNewSpeciesWellsMerged","\t", "primary"}' primary_psmc.0.txt > species_nonbootstrap.txt
 
         # Second, the bootstrap lines:
-        for i in `ls bootstraplines*txt`; do awk '{print $0, "\t", "Magaliesberg_Petio bootstrap", "\t", FILENAME}' $i; done > species_bootstrap.txt
+        for i in `ls bootstraplines*txt`; do awk '{print $0, "\t", "MarouaNewSpeciesWellsMerged bootstrap", "\t", FILENAME}' $i; done > species_bootstrap.txt
         #"for all your bootstrap files, add 2 columns noting your species (or population) + if it was a bootstrap and the name of your file. FILENAME is a variable that awk recognizes and can be left as is."
 
         cat species_nonbootstrap.txt species_bootstrap.txt > PSMC_R_plotting_file.txt #"concatenate your modified psmc output files. now ready for plotting in R"
