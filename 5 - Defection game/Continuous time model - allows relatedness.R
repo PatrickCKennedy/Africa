@@ -1362,8 +1362,9 @@ plot_grid(PP_quantiles_plot,egg_plot,
 # ---------------------------------------------------------------------------------
 # 
 
-
-
+myExperimentWaspsTable$Is_stage_c_or_d = 0
+myExperimentWaspsTable$Is_stage_c_or_d[myExperimentWaspsTable$OvaryGrade == "c"] = 1
+myExperimentWaspsTable$Is_stage_c_or_d[myExperimentWaspsTable$OvaryGrade == "d"] = 1
 
 
 
