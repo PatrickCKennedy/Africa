@@ -1,10 +1,5 @@
-# CURRENTLY WORKING ON THIS (8TH FEB 2024 - HAVEN'T YET RUN IT ON BLUEPEBBLE):
-# I THINK IT IS READY TO GO. FIRST, LET'S CHECK THAT THE SINGLE-WASP-AT-A-TIME VERSION
-# SUCCESSFULLY RUNS - IF IT DOES, RUN THIS ARRAY JOB FOR ALL THE WASPS (IN EACH COUNTRY SEPARATELY):
-
-
 #!/bin/bash
-#SBATCH --job-name=Array_TEs
+#SBATCH --job-name=SA_Array_TEs
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
@@ -29,7 +24,7 @@
 # SET THE COUNTRY (and also set the array count in the SBATCH code above):
 
 # Choose whether to run this in the SouthAfrica or Cameroon folder on BluePebble:
-cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon
+cd /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica
  
 # -------------------------------------------------------------
 # LOAD THE MODULES ON THE CLUSTER:
@@ -113,7 +108,7 @@ singularity shell --cleanenv \
     -B/user/work/pk14885/Project:/mnt \
     /user/work/pk14885/dnaPipeTE/dnapipete.img <<EOF
 cd /opt/dnaPipeTE
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${NAME}.SAMPLE_R1.fastq.gz -output /mnt/output_${NAME} -genome_size 407000000 -genome_coverage 0.15 -sample_number 2 -RM_t 0.2 -cpu 8 -RM_lib /mnt/data/B_junceaGenome.FINAL.fasta.mod.EDTA.TElib.fa
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${NAME}.SAMPLE_R1.fastq.gz -output /mnt/output_${NAME} -genome_size 407000000 -genome_coverage 0.1 -sample_number 3 -RM_t 0.2 -cpu 8 -RM_lib /mnt/data/B_junceaGenome.FINAL.fasta.mod.EDTA.TElib.fa
 EOF
 
 # --------------------------------------------------------------------------------
