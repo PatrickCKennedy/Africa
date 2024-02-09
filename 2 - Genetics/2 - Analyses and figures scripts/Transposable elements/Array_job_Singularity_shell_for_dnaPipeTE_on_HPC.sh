@@ -109,7 +109,7 @@ singularity shell --cleanenv \
     -B/user/work/pk14885/Project:/mnt \
     /user/work/pk14885/dnaPipeTE/dnapipete.img <<EOF
 cd /opt/dnaPipeTE
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${NAME}.SAMPLE_R1.fastq.gz -output /mnt/output_${NAME} -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 8 -RM_lib /mnt/data/B_junceaGenome.FINAL.fasta.mod.EDTA.TElib.fa
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${NAME}.SAMPLE_R1.fastq.gz -output /mnt/output_${NAME} -genome_size 407000000 -genome_coverage 0.1 -sample_number 3 -RM_t 0.2 -cpu 8 -RM_lib /mnt/data/B_junceaGenome.FINAL.fasta.mod.EDTA.TElib.fa
 EOF
 
 # --------------------------------------------------------------------------------
