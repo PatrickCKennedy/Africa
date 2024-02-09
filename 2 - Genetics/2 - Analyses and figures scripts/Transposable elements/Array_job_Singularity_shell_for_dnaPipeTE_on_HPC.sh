@@ -66,7 +66,8 @@ echo $NAME
 # SORT THE TARGET WASP'S BAM FILE AND GENERATE THE FORWARD-ONLY FASTQ FILE THAT WE WILL USE IN dnaPipeTE:
           
 module load apps/samtools/1.16
-samtools sort -n $PWD$SAMPLE -o ${NAME}.sorted.by.name.bam 
+forwardslash="/"
+samtools sort -n $PWD$forwardslash$SAMPLE -o ${NAME}.sorted.by.name.bam 
 samtools fastq -@ 8 ${NAME}.sorted.by.name.bam -1 ${NAME}.SAMPLE_R1.fastq.gz -2 ${NAME}.SAMPLE_R2.fastq.gz -0 /dev/null -s /dev/null -n
 rm ${NAME}.sorted.by.name.bam
 rm ${NAME}.SAMPLE_R2.fastq.gz
@@ -108,7 +109,7 @@ singularity shell --cleanenv \
     -B/user/work/pk14885/Project:/mnt \
     /user/work/pk14885/dnaPipeTE/dnapipete.img <<EOF
 cd /opt/dnaPipeTE
-python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${NAME}.SAMPLE_R1.fastq.gz -output /mnt/output_${NAME} -genome_size 407000000 -genome_coverage 0.1 -sample_number 3 -RM_t 0.2 -cpu 8 -RM_lib /mnt/data/B_junceaGenome.FINAL.fasta.mod.EDTA.TElib.fa
+python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${NAME}.SAMPLE_R1.fastq.gz -output /mnt/output_${NAME} -genome_size 407000000 -genome_coverage 0.1 -sample_number 2 -RM_t 0.2 -cpu 8 -RM_lib /mnt/data/B_junceaGenome.FINAL.fasta.mod.EDTA.TElib.fa
 EOF
 
 # --------------------------------------------------------------------------------
