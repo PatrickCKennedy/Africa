@@ -117,9 +117,12 @@ rm $NAME.saf.pos.gz
 
 # In each of the $NAME.est.ml files within the realSFS_results folder, there are two values. The first is the number of homozygous sites for this wasp; the second is its number of heterozygous sites. The proportion of sites that are heterozygous is therefore the second value divided by the sum of both values (see the last lines of https://github.com/DeondeJager/Buffalo_PopGenomics/blob/master/02-Data_analysis/12-Genome-wide_Heterozygosity_A_243_14.sh).
 
-# Once the array job has finished running, manually obtain a text file containing the two values for each wasp by binding these files together. (We start by removing 'Heterozygosity_Results' if it exists from a previous run.) Manually type the following lines from within the relevant realSFS_results folder in BluePebble:
+# Once the array job has finished running, manually obtain a text file containing the two values for each wasp by binding these files together. (We start by removing any .ml files that are empty [i.e. where the heterozygosity script failed for whatever reason] and also by removing 'Heterozygosity_Results' etc if they exist from a previous run.) Manually type the following lines from within the relevant realSFS_results folder in BluePebble:
 
+##      find . -size 0 -delete
 ##      rm Heterozygosity_Results
+##      rm all.text
+##      rm my_wasps_list
 ##      cat *.ml >> all.text
 ##      ls *.ml > my_wasps_list
 ##      paste my_wasps_list all.text > Heterozygosity_Results
