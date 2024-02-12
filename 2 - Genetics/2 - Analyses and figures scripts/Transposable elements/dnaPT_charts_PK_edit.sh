@@ -329,7 +329,7 @@ save_plot(
 # 'mv' line at the very end, to move it to the right folder:
 write.table(dfg, 
             paste("$PREF", "_dfg.txt", sep = ""), 
-            "\t", na = "NA", col.names = FALSE)
+            sep = "\t", na = "NA", col.names = FALSE)
 ##############################
 
 SCRIPT
