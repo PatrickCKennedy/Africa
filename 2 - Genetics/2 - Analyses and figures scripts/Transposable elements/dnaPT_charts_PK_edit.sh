@@ -338,5 +338,5 @@ echo "All done, results in $OUTF/"
 
 ##############################
 # PK: My other addition (to move the dfg file to the right folder):
-mv ${PREF}_dfg.csv $OUTF/
+mv ${PREF}_dfg.txt $OUTF/
 ##############################
