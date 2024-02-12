@@ -325,12 +325,18 @@ save_plot(
   )
 
 ##############################
-# PK: My only addition to this script by Clement Goubert is the following write.table command, to export the dfg file:
+# PK: My only two additions to this script by Clement Goubert are: (1) the following write.table command, to export the dfg file, and (2) the 
+# 'mv' line at the very end, to move it to the right folder:
 write.table(dfg, 
-            paste("$PREF", "_dfg.csv", sep = ""), 
-            sep=",", na = "NA", col.names = FALSE)
+            paste("$PREF", "_dfg.txt", sep = ""), 
+            "\t", na = "NA", col.names = FALSE)
 ##############################
 
 SCRIPT
 
 echo "All done, results in $OUTF/"
+
+##############################
+# PK: My other addition (to move the dfg file to the right folder):
+mv ${PREF}_dfg.csv $OUTF/
+##############################
