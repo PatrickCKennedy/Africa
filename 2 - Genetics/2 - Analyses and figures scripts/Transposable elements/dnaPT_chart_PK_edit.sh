@@ -324,6 +324,11 @@ save_plot(
   base_height = 8
   )
 
+##############################
+# PK: My only addition to Clement Goubert's script is the following line, to export the dfg file:
+write.table(dfg, "dfg.csv", sep=",", na = "NA", col.names = FALSE)
+##############################
+
 SCRIPT
 
 echo "All done, results in $OUTF/"
