@@ -25,7 +25,7 @@ myReverseRead="A4_2_3_Cameroon_EKDL230052137-1A_22GGMJLT3_L7_2_val_2.fq.gz"
 
 # Run 'jellyfish' on the target wasp's forward and reverse read files:
 jellyfish count -t 8 \
--C -m 19 -s 100M \
+-C -m 19 -s 6G \
 -o 19mer_out \
 --min-qual-char=? \
 <(zcat $myForwardRead) <(zcat $myReverseRead)
