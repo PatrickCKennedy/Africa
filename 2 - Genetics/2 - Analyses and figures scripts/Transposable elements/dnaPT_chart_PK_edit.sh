@@ -325,8 +325,10 @@ save_plot(
   )
 
 ##############################
-# PK: My only addition to Clement Goubert's script is the following line, to export the dfg file:
-write.table(dfg, "dfg.csv", sep=",", na = "NA", col.names = FALSE)
+# PK: My only addition to this script by Clement Goubert is the following write.table command, to export the dfg file:
+write.table(dfg, 
+            paste("$PREF", "_dfg.csv", sep = ""), 
+            sep=",", na = "NA", col.names = FALSE)
 ##############################
 
 SCRIPT
