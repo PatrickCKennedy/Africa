@@ -112,14 +112,6 @@ cd /opt/dnaPipeTE
 python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${NAME}.SAMPLE_R1.fastq.gz -output /mnt/output_${NAME} -genome_size 407000000 -genome_coverage 0.1 -sample_number 3 -RM_t 0.2 -cpu 8 -RM_lib /mnt/data/B_junceaGenome.FINAL.fasta.mod.EDTA.TElib.fa
 EOF
 
-# To save space on the BluePebble system, delete all of the dnaPipeTE outputs for this wasp except:
-# 'Bases_per_component.pdf'
-# 'Counts.txt'
-# 'Counts.txt'
-Reads_to_components_Rtable.txt
-reads_landscape (NOTE TO DO: use this with the dnaPT_landscapes.sh script at https://github.com/clemgoub/dnaPT_utils to create the TE landscapes graph)
-reads_per_component_and_annotation
-
 # --------------------------------------------------------------------------------
 # POST-PROCESSING OF OUTPUTS FOR THIS WASP, USING CLEMENT GOUBERT'S 'dnaPT_utils' SCRIPTS:
 
