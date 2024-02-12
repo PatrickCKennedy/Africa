@@ -112,14 +112,117 @@ cd /opt/dnaPipeTE
 python3 /opt/dnaPipeTE/dnaPipeTE.py -input /mnt/data/${NAME}.SAMPLE_R1.fastq.gz -output /mnt/output_${NAME} -genome_size 407000000 -genome_coverage 0.1 -sample_number 3 -RM_t 0.2 -cpu 8 -RM_lib /mnt/data/B_junceaGenome.FINAL.fasta.mod.EDTA.TElib.fa
 EOF
 
+# To save space on the BluePebble system, delete all of the dnaPipeTE outputs for this wasp except:
+# 'Bases_per_component.pdf'
+# 'Counts.txt'
+# 'Counts.txt'
+Reads_to_components_Rtable.txt
+reads_landscape (NOTE TO DO: use this with the dnaPT_landscapes.sh script at https://github.com/clemgoub/dnaPT_utils to create the TE landscapes graph)
+reads_per_component_and_annotation
+
 # --------------------------------------------------------------------------------
-# DOWNLOAD THE OUTPUTS ON THE LOCAL COMPUTER:
+# POST-PROCESSING OF OUTPUTS FOR THIS WASP, USING CLEMENT GOUBERT'S 'dnaPT_utils' SCRIPTS:
 
-##     scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Project/NAME.THE.OUTPUT.FIRST.output NAME.THE.OUTPUT.FIRST.output
+# Have downloaded 'dnaPT_utils' to the BluePebble work directory using: git clone https://github.com/clemgoub/dnaPT_utils.git
+# following p.37 of Chapter 2 in 'Transposable Elements: Methods and Protocols'. The 'dnaPT_utils' scripts
+# create final outputs by post-processing the dnaPipeTE outputs. This offers an improvement on the graphs and outputs generated straight from dnaPipeTE.
+
+# Return to the main work directory:
+cd /user/work/pk14885
+
+# Load R:
+module load lang/r/4.3.0-gcc
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# RUNNING THE CHARTS SCRIPT OF dnaPT_utils:
+
+# First, we will run the 'dnaPT_charts.sh' process (which uses the 'reads_per_component_and_annotation' output). The dnaPT_utils
+# folder made by Clement Goubert contains this script. In order to facilitate collation of each sample's pie chart input data,
+# I have added a 'write.table' function to a copy of this script (before the 'SCRIPT' line ending the R session the end of the bash 
+# file), called 'dnaPT_charts_PK_edit.sh'. I've also added a 'mv' function at the end of the script. As a record to enable
+# repeatability, these two additions are the following lines (replacing the previous 'SCRIPT' and 'echo' lines at the end of the script):
+                 
+           ##              ##############################
+           ##              # PK: My only two additions to this script by Clement Goubert are: (1) the following write.table command, to export the dfg file, and (2) the 
+           ##              # 'mv' line at the very end, to move it to the right folder:
+           ##              write.table(dfg, 
+           ##                          paste("$PREF", "_dfg.txt", sep = ""), 
+           ##                          sep = "\t", na = "NA", col.names = FALSE)
+           ##              ##############################
+           ##              
+           ##              SCRIPT
+           ##              
+           ##              echo "All done, results in $OUTF/"
+           ##              
+           ##              ##############################
+           ##              # PK: My other addition (to move the dfg file to the right folder):
+           ##              mv ${PREF}_dfg.txt $OUTF/
+           ##              ##############################
 
 
+# We therefore run this script:
+bash dnaPT_utils/dnaPT_charts_PK_edit.sh -I Project/output_${NAME} -p dnaPT_utils_outputs_${NAME}
 
+# The outputs are:
+      # dnaPT_utils_outputs_${NAME}.charts.pdf
+      # ${NAME}_dfg.txt
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# RUNNING THE LANDSCAPES SCRIPT OF dnaPT_utils:
 
+# To generate the landscape versus the blastn consensus sequences for this wasp, we use Clement Goubert's landscapes script. As
+# above, we have added a small section at the end of that script to download the table needed to make the ggplot in R, to enable
+# easy replotting and changing colour schemes, etc:
 
+           ##              ##############################
+           ##              # PK: My only two additions to this script by Clement Goubert are: (1) the following write.table command, to export the dfg file, and (2) the 
+           ##              # 'mv' line at the very end, to move it to the right folder:
+           ##              write.table(land, 
+           ##                          paste("$PREF", "_land.txt", sep = ""), 
+           ##                          sep = "\t", na = "NA", col.names = FALSE)
+           ##              ##############################
+           ##              
+           ##              SCRIPT
+           ##              
+           ##              echo "All done, results in $OUTF/"
+           ##              
+           ##              ##############################
+           ##              # PK: My other addition (to move the dfg file to the right folder):
+           ##              mv ${PREF}_land.txt $OUTF/
+           ##              ##############################
 
+# We therefore run this script:
+bash dnaPT_utils/dnaPT_landscapes_PK_edit.sh -I Project/output_${NAME} -p dnaPT_utils_outputs_${NAME}
 
+# --------------------------------------------------------------------------------
+# TO SAVE SPACE ON HPC, DELETE ALL FILES THAT ARE NO LONGER NEEDED:
+
+# The key outputs are:
+      # ${NAME}_dfg.txt    (the table that we will use to plot genomic proportions for each wasp, by collating all the data from each individual)
+      # dnaPT_utils_outputs_${NAME}.charts.pdf     (a pie chart PDF produced by dnaPT_utils, for this wasp - useful for a quick overview of this sample's results)
+      # dnaPT_utils_outputs_${NAME}_landscapes_subclass.pdf
+      # ${NAME}_land.txt
+
+# Navigate to the right folder:
+cd /user/work/pk14885/Project/output_${NAME}
+
+# Remove the 'Annotation' and 'blast_out' folders for this wasp:
+rm -r Annotation
+rm -r blast_out
+
+# Remove the following files for this wasp, which we no longer need:
+rm Trinity*
+rm Bases*
+rm blast*
+rm colors
+rm Counts.txt
+rm factors_and_colors
+rm reads*
+rm Reads_to_components_Rtable.txt
+rm renamed.blasting_reads.fasta
+rm TEs_piechart.pdf
+rm sorted_families
+rm sorted_reads_per_component
+rm *fasta
+
+# --------------------------------------------------------------------------------
+# NOW DOWNLOAD THE OUTPUTS TO THE LOCAL COMPUTER
