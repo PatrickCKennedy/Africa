@@ -196,7 +196,7 @@ bash dnaPT_utils/dnaPT_landscapes_PK_edit.sh -I Project/output_${NAME} -p dnaPT_
 # --------------------------------------------------------------------------------
 # TO SAVE SPACE ON HPC, DELETE ALL FILES THAT ARE NO LONGER NEEDED:
 
-# The key outputs are:
+# The key outputs (which we want to keep) are the following:
       # ${NAME}_dfg.txt    (the table that we will use to plot genomic proportions for each wasp, by collating all the data from each individual)
       # dnaPT_utils_outputs_${NAME}.charts.pdf     (a pie chart PDF produced by dnaPT_utils, for this wasp - useful for a quick overview of this sample's results)
       # dnaPT_utils_outputs_${NAME}_landscapes_subclass.pdf
@@ -223,6 +223,10 @@ rm TEs_piechart.pdf
 rm sorted_families
 rm sorted_reads_per_component
 rm *fasta
+
+# We also no longer need the sorted fastq file for this wasp, so it can be removed from HPC:
+cd /user/work/pk14885/Project/data
+rm ${NAME}.SAMPLE_R1.fastq.gz
 
 # --------------------------------------------------------------------------------
 # NOW DOWNLOAD THE OUTPUTS TO THE LOCAL COMPUTER
