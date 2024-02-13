@@ -178,6 +178,8 @@ cd /user/work/pk14885/Wasps/Completed_alignments
           sed -e 's/SouthAfrica/ /g' temp1 > temp2
           awk '{print $2}' temp2 > temp3
 
+   # TO BE CONTINUED! (13TH FEB 2024)
+
 
 
 
