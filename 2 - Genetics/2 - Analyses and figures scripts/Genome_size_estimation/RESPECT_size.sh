@@ -21,7 +21,7 @@
     ##conda deactivate
 # After activating the 'myenv' environment, I installed RESPECT using 'python setup.py install' (https://github.com/shahab-sarmashghi/RESPECT)
 
-
+conda activate myenv
 respect -i /Volumes/Patricks_LaCie_Genomics_Harddrive/test_folder/A2_7_2_Cameroon_EKDL230052137-1A_22GGMJLT3_L7_1_val_1.fq.gz --debug
 
 
