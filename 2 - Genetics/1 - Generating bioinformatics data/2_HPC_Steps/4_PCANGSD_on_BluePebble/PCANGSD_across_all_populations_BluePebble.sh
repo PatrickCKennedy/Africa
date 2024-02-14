@@ -150,6 +150,9 @@ cd /user/work/pk14885/Wasps/Completed_alignments
         cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon
         mv Cameroonian.randomly.selected.nonrelatives.txt ../
 
+# Return to the 'Completed_alignments' folder:
+	cd /user/work/pk14885/Wasps/Completed_alignments
+ 
 # Remove these file if they exist from a previous run:
 	rm all.temp.txt
  	rm Cameroon.AND.SouthAfrica.randomly.selected.nonrelatives.txt
