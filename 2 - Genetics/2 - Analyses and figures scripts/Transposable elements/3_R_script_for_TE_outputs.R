@@ -7,6 +7,10 @@
 # Load libraries:
 library(stringr)
 library(ggtern)
+library(ggplot2)
+library(ggthemes)
+library(ggpol)
+library(cowplot)
 
 # Set R working directory to the downloaded 'Completed_TE_outputs' folder:
 setwd("~/Downloads/Completed_TE_outputs")
@@ -94,10 +98,159 @@ x  <- data.frame(
   x4 = shuffled_rows_dataset_for_plotting$"Climate"
 )
 
-ggtern(data=x,aes(x2,x1,x3)) + 
-    geom_mask() +
-    geom_point(aes(fill=x4),colour="black",shape=21,size=1.5,alpha=1,stroke =0.2) + 
-    scale_fill_manual(values=c("#56ddc5","orange","red","grey")) +
-    theme_void() +
-    theme_clockwise() + Tlab("Non-LTR") + Llab("Single") + Rlab("LTR") +  
-theme(legend.position="none", axis.text = element_text(size = 10),axis.title = element_text(size = 10))
+# So that we can add the mean values for the juncea (not petiolata) samples to the plot using dashed lines:
+juncea_only_results <- subset(dataset_for_plotting,dataset_for_plotting$Species == "Belonogaster_juncea")
+
+humid_tropics_juncea_only_results <- subset(juncea_only_results ,juncea_only_results$Climate == "Humid_tropics")
+semi_arid_juncea_only_results <- subset(juncea_only_results ,juncea_only_results$Climate == "Semi_arid")
+temperate_juncea_only_results <- subset(juncea_only_results ,juncea_only_results$Climate == "Temperate")
+petiolata_only_results <- subset(dataset_for_plotting,dataset_for_plotting$Species == "Belonogaster_petiolata")
+
+my_means <- as.data.frame(t(c(mean(juncea_only_results$LTR)/100, mean(juncea_only_results$`Non-repetitive`)/100, mean(juncea_only_results$`Non-LTR and unknown repetitive elements`)/100)))
+colnames(my_means) <- c("x1","x2","x3")
+
+humid_tropics_means <- as.data.frame(t(c(mean(humid_tropics_juncea_only_results$LTR)/100, 
+                              mean(humid_tropics_juncea_only_results$`Non-repetitive`)/100, 
+                              mean(humid_tropics_juncea_only_results$`Non-LTR and unknown repetitive elements`)/100)))
+                              colnames(humid_tropics_means) <- c("x1","x2","x3")
+
+semi_arid_means <- as.data.frame(t(c(mean(semi_arid_juncea_only_results$LTR)/100, 
+                              mean(semi_arid_juncea_only_results$`Non-repetitive`)/100, 
+                              mean(semi_arid_juncea_only_results$`Non-LTR and unknown repetitive elements`)/100)))
+                              colnames(semi_arid_means) <- c("x1","x2","x3")
+
+temperate_means <- as.data.frame(t(c(mean(temperate_juncea_only_results$LTR)/100, 
+                              mean(temperate_juncea_only_results$`Non-repetitive`)/100, 
+                              mean(temperate_juncea_only_results$`Non-LTR and unknown repetitive elements`)/100)))
+                              colnames(temperate_means) <- c("x1","x2","x3")
+
+petiolata_means <- as.data.frame(t(c(mean(petiolata_only_results$LTR)/100, 
+                              mean(petiolata_only_results$`Non-repetitive`)/100, 
+                              mean(petiolata_only_results$`Non-LTR and unknown repetitive elements`)/100)))
+                              colnames(petiolata_means) <- c("x1","x2","x3")
+
+TE_ternary_plot <- ggtern(data=x,aes(x2,x1,x3)) + 
+    geom_mask() + theme_showgrid() + theme_showgrid_major() +
+    geom_crosshair_tern(data=humid_tropics_means, colour = "#56ddc5", linetype = "dashed") +
+    geom_crosshair_tern(data=semi_arid_means, colour = "orange", linetype = "dashed") +
+    geom_crosshair_tern(data=temperate_means, colour = "red", linetype = "dashed") +
+    geom_crosshair_tern(data=petiolata_means, colour = "gray", linetype = "dashed") +
+    geom_point(aes(fill=x4),colour="black",shape=21,size=0.6,alpha=1,stroke = 0.1) + 
+    scale_fill_manual(values=c("#56ddc5","orange","red","gray")) + theme_showgrid() +
+    theme_classic() + theme_showarrows() +
+    Tlab("") + Llab("") + Rlab("") +  
+    theme(legend.position="none", axis.text = element_text(size = 10),axis.title = element_text(size = 10)) + 
+    Tarrowlab("LTR") + 
+    Larrowlab("Single") + 
+    Rarrowlab("Other") + 
+    theme_showarrows() 
+TE_ternary_plot
+
+# ----------------------------------------------------------------------------
+# BOXPLOT FOCUSING JUST ON LTR RETROTRANSPOSONS:
+
+myColors <- c("#56ddc5","orange","red","gray")
+
+myfontsize <- 10
+
+# Generate boxplots (following https://github.com/erocoar/ggpol):
+my_plot <- ggplot(dataset_for_plotting) + 
+    geom_boxjitter(aes(x = Climate, 
+                       y = LTR, 
+                       fill = Climate),
+                   jitter.shape = 21, 
+                   jitter.color = NA, 
+                   jitter.alpha = 0.5,
+                   jitter.size = 0.5,
+                   jitter.params = list(height = 0, width = 0.09),
+                   outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                   errorbar.draw = TRUE) + 
+    scale_fill_manual(values = myColors) +
+    scale_x_discrete(labels=c("Humid tropics","Semi-arid","Temperate",expression(italic("B. petiolata") ))) +
+    theme_cowplot(font_size = myfontsize) + 
+    labs(y= "LTR retrotransposons (%)", 
+         x = "Population") + 
+    theme(legend.position="none") + 
+    theme(axis.line.x.bottom=element_line(size=0.5)) +
+    theme(axis.line.y.left=element_line(size=0.5)) +
+    theme(axis.text.x = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+          axis.text.y = element_text(color = "black", size = myfontsize, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+          axis.title.x = element_text(color = "black", size = myfontsize, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+          axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+my_plot + coord_flip()
+
+# ----------------------------------------------------------------------------
+# STATISTICAL TEST FOR DIFFERENCES IN TRANSPOSABLE ELEMENT CONTENT BETWEEN CLIMATES:
+
+# ANOVA with climate zone as the response variable:
+res_aov <- aov(LTR ~ Climate,
+               data = dataset_for_plotting)
+
+# Check normality (https://statsandr.com/blog/anova-in-r/):
+            par(mfrow = c(1, 2)) # combine plots
+            hist(res_aov$residuals)
+            library(car)
+            qqPlot(res_aov$residuals,
+              id = FALSE # id = FALSE to remove point identification)
+                   
+# Shapiro-Wilk test for normality:
+           shapiro.test(res_aov$residuals)
+
+                   # SHAPIRO-WILK OUTPUT (15TH FEB 2024):
+                   ## Shapiro-Wilk normality test
+                   ## data:  res_aov$residuals
+                   ## W = 0.98016, p-value = 2.658e-09
+
+        # Therefore, the data are significantly non-normal.
+                   
+# Levene's test for homogeneity of variances:
+library(car)
+leveneTest(LTR ~ Climate,
+               data = dataset_for_plotting)
+
+                   # LEVENE'S TEST OUTPUT (15TH FEB 2024):
+                   ## Levene's Test for Homogeneity of Variance (center = median)
+                   ## Df F value    Pr(>F)    
+                   ## group   3  7.4442 6.356e-05 ***
+                   ##       841                      
+                   ## ---
+                   ## Signif. codes:  
+                   ## 0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+      # Therefore, significantly unequal variances.
+
+# The assumptions of ANOVA are therefore not met. We use Kruskal-Wallis instead:
+kruskal.test(LTR ~ Climate,
+               data = dataset_for_plotting)
+
+                  # KRUSKAL-WALLIS TEST OUTPUT (15TH FEB 2024):
+                  ## Kruskal-Wallis rank sum test
+                  ## data:  LTR by Climate
+                  ## Kruskal-Wallis chi-squared = 355.97, df = 3, p-value < 2.2e-16
+
+# Therefore, significant differences between the four categories in LTR content.
+
+# We therefore now use the Dunn test (post-hoc test following Kruskal-Wallis):
+library(FSA)
+PT = dunnTest(LTR ~ Climate,
+              data = dataset_for_plotting,
+              method="bh") 
+
+# TO BE CONTINUED.
+
+
+
+
+
+
+                   
+              
+# ----------------------------------------------------------------------------
+# PLOTTING LANDSCAPE PLOTS FOR A REPRESENTATIVE WASP FROM EACH CLIMATE ZONE:
+
+# 
+
+
+
+
+
