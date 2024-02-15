@@ -231,6 +231,9 @@ rm ${NAME}.SAMPLE_R1.fastq.gz
 ## du -sk * | sort -nr | head -1
 # Then open the wasp's TE output folder. If no results, delete this wasp's TE output folder.
 
+# Similarly, some wasps may have failed, leaving an empty folder. Remove these using:
+find . -type d -empty -delete
+
 # On BluePebble, now use the 'tar' function to compress the outputs folder:
 ##tar czf Completed_TE_outputs.tar.gz Completed_TE_outputs
 
