@@ -221,4 +221,22 @@ cd /user/work/pk14885/Project/data
 rm ${NAME}.SAMPLE_R1.fastq.gz
 
 # --------------------------------------------------------------------------------
-# NOW DOWNLOAD THE OUTPUTS TO THE LOCAL COMPUTER
+# MANUAL STEPS ONCE THE ARRAY JOB HAS COMPLETED: NOW DOWNLOAD THE OUTPUTS TO THE LOCAL COMPUTER
+
+# Once all the wasps have completed, move all the outputs to 'Completed_TE_outputs' within the 'Project' folder:
+## mv output* Completed_TE_outputs/
+
+# Some wasps may have failed, leaving a large fasta file in the folder but no outputs. We can remove these
+# manually, to avoid including them unnecessarily in the scp download. To find the largest file, use:
+## du -sk * | sort -nr | head -1
+# Then open the wasp's TE output folder. If no results, delete this wasp's TE output folder.
+
+# On BluePebble, now use the 'tar' function to compress the outputs folder:
+##tar czf Completed_TE_outputs.tar.gz Completed_TE_outputs
+
+# From the local machine, now use 'scp' to download the compressed Completed_TE_outputs.tar.gz file,
+# and then unzip it by double-clicking on the file.
+
+# The next steps are in R on the local machine (in the script 'R_script_for_TE_outputs.R').
+
+
