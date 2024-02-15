@@ -235,10 +235,49 @@ library(FSA)
 PT = dunnTest(LTR ~ Climate,
               data = dataset_for_plotting,
               method="bh") 
+                   
+                  # DUNN POST-HOC TEST OUTPUT (15TH FEB 2024):
+                  ## Dunn (1964) Kruskal-Wallis multiple comparison
+                  ## p-values adjusted with the Benjamini-Hochberg method.
+                  ##                            Comparison         Z      P.unadj        P.adj
+                  ## 1           Humid_tropics - Semi_arid -6.554316 5.589733e-11 6.707679e-11
+                  ## 2           Humid_tropics - Temperate 13.064873 5.227175e-39 1.568153e-38
+                  ## 3               Semi_arid - Temperate 14.419314 3.912103e-47 2.347262e-46
+                  ## 4 Humid_tropics - Temperate_petiolata 10.388230 2.805102e-25 4.207653e-25
+                  ## 5     Semi_arid - Temperate_petiolata 12.882249 5.666040e-38 1.133208e-37
+                  ## 6     Temperate - Temperate_petiolata  4.847020 1.253295e-06 1.253295e-06
+                   
+# Since Dunn pairwise comparisons find significant effects, *manually* plot the significance letters on the graph using the following:
 
+       LTRplot.annotation <- data.frame(
+    x = c(1, 2, 3, 4),
+    y = c(5+max(humid_tropics_juncea_only_results$LTR),
+          5+max(semi_arid_juncea_only_results$LTR),
+          5+max(temperate_juncea_only_results$LTR),
+          5+max(petiolata_only_results$LTR)),
+    label = c("d","c","b","a"))
+
+# Add text
+LTR.boxplot <- my_plot + 
+    geom_text(data=LTRplot.annotation, 
+              aes(x=x, y=y, label=label),
+              size=4)
+LTR.boxplot + coord_flip()
+
+
+
+
+
+
+
+
+
+                   
 # TO BE CONTINUED.
 
 
+
+                   
 
 
 
