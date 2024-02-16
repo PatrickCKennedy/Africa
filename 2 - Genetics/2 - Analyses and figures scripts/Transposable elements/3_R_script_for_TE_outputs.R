@@ -180,7 +180,29 @@ my_plot <- ggplot(dataset_for_plotting) +
 my_plot + coord_flip()
 
 # ----------------------------------------------------------------------------
-# STATISTICAL TEST FOR DIFFERENCES IN TRANSPOSABLE ELEMENT CONTENT BETWEEN CLIMATES:
+# STATISTICAL TEST FOR DIFFERENCES IN TOTAL REPETITIVE CONTENT BETWEEN B. JUNCEA AND B. PETIOLATA:
+
+dataset_for_plotting$Total_repetitive_content <- 100-dataset_for_plotting$`Non-repetitive`
+two_species_test <- t.test(Total_repetitive_content ~ Species,
+                           data = dataset_for_plotting)
+report(two_species_test)
+
+          # OUTPUT OF WELCH'S T-TEST (16TH FEB 2024):
+          ## "Effect sizes were labelled following Cohen's (1988) recommendations.
+          ## The Welch Two Sample t-test testing the difference of Total_repetitive_content by Species (mean in group Belonogaster_juncea =
+          ## 43.55, mean in group Belonogaster_petiolata = 26.19) suggests that the effect is positive, statistically significant, and large
+          ## (difference = 17.36, 95% CI [16.54, 18.19], t(51.61) = 42.35, p < .001; Cohen's d = 11.79, 95% CI [9.45, 14.07])"
+
+# ----------------------------------------------------------------------------
+# WHAT PROPORTION OF JUNCEA'S MOBILOME CONTENT IS LTR RETROTRANSPOSONS?
+
+mean(juncea_only_results$LTR/(100-juncea_only_results$`Non-repetitive`))*100
+                  ## 59.75092
+> sd(juncea_only_results$LTR/(100-juncea_only_results$`Non-repetitive`))*100
+                  ## 7.413256
+
+# ----------------------------------------------------------------------------
+# STATISTICAL TEST FOR DIFFERENCES IN LTR WHOLE-GENOME PERCENTAGE BETWEEN CLIMATES:
 
 # ANOVA with climate zone as the response variable:
 res_aov <- aov(LTR ~ Climate,
@@ -265,16 +287,33 @@ LTR.boxplot <- my_plot +
 LTR.boxplot + coord_flip()
 
 
+# For reporting the means and standard deviations of categories:
+mean(juncea_only_results$LTR)     
+                     ## 26.14001
+sd(juncea_only_results$LTR)
+                     ## 5.324051
 
+mean(semi_arid_juncea_only_results$LTR)             
+                      ## 31.54773
+sd(semi_arid_juncea_only_results$LTR)
+                      ## 3.657366
 
+mean(petiolata_only_results$LTR) 
+                      ## 13.36271
+sd(petiolata_only_results$LTR) 
+                      ## 1.572179
 
+# On average, how much of the juncea genome was detected as repetitive?
+mean(100-juncea_only_results$`Non-repetitive`)
+                      ## 43.55264
+sd(100-juncea_only_results$`Non-repetitive`)
+                      ## 5.718339
 
-
-
-
-                   
-# TO BE CONTINUED.
-
+# On average, how much of the petiolata genome was detected as repetitive?
+mean(100-petiolata_only_results$`Non-repetitive`)
+                      ## 26.18847
+sd(100-petiolata_only_results$`Non-repetitive`)
+                      ## 1.991448
 
 
                    
