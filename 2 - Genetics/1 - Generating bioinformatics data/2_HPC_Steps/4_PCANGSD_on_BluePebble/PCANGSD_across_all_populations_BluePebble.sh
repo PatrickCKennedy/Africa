@@ -205,6 +205,12 @@ cd /user/work/pk14885/Wasps/Completed_alignments
 # Make a folder for the PCANGSD results:
 	cd /user/work/pk14885/Wasps/Completed_alignments
 	mkdir juncea_PCANGSD_results_for_both_countries_together
+
+ # Move the wasp name list and population ID table to this folder:
+ 	cd /user/work/pk14885/Wasps/Completed_alignments
+  	mv WaspNameList juncea_PCANGSD_results_for_both_countries_together/
+   	mv PopulationLabels juncea_PCANGSD_results_for_both_countries_together/
+    	rm PopulationList
  
  # Provide the reference genome:
     REF="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta"
@@ -280,7 +286,7 @@ echo
 		cd /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together
 
 # Run PCANGSD to generate covariance matrix (and tree data) ready for making the PCA (and tree) in R:
-		pcangsd -b my_Angsd_file.beagle.gz -t 4 --tree --tree_samples ../WaspNameList -o output.for.pca.in.R.pcangsd
+		pcangsd -b my_Angsd_file.beagle.gz -t 4 --tree --tree_samples WaspNameList -o output.for.pca.in.R.pcangsd
    # 10TH MAY: I'VE JUST ADDED IN THE --tree COMMAND TO ALSO GENERATE A NEIGHBOUR-JOINING TREE. HOPEFULLY IT DOESN'T MESS UP THE PCANGSD COMMAND. This paper (https://www.cell.com/current-biology/pdfExtended/S0960-9822(21)00129-9) plots the resulting tree using the 'ape' package in R.
 
 # You can now use the output file to produce a PCA plot in R, following http://www.popgen.dk/software/index.php/PCAngsdTutorial#Plot_the_results_in_R:
