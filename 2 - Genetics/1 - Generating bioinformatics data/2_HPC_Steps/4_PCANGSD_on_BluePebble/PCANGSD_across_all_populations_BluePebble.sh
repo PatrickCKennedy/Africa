@@ -203,6 +203,7 @@ cd /user/work/pk14885/Wasps/Completed_alignments
     cut -f1 -d" " PopulationList > PopulationLabels
 
 # Make a folder for the PCANGSD results:
+	cd /user/work/pk14885/Wasps/Completed_alignments
 	mkdir juncea_PCANGSD_results_for_both_countries_together
  
  # Provide the reference genome:
@@ -276,15 +277,12 @@ echo "P: Now about to generate a covariance matrix and neighbour joining tree fo
 echo
 
 # Make sure we are in the right directory:
-		cd juncea_PCANGSD_results_for_both_countries_together
+		cd /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together
 
 # Run PCANGSD to generate covariance matrix (and tree data) ready for making the PCA (and tree) in R:
-		pcangsd -b my_Angsd_file.beagle.gz -t 4 --tree --tree_SAMPLES ../WaspNameList -o output.for.pca.in.R.pcangsd
+		pcangsd -b my_Angsd_file.beagle.gz -t 4 --tree --tree_samples ../WaspNameList -o output.for.pca.in.R.pcangsd
    # 10TH MAY: I'VE JUST ADDED IN THE --tree COMMAND TO ALSO GENERATE A NEIGHBOUR-JOINING TREE. HOPEFULLY IT DOESN'T MESS UP THE PCANGSD COMMAND. This paper (https://www.cell.com/current-biology/pdfExtended/S0960-9822(21)00129-9) plots the resulting tree using the 'ape' package in R.
 
-# Move output to outputs folder:
-		mv output.for.pca.in.R.pcangsd.cov /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/
- 
 # You can now use the output file to produce a PCA plot in R, following http://www.popgen.dk/software/index.php/PCAngsdTutorial#Plot_the_results_in_R:
 # First, download the output (from outside BluePebble).
 
@@ -299,7 +297,7 @@ echo "P: Now about to run admixture analysis using PCANGSD:"
 echo
 
 # Run PCANGSD to conduct admixture analysis (leaving K unspecified so that PCANGSD will automatically infer the most likely value):
-	pcangsd -b my_Angsd_file.beagle.gz -admix -o PCANGSD_admixture_outputs -admix_alpha 50
+	pcangsd -b my_Angsd_file.beagle.gz --admix -o PCANGSD_admixture_outputs --admix_alpha 50
 
 # -------------------------------------------------------------
 # (3) INBREEDING ANALYSIS USING PCANGSD:
