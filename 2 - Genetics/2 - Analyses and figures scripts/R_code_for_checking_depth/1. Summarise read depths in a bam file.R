@@ -13,12 +13,14 @@ setwd("/Volumes/Patricks_LaCie_Genomics_Harddrive/Completed_HPC_alignments/Depth
 out.file <- 'means.txt'
 for (i in list.files()){
     depth <- read_tsv(i, col_names = F)$X1
-    write(paste0(i, ",", mean(depth)), out.file, append=TRUE)
+    presence <- as.logical(depth)
+    proportion_of_reference_covered <- mean(presence)
+    write(paste0(i, ",", mean(depth), "," proportion_of_reference_covered), out.file, append=TRUE)
 }
 
 
-
-
+MESSA_T23_2_CKDL230013286-1A_2235HJLT3_L5.no.overlaps.bam.depth
+depth <- read_tsv("MESSA_T23_2_CKDL230013286-1A_2235HJLT3_L5.no.overlaps.bam.depth", col_names = F)$X1
 
 
 
