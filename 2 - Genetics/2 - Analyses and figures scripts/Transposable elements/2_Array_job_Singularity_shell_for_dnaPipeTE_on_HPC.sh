@@ -10,7 +10,7 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-608
+#SBATCH --array=1-2
 # Set this to run for the total number of wasps in the relevant country (e.g., I currently have 608 samples listed in bam.filelist for Cameroon, so I would type --array=1-608 above).
 
 # -------------------- TRANSPOSABLE ELEMENT COMPOSITION IN EACH WASP (ARRAY JOB) -------------
@@ -198,23 +198,23 @@ bash dnaPT_utils/dnaPT_landscapes_PK_edit.sh -I Project/output_${NAME} -p dnaPT_
 cd /user/work/pk14885/Project/output_${NAME}
 
 # Remove the 'Annotation' and 'blast_out' folders for this wasp:
-rm -r Annotation
-rm -r blast_out
+##rm -r Annotation
+##rm -r blast_out
 
 # Remove the following files for this wasp, which we no longer need:
-rm Trinity*
-rm Bases*
-rm blast*
-rm colors
-rm Counts.txt
-rm factors_and_colors
-rm reads*
-rm Reads_to_components_Rtable.txt
-rm renamed.blasting_reads.fasta
-rm TEs_piechart.pdf
-rm sorted_families
-rm sorted_reads_per_component
-rm *fasta
+##rm Trinity*
+##rm Bases*
+##rm blast*
+##rm colors
+##rm Counts.txt
+##rm factors_and_colors
+##rm reads*
+##rm Reads_to_components_Rtable.txt
+##rm renamed.blasting_reads.fasta
+##rm TEs_piechart.pdf
+##rm sorted_families
+##rm sorted_reads_per_component
+##rm *fasta
 
 # We also no longer need the sorted fastq file for this wasp, so it can be removed from HPC:
 cd /user/work/pk14885/Project/data
