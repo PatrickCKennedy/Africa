@@ -10,7 +10,7 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-330
+#SBATCH --array=1-2
 # Set this to run for the total number of wasps in the relevant country (e.g., I currently have 608 samples listed in bam.filelist for Cameroon, so I would type --array=1-608 above).
 
 # -------------------- TRANSPOSABLE ELEMENT COMPOSITION IN EACH WASP (ARRAY JOB) -------------
