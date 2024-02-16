@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Pet_TEArray
+#SBATCH --job-name=Ca_TEArray
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
 #SBATCH --cpus-per-task=1
@@ -10,7 +10,7 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-2
+#SBATCH --array=1-608
 # Set this to run for the total number of wasps in the relevant country (e.g., I currently have 608 samples listed in bam.filelist for Cameroon, so I would type --array=1-608 above).
 
 # -------------------- TRANSPOSABLE ELEMENT COMPOSITION IN EACH WASP (ARRAY JOB) -------------
@@ -24,7 +24,7 @@
 # SET THE COUNTRY (and also set the array count in the SBATCH code above):
 
 # Choose whether to run this in the SouthAfrica or Cameroon folder on BluePebble:
-cd /user/work/pk14885/Wasps/Completed_alignments/Petiolata
+cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon
  
 # -------------------------------------------------------------
 # LOAD THE MODULES ON THE CLUSTER:
