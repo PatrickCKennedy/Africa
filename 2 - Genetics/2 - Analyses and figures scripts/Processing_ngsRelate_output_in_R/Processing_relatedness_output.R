@@ -78,13 +78,10 @@ All <- subset(All, All$nSites > my_nSites_threshold)
 # PROVIDE THE TAGGING INFORMATION FOR EACH SAMPLE:
 
 # The tagging information for each BAM file is contained in the master spreadsheet for
-# tracking the BAM files, which is in the 'BAM_files' tab of the Wasp Tagging Excel file.
-
-# MANUALLY: Copy-paste the contents of the 'BAM_files' tab into a new Excel file. Name the file
-# 'temp_BAM_list' (saved as a CSV in the Publications Dataset folder).
-
-# Now import the temp_BAM_list to R:
-temp_BAM_list <- read.csv("BAM_list/temp_BAM_list.csv")
+# tracking the BAM files, which is in the Supplementary Material Excel file, under the
+# tab 'SUPMAT - lcWGS_sequences_table'. Manually Copy-paste the contents of that tab
+# tab into a new Excel file and import it to R:
+temp_BAM_list <- read_excel("lcWGS_sequences_table_temp_to_import_to_R.xlsx")
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -93,7 +90,9 @@ temp_BAM_list <- read.csv("BAM_list/temp_BAM_list.csv")
               # Some wasps were sequenced more than once, so they have two (or three) BAM files.
               # Here, remove any duplicate samples (by finding the duplicate
               # BAM rows in the 'temp_BAM_file' dataframe):
-              temp_BAM_list <- subset(temp_BAM_list, `Is.there.already.a.BAM.file.above.for.this.wasp.` == "no")
+              temp_BAM_list <- subset(temp_BAM_list, temp_BAM_list$`Main sample or backup` == "Main sample")
+
+# 17TH FEB 2024: CONTINUE ADAPTATING THE MASTER EXCEL SPREADSHEET TO HAVE THESE COLUMNS:
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
