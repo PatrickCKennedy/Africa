@@ -8,7 +8,7 @@
 # OPTION 1: IF RUNNING ON JUST A SINGLE WASP OF INTEREST:
 
 # Navigate to the folder containing the (adaptor-trimmed) fastq files for the wasp of interest:
-cd /Volumes/Patricks_LaCie_Genomics_Harddrive/2_Trimmed_sequences/Sent_to_BluePebble/FullLaneWasps/A_from_P15/
+cd /Users/pk14885/Desktop/Testing_MitoZ_again_on_L9_a
 
 # Automatically detect the (adaptor-trimmed) forward file:
 this_wasp_val_1_file=$(ls *val_1*)
@@ -26,10 +26,8 @@ docker run -v $PWD:$PWD -w $PWD --rm guanliangmeng/mitoz:3.6  mitoz all \
 --assembler megahit \
 --requiring_taxa Arthropoda
 
-# The COX1 gene
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# SPECIES IDENTIFICATION FOR THAT SAMPLE VIA BOLD:
+# SPECIES CONFIRMATION FOR THAT SAMPLE VIA BOLD:
 # You can either do this via the BOLD website (https://boldsystems.org/index.php/IDS_OpenIdEngine), by simply inputting the sequences output by MitoZ above, or do exactly the same call to BOLD using the 'mitoz-tools bold_identification' command on the output fasta file:
 
 docker run -v $PWD:$PWD -w $PWD --rm guanliangmeng/mitoz:3.6  mitoz-tools bold_identification \
