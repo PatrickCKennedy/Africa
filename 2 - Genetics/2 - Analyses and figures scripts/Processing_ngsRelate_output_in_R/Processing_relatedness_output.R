@@ -19,13 +19,13 @@ library(report)
 
 # Combine all the 'newres' files into one:
 setwd("/Users/pk14885/Desktop/WaspCLIM_Publication_Datasets")
-          SA.2023 <- read.delim("Relatedness_datasets/SA.2023.newres")
-          Soa.2023 <- read.delim("Relatedness_datasets/Soa.2023.newres")
-          Messa.2023 <- read.delim("Relatedness_datasets/Messa.2023.newres")
-          Yaounde1.2023 <- read.delim("Relatedness_datasets/Yaounde1.2023.newres")
-          Somalomo.2023 <- read.delim("Relatedness_datasets/Somalomo.2023.newres")
-          Maroua.2023 <- read.delim("Relatedness_datasets/Maroua_newres")
-          Mbouda.2023 <- read.delim("Relatedness_datasets/Mbouda_newres")
+          SA.2023 <- read.delim("Relatedness_datasets/SA.Dec2023.newres")
+          Soa.2023 <- read.delim("Relatedness_datasets/Soa.Dec2023.newres")
+          Messa.2023 <- read.delim("Relatedness_datasets/Messa.Dec2023.newres")
+          Yaounde1.2023 <- read.delim("Relatedness_datasets/Yaounde1.Dec2023.newres")
+          Somalomo.2023 <- read.delim("Relatedness_datasets/Somalomo.Dec2023.newres")
+          Maroua.2023 <- read.delim("Relatedness_datasets/Maroua.Dec2023.newres")
+          Mbouda.2023 <- read.delim("Relatedness_datasets/Mbouda.Dec2023.newres")
           All_newres <- rbind(SA.2023, 
                               Soa.2023, 
                               Messa.2023, 
@@ -48,20 +48,38 @@ sd(as.numeric(All_newres$nSites))
 All <- cbind(All_newres$ida,
              All_newres$idb,
              All_newres$nSites,
-             All_newres$rab,       # Pairwise relatedness
+             All_newres$rab,       # RAB pairwise relatedness estimate
              All_newres$Fa,        # Fa: The inbreeding coefficient estimated for individual a (P: estimated separately in each pairwise comparison, presumably because nSites differs)
-             All_newres$Fb)        # Fb: The inbreeding coefficient estimated for individual b
-
+             All_newres$Fb,        # Fb: The inbreeding coefficient estimated for individual b
+             All_newres$KING       # KING-robust relatedness estimate
+            )        
 # The column names vanish when you do cbind. Therefore, add them back in:
 colnames(All) <- cbind("ida",
                         "idb",
                         "nSites",
                         "rab",
                         "Fa",
-                        "Fb")
+                        "Fb",
+                        "KING")
 
 # Make sure that the 'All' data is a dataframe:
 All <- as.data.frame(All)
+
+# -----------------------------------------------------------------------------
+# KING-ROBUST RELATEDNESS:
+
+# KING-robust relatedness is also provided in the newres outputs. It can be particularly
+# useful when there is population structure.
+
+# The scale of KING-robust is -0.5 to +0.5, where clones have +0.5. To convert
+# to the same scale as RAB, we just multiply KING-robust by two (e.g., https://www.mv.helsinki.fi/home/mjxpirin/GWAS_course/material/GWAS5.html)
+
+All$KING <- as.numeric(All$KING)
+All$KING_multiplied_by_2 <- All$KING*2
+
+# KING also gives negative relatednesses. To put all relatednesses into a 
+# scale that matches RAB, we censor the negative values to zero in the column:
+All$KING_multiplied_by_2[All$KING_multiplied_by_2<0] <- 0
 
 # -----------------------------------------------------------------------------
 
@@ -80,7 +98,8 @@ All <- subset(All, All$nSites > my_nSites_threshold)
 # The tagging information for each BAM file is contained in the master spreadsheet for
 # tracking the BAM files, which is in the Supplementary Material Excel file, under the
 # tab 'SUPMAT - lcWGS_sequences_table'. Manually Copy-paste the contents of that tab
-# tab into a new Excel file and import it to R:
+# tab into a new Excel file and import it to R as 'temp_BAM_list':
+library(readxl)
 temp_BAM_list <- read_excel("lcWGS_sequences_table_temp_to_import_to_R.xlsx")
 
 # - - - - - - - - - - - - - - - - - - - - - - - -
@@ -92,12 +111,10 @@ temp_BAM_list <- read_excel("lcWGS_sequences_table_temp_to_import_to_R.xlsx")
               # BAM rows in the 'temp_BAM_file' dataframe):
               temp_BAM_list <- subset(temp_BAM_list, temp_BAM_list$`Main sample or backup` == "Main sample")
 
-# 17TH FEB 2024: CONTINUE ADAPTATING THE MASTER EXCEL SPREADSHEET TO HAVE THESE COLUMNS:
-
 # - - - - - - - - - - - - - - - - - - - - - - - -
 
-# From that file, extract the three columns of interest:
-WaspIDlist <- cbind(temp_BAM_list$BAM.file,
+# From that file, extract the columns of interest:
+WaspIDlist <- cbind(temp_BAM_list$`BAM file`,
                     temp_BAM_list$Country,
                     temp_BAM_list$Population,
                     temp_BAM_list$SpecificAggregation,
@@ -199,15 +216,15 @@ my_plot <- ggplot(Cofoundresses_data) +
                  jitter.shape = 21, 
                  jitter.color = NA, 
                  jitter.alpha = 0.5,
-                 jitter.size = 1.5,
+                 jitter.size = 0.5,
                  jitter.params = list(height = 0, width = 0.09),
-                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                 outlier.color = 1, outlier.fill = 1, outlier.shape = 21, outlier.size = 0.5,
                  errorbar.draw = TRUE) + 
   scale_fill_manual(values = myColors) +
-  scale_x_discrete(labels=c("C","SA")) +
+  scale_x_discrete(labels=c("Humid\ntropics","Temperate")) +
   theme_cowplot(font_size = myfontsize) + 
   labs(y= "Relatedness", 
-       x = "Country") + 
+       x = "Climate") + 
   theme(legend.position="none") + 
   theme(axis.line.x.bottom=element_line(size=0.5)) +
   theme(axis.line.y.left=element_line(size=0.5)) +
@@ -231,12 +248,13 @@ Cameroon_plot <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(rab), fill=ida_
     geom_density(alpha = 0.4, adjust = 0.1) +
     theme_cowplot(font_size = myfontsize) + 
     labs(y= "Density", 
-         x = "Co-foundress relatedness") + 
+         x = "Co-foundress relatedness (pairwise)") + 
     scale_fill_manual( values = c(myCameroonColour)) + 
     scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
     scale_y_continuous(breaks = seq(0,10,by = 5),expand = c(0, 0)) + 
     geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$rab)), 
                linetype="dashed") + theme(legend.position = "none")
+Cameroon_plot
 
 # South Africa only:
 SA_plot <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_Country)) + 
@@ -246,12 +264,13 @@ SA_plot <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_Co
     geom_density(alpha = 0.2, adjust = 1.5) +
     theme_cowplot(font_size = myfontsize) + 
     labs(y= "Density", 
-         x = "Co-foundress relatedness") + 
+         x = "Co-foundress relatedness (pairwise)") + 
     scale_fill_manual( values = c(mySouthAfricaColour)) + 
     scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
     scale_y_continuous(breaks = seq(0,15,by = 5),expand = c(0, 0)) + 
     geom_vline(xintercept = mean(as.numeric(SouthAfrican_cofoundresses$rab)), 
                linetype="dashed") + theme(legend.position = "none")
+SA_plot
 
 # Plot both plots as panels:
 library(gridExtra)
@@ -272,7 +291,7 @@ SA_plot2 <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_P
        x = "Co-foundress relatedness") + 
   scale_x_continuous(limits = c(0,0.9), expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0))
-SA_plot
+SA_plot2
 
 # Cameroonian cofoundresses, showing separate densities for each population:
 Cameroon_plot2 <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(rab),  fill=ida_Population)) +
@@ -282,7 +301,7 @@ Cameroon_plot2 <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(rab),  fill=id
        x = "Co-foundress relatedness") + 
   scale_x_continuous(limits = c(0,0.9), expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0))
-Cameroon_plot 
+Cameroon_plot2
 
 # Plot both plots as panels:
 library(gridExtra)
@@ -306,6 +325,84 @@ ggsave(filename = "my_output_panel.svg",
        width = 5, dpi = 200)
 # This file is now in the relevant folder, as an SVG file. 
 # Opening it will open Inkscape automatically.
+
+# -----------------------------------------------------------------------------
+# FOR COMPLETENESS, HERE IS THE SAME PANEL USING THE KING-ROBUST ESTIMATOR INSTEAD OF THE RAB PAIRWISE RELATEDNESS ESTIMATOR:
+
+# Generate boxplots (following https://github.com/erocoar/ggpol):
+my_plot_KING <- ggplot(Cofoundresses_data) + 
+    geom_boxjitter(aes(x = my_x_variable, 
+                       y = KING_multiplied_by_2, 
+                       fill = my_color_variable),
+                   jitter.shape = 21, 
+                   jitter.color = NA, 
+                   jitter.alpha = 0.5,
+                   jitter.size = 0.5,
+                   jitter.params = list(height = 0, width = 0.09),
+                   outlier.color = 1, outlier.fill = 1, outlier.shape = 21, outlier.size = 0.5,
+                   errorbar.draw = TRUE) + 
+    scale_fill_manual(values = myColors) +
+    scale_x_discrete(labels=c("Humid\ntropics","Temperate")) +
+    theme_cowplot(font_size = myfontsize) + 
+    labs(y= "Relatedness", 
+         x = "Climate") + 
+    theme(legend.position="none") + 
+    theme(axis.line.x.bottom=element_line(size=0.5)) +
+    theme(axis.line.y.left=element_line(size=0.5)) +
+    theme(axis.text.x = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+          axis.text.y = element_text(color = "black", size = myfontsize, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+          axis.title.x = element_text(color = "black", size = myfontsize, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+          axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+my_plot_KING
+
+# Cameroon only:
+Cameroon_plot_KING <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(KING_multiplied_by_2), fill=ida_Country)) + 
+    geom_histogram(aes(y = ..density..),
+                   fill = myCameroonColour, 
+                   alpha = 0.8, bins = 20) +
+    geom_density(alpha = 0.4, adjust = 0.3) +
+    theme_cowplot(font_size = myfontsize) + 
+    labs(y= "Density", 
+         x = "Co-foundress relatedness (KING-robust)") + 
+    scale_fill_manual( values = c(myCameroonColour)) + 
+    scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
+    scale_y_continuous(breaks = seq(0,10,by = 5),expand = c(0, 0)) + 
+    geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$KING_multiplied_by_2)), 
+               linetype="dashed") + theme(legend.position = "none")
+Cameroon_plot_KING
+
+# South Africa only:
+SA_plot_KING <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(KING_multiplied_by_2), fill=ida_Country)) + 
+    geom_histogram(aes(y = ..density..),
+                   fill = mySouthAfricaColour, 
+                   alpha = 0.8, bins = 30) +
+    geom_density(alpha = 0.2, adjust = 2) +
+    theme_cowplot(font_size = myfontsize) + 
+    labs(y= "Density", 
+         x = "Co-foundress relatedness (KING-robust)") + 
+    scale_fill_manual( values = c(mySouthAfricaColour)) + 
+    scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
+    scale_y_continuous(breaks = seq(0,15,by = 5),expand = c(0, 0)) + 
+    geom_vline(xintercept = mean(as.numeric(SouthAfrican_cofoundresses$KING_multiplied_by_2)), 
+               linetype="dashed") + theme(legend.position = "none")
+SA_plot_KING
+
+# Supplementary panel using KING-robust estimator:
+my_output_panel_KING <- ggdraw() +
+draw_plot(my_plot_KING,  x=0, y=0, width= .3, height=1) +
+draw_plot(Cameroon_plot_KING,  x=.3, y=0, width= .7, height=.5) +
+draw_plot(SA_plot_KING,  x=.3, y=.5, width= .7, height=.5)
+my_output_panel_KING
+
+# Export as SVG file for publication:
+library(svglite)
+ggsave(filename = "my_output_panel_KING.svg", 
+       plot = my_output_panel_KING, 
+       height = 2.5,
+       width = 5, dpi = 200)
+# This file is now in the relevant folder, as an SVG file. 
+# Opening it will open Inkscape automatically.
+
 
 # -----------------------------------------------------------------------------
 # PROPORTION OF RELATEDNESSES THAT ARE NOT FULL SISTERS:
