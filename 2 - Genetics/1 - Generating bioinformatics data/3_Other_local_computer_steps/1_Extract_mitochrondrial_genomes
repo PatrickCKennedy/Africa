@@ -37,6 +37,8 @@ docker run -v $PWD:$PWD -w $PWD --rm guanliangmeng/mitoz:3.6  mitoz-tools bold_i
 # Here, we have kept the first 20 hits ('-n 20'), which you can now see in the following file:
 cat Patrick_BOLD_call_.taxa
 
+# However, the BOLD database lacks most Belonogaster species. So it does not correctly identify the B. petiolata samples, for instance (as 
+# there are no B. petiolata sequences in the BOLD database).
 # -----------------------------------------------------
 # OPTION 2: IF RUNNING ON A BATCH OF SAMPLES:
 # following https://github.com/linzhi2013/MitoZ/wiki/Batch-processing-of-many-samples
