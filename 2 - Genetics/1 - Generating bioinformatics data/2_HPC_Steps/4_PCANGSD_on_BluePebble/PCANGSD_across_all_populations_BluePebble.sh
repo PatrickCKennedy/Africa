@@ -35,7 +35,7 @@ cd /user/work/pk14885/Wasps/Completed_alignments
 # If we use all nonrelatives, the PCANGSD run takes a very long time. We therefore select a random sample of up to 10 nonrelatives from each population:
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # SELECT (up to 10) RANDOM NONRELATIVES FROM EACH OF THE CAMEROON POPULATIONS:
+        # SELECT (up to 20) RANDOM NONRELATIVES FROM EACH OF THE CAMEROON POPULATIONS:
 
         # Each list of nonrelatives from each Cameroonian population should already be in the Cameroon folder:
         cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon
@@ -43,47 +43,47 @@ cd /user/work/pk14885/Wasps/Completed_alignments
         myPWD=`pwd`
 
         # DOUALA:
-        # Choose up to 10 random nonrelatives from Douala:
-                shuf -n 10 Douala.nonrelatives.bam.filelist.txt > temp.file.Douala
+        # Choose up to 20 random nonrelatives from Douala:
+                shuf -n 20 Douala.nonrelatives.bam.filelist.txt > temp.file.Douala
         # Add each BAM file's full location before its line:
-                awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Douala > up.to.10.random.nonrelatives.from.Douala
+                awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Douala > up.to.20.random.nonrelatives.from.Douala
                 rm temp.file.Douala
 
         # MAROUA (the same method as above, and for each population below):
-        shuf -n 10 Maroua.nonrelatives.bam.filelist.txt > temp.file.Maroua
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Maroua > up.to.10.random.nonrelatives.from.Maroua
+        shuf -n 20 Maroua.nonrelatives.bam.filelist.txt > temp.file.Maroua
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Maroua > up.to.20.random.nonrelatives.from.Maroua
         rm temp.file.Maroua
         
         # MBOUDA:
-        shuf -n 10 Mbouda.nonrelatives.bam.filelist.txt > temp.file.Mbouda
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Mbouda > up.to.10.random.nonrelatives.from.Mbouda
+        shuf -n 20 Mbouda.nonrelatives.bam.filelist.txt > temp.file.Mbouda
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Mbouda > up.to.20.random.nonrelatives.from.Mbouda
         rm temp.file.Mbouda
     
         # MESSA:
-        shuf -n 10 Messa.nonrelatives.bam.filelist.txt > temp.file.Messa
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Messa > up.to.10.random.nonrelatives.from.Messa
+        shuf -n 20 Messa.nonrelatives.bam.filelist.txt > temp.file.Messa
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Messa > up.to.20.random.nonrelatives.from.Messa
         rm temp.file.Messa
 
         # SOA:
-        shuf -n 10 Soa.nonrelatives.bam.filelist.txt > temp.file.Soa
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Soa > up.to.10.random.nonrelatives.from.Soa
+        shuf -n 20 Soa.nonrelatives.bam.filelist.txt > temp.file.Soa
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Soa > up.to.20.random.nonrelatives.from.Soa
         rm temp.file.Soa
 
         # SOMALOMO:
-        shuf -n 10 Somalomo.nonrelatives.bam.filelist.txt > temp.file.Somalomo
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Somalomo > up.to.10.random.nonrelatives.from.Somalomo
+        shuf -n 20 Somalomo.nonrelatives.bam.filelist.txt > temp.file.Somalomo
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Somalomo > up.to.20.random.nonrelatives.from.Somalomo
         rm temp.file.Somalomo
 
         # YAOUNDE 1:
-        shuf -n 10 Yaounde1.nonrelatives.bam.filelist.txt > temp.file.Yaounde1
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Yaounde1 > up.to.10.random.nonrelatives.from.Yaounde1
+        shuf -n 20 Yaounde1.nonrelatives.bam.filelist.txt > temp.file.Yaounde1
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Yaounde1 > up.to.20.random.nonrelatives.from.Yaounde1
         rm temp.file.Yaounde1
 
         # Concatenate all the randomly-selected nonrelatives from Cameroon:
-        cat up.to.10.random* >> Cameroonian.randomly.selected.nonrelatives.txt
+        cat up.to.20.random* >> Cameroonian.randomly.selected.nonrelatives.txt
 
-        # Remove the 'up.to.10.random.nonreatives.from....' files, as we no longer need them:
-        rm up.to.10.random*
+        # Remove the 'up.to.20.random.nonreatives.from....' files, as we no longer need them:
+        rm up.to.20.random*
   
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # NOW SELECT (up to 10) RANDOM NONRELATIVES FROM EACH OF THE SOUTH AFRICAN POPULATIONS:
@@ -94,50 +94,50 @@ cd /user/work/pk14885/Wasps/Completed_alignments
         myPWD=`pwd`
 
         # AFRICAN LABORATORY:
-        shuf -n 10 AfricanLaboratory.nonrelatives.bam.filelist.txt > temp.file.AfricanLaboratory
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.AfricanLaboratory > up.to.10.random.nonrelatives.from.AfricanLaboratory
+        shuf -n 20 AfricanLaboratory.nonrelatives.bam.filelist.txt > temp.file.AfricanLaboratory
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.AfricanLaboratory > up.to.20.random.nonrelatives.from.AfricanLaboratory
         rm temp.file.AfricanLaboratory
   
         # COWSHED:
-        shuf -n 10 Cowshed.nonrelatives.bam.filelist.txt > temp.file.Cowshed
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Cowshed > up.to.10.random.nonrelatives.from.Cowshed
+        shuf -n 20 Cowshed.nonrelatives.bam.filelist.txt > temp.file.Cowshed
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Cowshed > up.to.20.random.nonrelatives.from.Cowshed
         rm temp.file.Cowshed
 
         # LOVERS' ROCK:
-        shuf -n 10 LoversRock.nonrelatives.bam.filelist.txt > temp.file.LoversRock
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.LoversRock > up.to.10.random.nonrelatives.from.LoversRock
+        shuf -n 20 LoversRock.nonrelatives.bam.filelist.txt > temp.file.LoversRock
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.LoversRock > up.to.20.random.nonrelatives.from.LoversRock
         rm temp.file.LoversRock
 
         # PETER ROBERTS:
-        shuf -n 10 PeterRobertsFarm.nonrelatives.bam.filelist.txt > temp.file.PeterRobertsFarm
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.PeterRobertsFarm > up.to.10.random.nonrelatives.from.PeterRobertsFarm
+        shuf -n 20 PeterRobertsFarm.nonrelatives.bam.filelist.txt > temp.file.PeterRobertsFarm
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.PeterRobertsFarm > up.to.20.random.nonrelatives.from.PeterRobertsFarm
         rm temp.file.PeterRobertsFarm
 
         # PUMPHOUSE:
-        shuf -n 10 Pumphouse.nonrelatives.bam.filelist.txt > temp.file.Pumphouse
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Pumphouse > up.to.10.random.nonrelatives.from.Pumphouse
+        shuf -n 20 Pumphouse.nonrelatives.bam.filelist.txt > temp.file.Pumphouse
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Pumphouse > up.to.20.random.nonrelatives.from.Pumphouse
         rm temp.file.Pumphouse
 
         # TRUDIE'S FARM:
-        shuf -n 10 TrudiesFarm.nonrelatives.bam.filelist.txt > temp.file.TrudiesFarm
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.TrudiesFarm > up.to.10.random.nonrelatives.from.TrudiesFarm
+        shuf -n 20 TrudiesFarm.nonrelatives.bam.filelist.txt > temp.file.TrudiesFarm
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.TrudiesFarm > up.to.20.random.nonrelatives.from.TrudiesFarm
         rm temp.file.TrudiesFarm
 
         # VUSUMUZI:
-        shuf -n 10 Vusumuzi.nonrelatives.bam.filelist.txt > temp.file.Vusumuzi
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Vusumuzi > up.to.10.random.nonrelatives.from.Vusumuzi
+        shuf -n 20 Vusumuzi.nonrelatives.bam.filelist.txt > temp.file.Vusumuzi
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Vusumuzi > up.to.20.random.nonrelatives.from.Vusumuzi
         rm temp.file.Vusumuzi
 
         # ZEBRA HOUSE:
-        shuf -n 10 ZebraHouse.nonrelatives.bam.filelist.txt > temp.file.ZebraHouse
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.ZebraHouse > up.to.10.random.nonrelatives.from.ZebraHouse
+        shuf -n 20 ZebraHouse.nonrelatives.bam.filelist.txt > temp.file.ZebraHouse
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.ZebraHouse > up.to.20.random.nonrelatives.from.ZebraHouse
         rm temp.file.ZebraHouse
 
         # Concatenate all the randomly-selected nonrelatives from South Africa:
-        cat up.to.10.random* >> SouthAfrica.randomly.selected.nonrelatives.txt
+        cat up.to.20.random* >> SouthAfrica.randomly.selected.nonrelatives.txt
 
-        # Remove the 'up.to.10.random.nonreatives.from....' files, as we no longer need them:
-        rm up.to.10.random*
+        # Remove the 'up.to.20.random.nonreatives.from....' files, as we no longer need them:
+        rm up.to.20.random*
 
 # -------------------------------------------------------------
 # COMBINE THE LIST OF TARGET WASPS FROM CAMEROON AND SOUTH AFRICA:
