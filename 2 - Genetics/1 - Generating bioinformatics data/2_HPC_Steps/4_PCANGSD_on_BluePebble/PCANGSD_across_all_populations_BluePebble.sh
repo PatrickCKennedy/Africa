@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=CaSA_PCANGSD
+#SBATCH --job-name=SaCa_PCANGSD
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
@@ -14,7 +14,7 @@
 
 # WHAT THIS SCRIPT DOES:
 
-# This script will work on BOTH COUNTRIES. It runs two main programmes: PCANGSD and NGSadmix. Before running them, it produces a beagle file for ALL B. JUNCEA using ANGSD, which serves as the input file for both PCANGSD and NGSadmix.
+# This script will work on BOTH POPULATIONS. It runs two main programmes: PCANGSD and NGSadmix. Before running them, it produces a beagle file for ALL B. JUNCEA using ANGSD, which serves as the input file for both PCANGSD and NGSadmix.
 
 # WHY PCANGSD?
 # PCANGSD generates the data for plotting a PCA in R. It can also be used for looking at selection and inbreeding (see below).
@@ -138,7 +138,7 @@ cd /user/work/pk14885/Wasps/Completed_alignments
 
         # Remove the 'up.to.10.random.nonreatives.from....' files, as we no longer need them:
         rm up.to.10.random*
-        
+
 # -------------------------------------------------------------
 # COMBINE THE LIST OF TARGET WASPS FROM CAMEROON AND SOUTH AFRICA:
 
@@ -221,7 +221,7 @@ cd /user/work/pk14885/Wasps/Completed_alignments
 # Load ANGSD on BluePebble:
 module load apps/angsd
 
-# Run ANGSD to generate the Beagle file (which is the input for PCANGSD and NGSadmix below). -doGlf 3 ensures that a beagle file is generated:
+# Run ANGSD to generate the Beagle file (which is the input for PCANGSD and NGSadmix below). -doGlf 2 ensures that a beagle file is generated:
 angsd -bam Cameroon.AND.SouthAfrica.randomly.selected.nonrelatives.txt \
     -ref $REF  \
     -out ./juncea_PCANGSD_results_for_both_countries_together/my_Angsd_file \
@@ -229,9 +229,9 @@ angsd -bam Cameroon.AND.SouthAfrica.randomly.selected.nonrelatives.txt \
     -only_proper_pairs 1 \
     -C 50 \
     -baq 1 \
-    -minQ 20 \
-    -minMapQ 20 \
-    -GL 1 \
+    -minQ 30 \
+    -minMapQ 30 \
+    -GL 2 \
     -doGlf 2 \
     -doMaf 1 \
     -minmaf 0.05 \
@@ -325,17 +325,23 @@ echo
 # -------------------------------------------------------------
 # (4 - OPTIONAL) ADMIXTURE ANALYSIS USING NGSADMIX:
 
+# NGSADMIX provides a potentially higher-quality analysis than PCANGSD's in-built admixture programme above.
+
 # Report current step:
-##echo
-##echo "P: Now about to run NGSadmix to generate an admixture plot."
-##echo
+echo
+echo "P: Now about to run NGSadmix to generate an admixture plot."
+echo
 
-# You can apparently run NGSadmix as part of ANGSD, but I can't seem to get that to work on BluePebble. Luckily, you can also install it independently on the cluster, which I have done (following the commands at http://www.popgen.dk/software/index.php/NgsAdmix). Here is the path to where I have installed it on my BluePebble account:
-##NGSADMIX="/user/work/pk14885/MySoftware/NGSadmix"
+# You can run NGSadmix as part of ANGSD. I have installed it independently on the cluster (following the commands at http://www.popgen.dk/software/index.php/NgsAdmix). Here is the path to where I have installed it on my BluePebble account:
+NGSADMIX="/user/work/pk14885/MySoftware/NGSadmix"
 
-# This means that we can run NGSadmix just by typing $NGSADMIX:
-##$NGSADMIX -likes my_Angsd_file.beagle.gz -K 4 -minMaf 0.05 -seed 1 -o NGSadmix.output -P 10
-# You can set the value of 'K' (number of clusters), presumably as the number of populations.
+# This means that we can run NGSadmix just by typing $NGSADMIX. We will run it at several different K (cluster number) values:
+$NGSADMIX -likes my_Angsd_file.beagle.gz -K 4 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_4.output -P 10
+$NGSADMIX -likes my_Angsd_file.beagle.gz -K 5 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_5.output -P 10
+$NGSADMIX -likes my_Angsd_file.beagle.gz -K 6 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_6.output -P 10
+$NGSADMIX -likes my_Angsd_file.beagle.gz -K 7 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_7.output -P 10
+
+# For choosing the maximum likelihood K from the runs above in R, see: https://baylab.github.io/MarineGenomics/week-9-population-structure-using-ngsadmix.html
 
 # We then need to follow the scripts online for plotting this in R. Go to 'Plot the results in R' at http://www.popgen.dk/software/index.php/NgsAdmixTutorial#Plot_the_results_in_R
 
