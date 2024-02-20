@@ -42,8 +42,23 @@ cat Patrick_BOLD_call_.taxa
 # -----------------------------------------------------
 # OPTION 2: IF RUNNING ON A BATCH OF SAMPLES:
 # following https://github.com/linzhi2013/MitoZ/wiki/Batch-processing-of-many-samples
+# and https://github.com/linzhi2013/MitoZ/wiki/The--mitoz-tools--group_seq_by_gene--command
 
 # Place all the forward and reverse files for the samples of interest in the same folder
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
