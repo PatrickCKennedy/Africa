@@ -158,9 +158,23 @@ fontsize: 12 # Font size
 " > ${this_FOLDER_NAME}.blueprint
                 
 # ------------------------------------------------------------------------------
-# NOW ACTUALLY RUN STAIRWAYPLOT2, ON THE LOCAL MACHINE:
-
+# NOW ACTUALLY RUN STAIRWAYPLOT2
 # To run StairwayPlot2: "The simplest way to run stairway plot is use Stairbuilder.class to create a batch file and then run the batch file. First, create a blueprint file and copy it to the folder which contains the stairway_plot_es (say the folder name is stairway_plot_v2.1). Then, in the commandline environment, change directory to stairway_plot_v2.1 and run this command: java -cp stairway_plot_es Stairbuilder blueprint_file"
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# IF CHOOSING TO RUN STAIRWAYPLOT2 ON HPC:
+
+# Navigate to the folder in which we have downloaded StairwayPlot2 on BluePebble:
+cd /user/work/pk14885/stairway_plot_v2.1.1
+
+# Generate the bash file (i.e., a '.sh' file with the same name as the blueprint file):
+java -cp stairway_plot_es Stairbuilder ${this_FOLDER_NAME}.blueprint
+
+# Now run the newly-created bash file:
+bash ${this_FOLDER_NAME}.blueprint.sh
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# IF CHOOSING TO RUN STAIRWAYPLOT2 ON THE LOCAL MACHINE:
 
 # From outside of BluePebble, download the blueprint file to the local machine using 'scp'.
 # Then transfer it inside the 'stairway_plot_v2.1.1' folder on the computer:
@@ -171,51 +185,9 @@ fontsize: 12 # Font size
 ##              bash TYPE-THE-POPULATION-NAME-HERE.blueprint.sh
 # Leave it to run for about two hours.
 
-
-
 # The output plots produced by StairwayPlot2 are not great, but you can replot them in ggplot2, which is what this paper (https://onlinelibrary.wiley.com/doi/epdf/10.1111/mec.16951) does. Here's the code they used: https://github.com/sallycylau/ophionotus_ddRADcapture/blob/master/08.Analyse_stairwayplot.md That paper looks quite good.
 
 # ---------------------------------------------------------------
 # POPULATION GENETICS QUESTIONS
 
 # This pipeline might be useful: https://github.com/clairemerot/angsd_pipeline
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
