@@ -10,11 +10,15 @@
 #SBATCH --account=BISC020282
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
 
-# ---- RUNNING PCANGSD IN GENOMIC WINDOWS TO FIND POTENTIAL GENOMIC REGIONS OF STRUCTURAL VARIANTS -----
+# ---- RUNNING PCANGSD IN GENOMIC WINDOWS (ACROSS ALL POPULATIONS) TO FIND POTENTIAL GENOMIC REGIONS OF STRUCTURAL VARIANTS -----
 
 # WHAT THIS SCRIPT DOES:
 
-# The PCA plot from the PCANGSD analysis in '1_PCANGSD_across_all_populations_BluePebble.sh' (once plotted in R using the 'Analysing PCANGSD results in R.R' R script) produces surprising clusters, including individuals from within the same sites as the main Cameroon and South African clusters. Following Mazet et al. (2021), in this script we investigate the possibility that these reflect structural variants (e.g., chromosome inversions/supergenes/etc).
+# The PCA plot from the PCANGSD analysis in '1_PCANGSD_across_all_populations_BluePebble.sh' 
+# (once plotted in R using the 'Analysing PCANGSD results in R.R' R script) produces surprising clusters, 
+# including individuals from within the same sites as the main Cameroon and South African clusters. Following 
+# Mazet et al. (2021), in this script we investigate the possibility that these reflect structural 
+# variants (e.g., chromosome inversions/supergenes/etc).
 # We follow the pipeline in  Mérot et al. (2021), https://doi.org/10.1093/molbev/msab143
 # Mérot et al.'s (2021) script pipeline is available at: https://github.com/clairemerot/angsd_pipeline
 
