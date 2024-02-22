@@ -3,8 +3,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=120G
-#SBATCH --time=8-120:00:00
+#SBATCH --mem=50G
+#SBATCH --time=4-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --account=BISC020282
@@ -63,7 +63,7 @@ WINDOW_STEP=5000
 # (adapted from https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/10A_cov_by_window.sh)
 
 # Make sure we are in the right directory:
-              		cd /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together
+cd /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together
 
 mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR
 mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size
@@ -71,7 +71,7 @@ mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEP
 mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/cov_by_window"
 
 # "if your reference contigs names are "Chr_1" use this line"
-python /user/work/pk14885/angsd_pipeline/01_scripts/utility_scripts/beagle_sliding_window_bis.py 03_saf_maf_gl_all/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".beagle.gz $window_size 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/beagle_by_window/
+python /user/work/pk14885/angsd_pipeline/01_scripts/utility_scripts/beagle_sliding_window_bis.py /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/my_Angsd_file.beagle.gz $window_size 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/beagle_by_window/
 
 # "Run PCANGSD on each window":
 ls -1 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/beagle_by_window/ | 
@@ -91,8 +91,6 @@ echo "analyse covariance matrix on all individuals"
               		pcangsd -b $INPUT -t 4 -o 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/cov_by_window/$i
 
 done
-
-# TO BE CONTINUED - it might be nearly ready. We just need to make sure the section under "if your reference contigs names are "Chr_1" use this line" actually points to the Beagle file, which it does not at the moment.
 
 
 
