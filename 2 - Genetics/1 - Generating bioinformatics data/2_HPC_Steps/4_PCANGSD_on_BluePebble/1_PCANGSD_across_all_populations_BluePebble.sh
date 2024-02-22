@@ -314,7 +314,7 @@ echo "P: Now about run inbreeding analysis using PCANGSD:"
 echo
 
 # Inbreeding analysis with PCANGSD:
-    pcangsd -b my_Angsd_file.beagle.gz ---inbreedSamples --minMaf 0.05 -t 64 -o output.inbreeding_per_individual.pcangsd
+    pcangsd -b my_Angsd_file.beagle.gz --inbreedSamples --minMaf 0.05 -t 64 -o output.inbreeding_per_individual.pcangsd
     
 # P: For analysing the inbreeding outputs, you can import the two resulting .npy files into R. There are two outputs from 
 # the pcangsd function: one seems to be the per-site inbreeding coefficient, and the other seems to the the likelihood ratio 
