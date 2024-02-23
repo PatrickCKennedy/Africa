@@ -308,9 +308,25 @@ echo
 
 # Run PCANGSD to generate covariance matrix (and tree data) ready for making the PCA (and tree) in R:
 		pcangsd -b my_Angsd_file.beagle.gz -t 4 --tree --tree_samples WaspNameList -o output.for.pca.in.R.pcangsd
-   # 10TH MAY: I'VE JUST ADDED IN THE --tree COMMAND TO ALSO GENERATE A NEIGHBOUR-JOINING TREE. HOPEFULLY IT DOESN'T MESS UP THE PCANGSD COMMAND. This paper (https://www.cell.com/current-biology/pdfExtended/S0960-9822(21)00129-9) plots the resulting tree using the 'ape' package in R.
 
-# You can now use the output file to produce a PCA plot in R, following http://www.popgen.dk/software/index.php/PCAngsdTutorial#Plot_the_results_in_R:
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# NOTE (OF INTEREST ONLY IF YOU INTEND TO LOOK AT LOCAL-WINDOW PCAs IN THE NEXT SCRIPT):
+# The covariance matrix produced by our PCANGSD command above is called 'output.for.pca.in.R.pcangsd.cov'.
+# In the following script ('2_PCANGSD_in_genomic_windows.sh'), we used part of a pipeline developed by Merot et al. (2021) 
+# to look at PCAs on short windows of the genome. That script calls an R script created by Merot et al. (2021), which
+# correlates those short-window PCA results with the global PCA result. In our case, the global PCA result
+# is 'output.for.pca.in.R.pcangsd.cov'. The Merot et al. pipeline R script assumes that the global PCA result is
+# found within a folder called '04_pca/' and that it has the following filename: 
+# all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov
+# To enable easy input into that R script from the Merot pipeline in the next script, we therefore
+# make a directory with the same name ('04_pca/'), and make a copy of our global PCA result into it with the
+# name expected by the Merot pipeline, which contains the MinMaf, percent ind, and max depth factor details used. 
+# The resulting file and folder is not used for the rest of this script, but
+# is used in the following script ('2_PCANGSD_in_genomic_windows.sh'):
+	mkdir 04_pca
+ 	cp output.for.pca.in.R.pcangsd.cov 04_pca/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov
+
+# You can now use the output file ('output.for.pca.in.R.pcangsd') to produce a PCA plot in R, following http://www.popgen.dk/software/index.php/PCAngsdTutorial#Plot_the_results_in_R:
 # First, download the output (from outside BluePebble).
 
 # -------------------------------------------------------------
