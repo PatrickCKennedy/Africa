@@ -3,8 +3,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=3G
-#SBATCH --time=4-00:00:00
+#SBATCH --mem=2G
+#SBATCH --time=2-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --account=BISC020282
@@ -35,10 +35,6 @@
 # SETTING UP THE INPUT INFORMATION:
 # (adapted fromhttps://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
 
-#"path to pcaangsd
-#this is the former version of ANGSD - it uses python2 and may require some libraries."
-PCA_ANGSD_PATH=/project/lbernatchez/programs/pcangsd 
-
 #"filter : will keep SNP above this allele frequency (over all individuals)"
 MIN_MAF=0.05 
 
@@ -65,6 +61,7 @@ WINDOW_STEP=5000
 # Make sure we are in the right directory:
 cd /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together
 
+mkdir "10_pca_by_window/
 mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR
 mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size
 mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/beagle_by_window"
