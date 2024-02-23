@@ -3,8 +3,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=1G
-#SBATCH --time=0-5:00:00
+#SBATCH --mem=0.5G
+#SBATCH --time=0-2:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --account=BISC020282
@@ -17,19 +17,17 @@
 # The PCA plot from the PCANGSD analysis in '1_PCANGSD_across_all_populations_BluePebble.sh' 
 # (once plotted in R using the 'Analysing PCANGSD results in R.R' R script) produces surprising clusters, 
 # including individuals from within the same sites as the main Cameroon and South African clusters. Following 
-# Mazet et al. (2021), in this script we investigate the possibility that these reflect structural 
+# Merot et al. (2021), in this script we investigate the possibility that these reflect structural 
 # variants (e.g., chromosome inversions/supergenes/etc).
-# We follow the pipeline in  Mérot et al. (2021), https://doi.org/10.1093/molbev/msab143
-# Mérot et al.'s (2021) script pipeline is available at: https://github.com/clairemerot/angsd_pipeline
-
+# We use the pipeline published by Mérot et al. (2021), https://doi.org/10.1093/molbev/msab143
+# Mérot et al.'s (2021) scripts are available at: https://github.com/clairemerot/angsd_pipeline
 # We are specifically following scripts 10A to 10D at https://github.com/clairemerot/angsd_pipeline/tree/master/01_scripts
 
-# The Mazet et al. (2021) pipeline involves a set of python scripts (in their folder 'utility_scripts', at https://github.com/clairemerot/angsd_pipeline/tree/master/01_scripts/utility_scripts). These are needed for the analysis below. 
-
-# We therefore first start by downloading Mazet et al.'s 'utility_scripts' folder to BluePebble (this only needs to be run once - already run):
+# The Merot et al. (2021) pipeline involves a set of python scripts (in their folder 'utility_scripts', at https://github.com/clairemerot/angsd_pipeline/tree/master/01_scripts/utility_scripts). 
+# These are needed for the analysis below. We therefore first start by downloading Mazet et al.'s 'utility_scripts' folder to BluePebble (this only needs to be run once - already run):
         ##cd /user/work/pk14885
         ##git clone https://github.com/clairemerot/angsd_pipeline.git
-# Therefore, Mazet et al.'s (2021) scripts are now all in the folder 'angsd_pipeline' on the working directory of HPC.
+# Therefore, Merot et al.'s (2021) scripts are now all in the folder 'angsd_pipeline' on the working directory of HPC.
 
 # ------------------------------------------------------------------------------------------------------
 # SETTING UP THE INPUT INFORMATION:
@@ -86,7 +84,32 @@ echo "analyse covariance matrix on all individuals"
 
 done
 
+# ------------------------------------------------------------------------------------------------------
+# SPLITTING UP THE BEAGLE FILE INTO NON-OVERLAPPING WINDOWS:
+# (adapted from https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/10B_pca_lostruct.sh)
 
+# Following Merot et al. (2021), we now use the 'lostruct' (local PCA structure) method of Li & Ralph (2019) [https://academic.oup.com/genetics/article/211/1/289/5931130].
+# More information on 'lostruct' is here: https://github.com/petrelharp/local_pca?tab=readme-ov-file
 
+#### to edit ###
+# Get the number of wasps in the WaspNameList. This is the number of individuals included in the analysis:
+N_IND=$(wc -l < /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/WaspNameList)
+
+# Set the number of PCs to consider when comparing windows:
+N_PC=2 #nb of PC to consider when comparing windows
+
+# "nb of MDS dimension in the output":
+N_MDS=50
+
+echo "Run local pca on covariance matrix made by window with window size = $window_size"
+
+# Make a directory to store the analyses for each window:
+mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/$window_size/analyse_by_window"
+
+# Make a text file to store the results:
+ls 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/cov_by_window/ > 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/analyse_by_window/list_window.txt
+
+# Run Merot et al.'s (2021) Rscript from their pipeline:
+Rscript /user/work/pk14885/angsd_pipeline/01_scripts/Rscripts/local_pca_mds_all_chr_maxdepth_speedy_version.R "$MIN_MAF" "$PERCENT_IND" "$window_size" "$MAX_DEPTH_FACTOR" "$N_IND" "$N_PC" "$N_MDS"
 
 
