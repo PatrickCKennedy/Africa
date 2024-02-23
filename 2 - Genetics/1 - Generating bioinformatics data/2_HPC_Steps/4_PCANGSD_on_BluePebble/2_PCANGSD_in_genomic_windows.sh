@@ -109,6 +109,27 @@ mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEP
 # Make a text file to store the results:
 ls 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/cov_by_window/ > 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/analyse_by_window/list_window.txt
 
+# In the script '1_PCANGSD_across_all_populations.sh', we created the PCA covariance matrix ('output.for.pca.in.R.pcangsd') on the whole
+# genomes (i.e., a global PCA). In Merot et al.'s (2021) pipeline R script below, the local-window PCAs are plotted against the global PCA. In
+# the Merot et al. pipeline, the global PCA was produced in their script 4 (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/04_pca.sh),
+# where it was called:   all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov    
+# and placed in a folder called:    04_pca/
+# To enable our global PCA to rub easily with their Rscript below (which points to this folder), we therefore simply create a folder with the same name, and 
+# copy our cov matrix ('output.for.pca.in.R.pcangsd') over to it with the name 'all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov'
+        # First, remove the 04_pca/ folder if it already exists from a previous run:
+                cd /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together
+                rm -r 04_pca
+        # Next, create a new 04_pca/ folder:
+                mkdir 04_pca
+        # Copy our global PCA results into this folder:
+                cp output.for.pca.in.R.pcangsd.cov 04_pca
+        # Rename 'output.for.pca.in.R.pcangsd' appropriately:
+                all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov
+
+        
+
+
+
 # Run Merot et al.'s (2021) Rscript from their pipeline:
 Rscript /user/work/pk14885/angsd_pipeline/01_scripts/Rscripts/local_pca_mds_all_chr_maxdepth_speedy_version.R "$MIN_MAF" "$PERCENT_IND" "$window_size" "$MAX_DEPTH_FACTOR" "$N_IND" "$N_PC" "$N_MDS"
 
