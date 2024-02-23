@@ -9,7 +9,7 @@
 cd /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica/Vusumuzi/ANGSD_results
 
 # Load R:
-module load lang/r/4.0.1
+module load lang/r/4.3.0-gcc
 R --vanilla
 
 # We are now in an interactive session in R. The following script is therefore R code:
