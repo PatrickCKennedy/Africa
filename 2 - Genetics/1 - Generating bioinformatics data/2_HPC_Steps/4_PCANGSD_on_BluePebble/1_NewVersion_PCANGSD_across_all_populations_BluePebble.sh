@@ -315,7 +315,7 @@ echo
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # NOTE (OF INTEREST ONLY IF YOU INTEND TO LOOK AT LOCAL-WINDOW PCAs IN THE NEXT SCRIPT):
 # The covariance matrix produced by our PCANGSD command above is called 'output.for.pca.in.R.pcangsd.cov'.
-# In the following script ('2_PCANGSD_in_genomic_windows.sh'), we used part of a pipeline developed by Merot et al. (2021) 
+# In the following script ('2_PCANGSD_in_genomic_windows.sh'), we use part of a pipeline developed by Merot et al. (2021) 
 # to look at PCAs on short windows of the genome. That script calls an R script created by Merot et al. (2021), which
 # correlates those short-window PCA results with the global PCA result. In our case, the global PCA result
 # is 'output.for.pca.in.R.pcangsd.cov'. The Merot et al. pipeline R script assumes that the global PCA result is
