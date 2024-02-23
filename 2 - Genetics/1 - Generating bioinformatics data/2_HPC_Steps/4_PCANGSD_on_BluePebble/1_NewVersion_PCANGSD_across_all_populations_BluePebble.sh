@@ -309,6 +309,9 @@ echo
 # Run PCANGSD to generate covariance matrix (and tree data) ready for making the PCA (and tree) in R:
 		pcangsd -b my_Angsd_file.beagle.gz -t 4 --tree --tree_samples WaspNameList -o output.for.pca.in.R.pcangsd
 
+# You can now use the output file ('output.for.pca.in.R.pcangsd') to produce a PCA plot in R, following http://www.popgen.dk/software/index.php/PCAngsdTutorial#Plot_the_results_in_R:
+# First, download the output (from outside BluePebble).
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # NOTE (OF INTEREST ONLY IF YOU INTEND TO LOOK AT LOCAL-WINDOW PCAs IN THE NEXT SCRIPT):
 # The covariance matrix produced by our PCANGSD command above is called 'output.for.pca.in.R.pcangsd.cov'.
@@ -325,9 +328,6 @@ echo
 # is used in the following script ('2_PCANGSD_in_genomic_windows.sh'):
 	mkdir 04_pca
  	cp output.for.pca.in.R.pcangsd.cov 04_pca/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov
-
-# You can now use the output file ('output.for.pca.in.R.pcangsd') to produce a PCA plot in R, following http://www.popgen.dk/software/index.php/PCAngsdTutorial#Plot_the_results_in_R:
-# First, download the output (from outside BluePebble).
 
 # -------------------------------------------------------------
 # (2) ADMIXTURE ANALYSIS USING PCANGSD:
