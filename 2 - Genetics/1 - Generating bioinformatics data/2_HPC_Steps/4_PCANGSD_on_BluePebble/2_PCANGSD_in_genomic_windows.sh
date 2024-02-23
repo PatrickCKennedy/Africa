@@ -24,30 +24,29 @@
 # We are specifically following scripts 10A to 10D at https://github.com/clairemerot/angsd_pipeline/tree/master/01_scripts
 
 # The Merot et al. (2021) pipeline involves a set of python scripts (in their folder 'utility_scripts', at https://github.com/clairemerot/angsd_pipeline/tree/master/01_scripts/utility_scripts). 
-# These are needed for the analysis below. We therefore first start by downloading Mazet et al.'s 'utility_scripts' folder to BluePebble (this only needs to be run once - already run):
+# These are needed for the analysis below. We therefore first start by downloading Merot et al.'s 'utility_scripts' folder to BluePebble (this only needs to be run once - already run):
         ##cd /user/work/pk14885
         ##git clone https://github.com/clairemerot/angsd_pipeline.git
-# Therefore, Merot et al.'s (2021) scripts are now all in the folder 'angsd_pipeline' on the working directory of HPC.
+# Therefore, Merot et al.'s (2021) pipeline scripts are in the folder 'angsd_pipeline' on the working directory of HPC.
 
 # ------------------------------------------------------------------------------------------------------
 # SETTING UP THE INPUT INFORMATION:
-# (adapted fromhttps://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
+# (adapted from https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
 
-#"filter : will keep SNP above this allele frequency (over all individuals)"
+#"filter : will keep SNP above this allele frequency (over all individuals)" (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
 MIN_MAF=0.05 
 
 #"filter : will keep positions with at least MIN_DEPTH reads for each individual, This is not necessaily for all individuals, we consider a PERCENT_IND (percentage of individuals over all individuals in step 03, and within each pop at step 07)
 #advice: as min depth use a value that is a bit below what you expected. we use 1 for 1X of coverage but if you have 5X it may make sense to put the bar a bit higher to 2 or 3
-#advice: as percentage, avoid going below 50% and also consider the whole number of individuals. (it may makes sense to use 50% with 100 ind/pop, but you may want 90% with 9 ind/pop"
+#advice: as percentage, avoid going below 50% and also consider the whole number of individuals. (it may makes sense to use 50% with 100 ind/pop, but you may want 90% with 9 ind/pop" (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
 PERCENT_IND=0.5
 MIN_DEPTH=1
 
-#"filter: will keep SNP with at least a coverage of this factor multiplied by the number of ind - across all ind. 
-# advice: we usually set it at 2-4 times the expected coverage to remove repeated regions"
-MAX_DEPTH_FACTOR=3
+#"advice: we usually set it at 2-4 times the expected coverage to remove repeated regions" (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
+MAX_DEPTH_FACTOR=10
 
 window_size=1000 # for small window along a chromosome for instance
-# adjust memory accordingly - small window = few memory - big window more memory (1G for 1000 snp - 50G for a chromosome
+# "adjust memory accordingly - small window = few memory - big window more memory (1G for 1000 snp - 50G for a chromosome)" (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
 
 # ------------------------------------------------------------------------------------------------------
 # SPLITTING UP THE BEAGLE FILE INTO NON-OVERLAPPING WINDOWS:
@@ -75,7 +74,7 @@ INPUT=10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPT
 
 echo "analyse covariance matrix on all individuals"
 
-              # This part of the script in Mazet et al.'s file (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/10A_cov_by_window.sh) calls ANGSD through python2, because they use the former version of ANGSD. Here, we replace that line with the call directly to ANGSD on BluePebble:
+              # This part of the script in Merot et al.'s file (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/10A_cov_by_window.sh) calls ANGSD through python2, because they use the former version of ANGSD. Here, we replace that line with the call directly to ANGSD on BluePebble:
               # Load PCANGSD on BluePebble:
                     module add lang/python/anaconda/3.8.8-2021.05-2.5
                     source activate pcangsd
@@ -114,23 +113,8 @@ ls 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_F
 # the Merot et al. pipeline, the global PCA was produced in their script 4 (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/04_pca.sh),
 # where it was called:   all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov    
 # and placed in a folder called:    04_pca/
-# To enable our global PCA to rub easily with their Rscript below (which points to this folder), we therefore simply create a folder with the same name, and 
-# copy our cov matrix ('output.for.pca.in.R.pcangsd') over to it with the name 'all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov'
-        # First, remove the 04_pca/ folder if it already exists from a previous run:
-                cd /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together
-                rm -r 04_pca
-        # Next, create a new 04_pca/ folder:
-                mkdir 04_pca
-        # Copy our global PCA results into this folder:
-                cp output.for.pca.in.R.pcangsd.cov 04_pca
-        # Rename 'output.for.pca.in.R.pcangsd' appropriately:
-                all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov
+# To enable our global PCA to run easily with their Rscript below (which points to this folder), our script '1_PCANGSD_across_all_populations.sh'
+# made a copy of 'output.for.pca.in.R.pcangsd' and saved it as 04_pca/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov, which we can now use here directly.
 
-        
-
-
-
-# Run Merot et al.'s (2021) Rscript from their pipeline:
+# Run Merot et al.'s (2021) R script from their pipeline:
 Rscript /user/work/pk14885/angsd_pipeline/01_scripts/Rscripts/local_pca_mds_all_chr_maxdepth_speedy_version.R "$MIN_MAF" "$PERCENT_IND" "$window_size" "$MAX_DEPTH_FACTOR" "$N_IND" "$N_PC" "$N_MDS"
-
-
