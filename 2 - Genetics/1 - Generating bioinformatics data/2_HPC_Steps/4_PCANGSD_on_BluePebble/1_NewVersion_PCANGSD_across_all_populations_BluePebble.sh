@@ -1,10 +1,10 @@
 #!/bin/bash
 #SBATCH --job-name=SaCa_PCANGSD
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
+#SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=50G
-#SBATCH --time=8-120:00:00
+#SBATCH --mem=25G
+#SBATCH --time=3-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --account=BISC020282
