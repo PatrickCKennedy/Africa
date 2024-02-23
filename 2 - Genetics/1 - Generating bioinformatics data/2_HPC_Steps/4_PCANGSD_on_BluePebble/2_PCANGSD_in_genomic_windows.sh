@@ -48,11 +48,8 @@ MIN_DEPTH=1
 # advice: we usually set it at 2-4 times the expected coverage to remove repeated regions"
 MAX_DEPTH_FACTOR=3
 
-#"window size for sliding window FST & Thetas"
-WINDOW=25000 
-
-#"window step"
-WINDOW_STEP=5000 
+window_size=1000 # for small window along a chromosome for instance
+# adjust memory accordingly - small window = few memory - big window more memory (1G for 1000 snp - 50G for a chromosome
 
 # ------------------------------------------------------------------------------------------------------
 # SPLITTING UP THE BEAGLE FILE INTO NON-OVERLAPPING WINDOWS:
