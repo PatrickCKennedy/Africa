@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=120G
+#SBATCH --mem=50G
 #SBATCH --time=8-120:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
