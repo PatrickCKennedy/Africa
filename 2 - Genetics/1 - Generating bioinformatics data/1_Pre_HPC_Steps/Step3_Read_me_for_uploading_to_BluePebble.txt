@@ -58,7 +58,7 @@ scp myFilesTable.txt pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/
 	cd /Volumes/Patricks_LaCie_Genomics_Harddrive/Scripts/2_Scripts_if_running_on_cluster
 	scp 1_Alignment_on_HPC.sh pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/
 
-# 5. If you haven’t already, upload the reference genome from the 3_Patrick_Indexed_ref_using_BWA folder:
+# 5. If you haven’t already, upload the reference genome:
 
 	cd /Volumes/Patricks_LaCie_Genomics_Harddrive/3_Reference_Genome/Complete_reference_genome
 	scp -r 3_Patrick_Indexed_ref_using_BWA pk14885@bc4login.acrc.bris.ac.uk:/user/work/pk14885
@@ -76,5 +76,9 @@ scp myFilesTable.txt pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/
 # 8. To check how it is getting on, use:
 
 	sacct -j PUTJOBNUMBERHERE
+
+# 9. After the script has completed running, check whether you requested the right level of resources:
+
+	seff PUTJOBNUMBERHERE
 
  
