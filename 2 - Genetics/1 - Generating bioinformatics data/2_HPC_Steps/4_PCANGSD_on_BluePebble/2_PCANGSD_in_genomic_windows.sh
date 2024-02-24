@@ -61,8 +61,23 @@ mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEP
 mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/beagle_by_window"
 mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/cov_by_window"
 
-# "if your reference contigs names are "Chr_1" use this line"
-python /user/work/pk14885/angsd_pipeline/01_scripts/utility_scripts/beagle_sliding_window_bis.py /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/my_Angsd_file.beagle.gz $window_size 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/beagle_by_window/
+# Next, we will use the 'beagle_sliding_window_bis.py' script in the pipeline published by Merot et al. (2021).
+# This splits the Beagle file into windows.
+# However, Merot et al.'s script assumes that the reference contigs have a name in the format 'Chr_1'. In our
+# reference genome, the contigs are named 'HiC_scaffold_1', which means there is an extra underscore. You can
+# see this if you go to the Beagle file and use:   zcat my_Angsd_file.beagle.gz | head | cut -f 1-3
+# To enable using the Merot et al. pipeline, we need to remove the first underscore, so that it is 'HiCscaffold' rather
+# than 'HiC_scaffold'. We do that here:
+        # First, make a copy of the whole-genomes Beagle file (so that we still have the untouched original in case an error arises):
+                cp my_Angsd_file.beagle.gz my_Angsd_file.beagle_tempcopy.gz
+        # Second, make an identical beagle file where the only change is that 'HiC_scaffold' has been replaced with 'HiCscaffold' in the first column:
+                zcat my_Angsd_file.beagle_tempcopy.gz | cat | awk '{sub("HiC_scaffold","HiCscaffold");print}' | gzip > renamed.beagle.gz
+        # Now remove the tempcopy Beagle file:
+                rm my_Angsd_file.beagle_tempcopy.gz
+        # For the rest of this script, we therefore now use the file 'renamed.beagle.gz' as the global Beagle file. The untouched original ('my_Angsd_file.beagle.gz') is still available if needed.
+
+# "if your reference contigs names are "Chr_1" use this line" (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/10A_cov_by_window.sh):
+python /user/work/pk14885/angsd_pipeline/01_scripts/utility_scripts/beagle_sliding_window_bis.py /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/renamed.beagle.gz $window_size 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/beagle_by_window/
 
 # "Run PCANGSD on each window":
 ls -1 10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR"/"$window_size"/beagle_by_window/ | 
@@ -90,7 +105,6 @@ done
 # Following Merot et al. (2021), we now use the 'lostruct' (local PCA structure) method of Li & Ralph (2019) [https://academic.oup.com/genetics/article/211/1/289/5931130].
 # More information on 'lostruct' is here: https://github.com/petrelharp/local_pca?tab=readme-ov-file
 
-#### to edit ###
 # Get the number of wasps in the WaspNameList. This is the number of individuals included in the analysis:
 N_IND=$(wc -l < /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/WaspNameList)
 
@@ -126,7 +140,7 @@ Rscript /user/work/pk14885/angsd_pipeline/01_scripts/Rscripts/local_pca_mds_all_
 
 
 
-
+scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/10_pca_by_window/all_maf0.05_pctind0.5_maxdepth10/1000 1000
 
 
 
