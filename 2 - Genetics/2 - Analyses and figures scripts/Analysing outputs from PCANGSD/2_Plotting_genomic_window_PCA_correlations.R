@@ -30,6 +30,11 @@
                 scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/10_pca_by_window/all_maf0.05_pctind0.5_maxdepth20/1000/cov_by_window  cov_by_window 
                 scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/10_pca_by_window/all_maf0.05_pctind0.5_maxdepth20/1000/analyse_by_window  analyse_by_window
 
+        # (4) Download the PopulationLabels and WaspNameList text files corresponding to these particular randomly-chosen nonrelatives:
+                cd /Users/pk14885/Downloads/04_pca
+                scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/PopulationLabels PopulationLabels
+                scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/WaspNameList WaspNameList
+
 # -------------------------------------------------------------------------------
 # The rest of this script is for R.
 # -------------------------------------------------------------------------------
@@ -43,6 +48,10 @@
 
 # Import the right covariance file and call it 'cov_mat':
         cov_mat<-as.matrix(read.table("all_maf0.05_pctind0.5_maxdepth20.cov"), header=F)
+
+# Also download the WaspNameList and PopulationLabels files from BluePebble:
+        WaspNameList<-read.table("WaspNameList",head=F)
+        PopulationLabels<-read.table("PopulationLabels",head=F)
 
 # Eigendecomposition to find the PCA:
         pca<-eigen(cov_mat)
@@ -74,6 +83,33 @@
 # Save the whole-genome PCA matrix (keeping the first four components) with the name 'info_pc' (we will use it below):
         info_pc <- pca.mat[,1:4]
 
+pca.mat.df <- as.data.frame(pca.mat)
+pca.mat.df$Pop <- PopulationLabels
+
+my_PCs_to_plot <- as.data.frame(cbind(pca.mat[,1],pca.mat[,2]))
+my_PCs_to_plot$V3 <- PopulationLabels
+my_PCs_to_plot[my_PCs_to_plot$V3 == "Douala",4] = "Humid tropics"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Maroua",4] = "Semi arid"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Mbouda",4] = "Humid tropics"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Messa",4] = "Humid tropics"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Soa",4] = "Humid tropics"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Douala",4] = "Humid tropics"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Somalomo",4] = "Humid tropics"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Yaounde1",4] = "Humid tropics"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "AfricanLaboratory",4] = "Temperate"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "LoversRock",4] = "Temperate"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Cowshed",4] = "Temperate"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "PeterRobertsFarm",4] = "Temperate"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Pumphouse",4] = "Temperate"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "TrudiesFarm",4] = "Temperate"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Vusumuzi",4] = "Temperate"
+        my_PCs_to_plot[my_e_to_plot$V3 == "ZebraHouse",4] = "Temperate"
+ggplot(my_PCs_to_plot, aes(x=V1, y=V2, col = as.factor(V4))) +
+    geom_point() + theme_bw() + 
+    labs(
+        x = paste("PC1 (",round(percent_explained_by_PC1,1),"%)",sep=""), 
+        y = paste("PC2 (",round(percent_explained_by_PC2,1),"%)",sep="")) + scale_fill_manual(values = c("#56ddc5","orange","red"))+ guides(col="none") + guides(fill=guide_legend(title="Climate")) + scale_colour_manual(values = c("#56ddc5","orange","red"))
+
 # -------------------------------------------------------------------------------
 # NOW RUN PCA ON THE LOCAL WINDOWS OF THE GENOME:
 
@@ -90,7 +126,7 @@ setwd("/Users/pk14885/Downloads/1000")
         MAX_DEPTH_FACTOR = 20
         N_ind = 108
         N_PC = 2
-        N_MDS = 50
+        N_MDS = 2
 
 # Import the text file containing the list of analysed windows:
       window<-read.table(("analyse_by_window/list_window.txt"),header=F)
@@ -146,11 +182,6 @@ setwd("/Users/pk14885/Downloads/1000")
 # Plot the different MDS axes:
               print("plotting MDS axis")
               plot(mds_axe$points[,1], mds_axe$points[,2], pch=20)
-              plot(mds_axe$points[,3], mds_axe$points[,4], pch=20)
-              plot(mds_axe$points[,5], mds_axe$points[,6], pch=20)
-              plot(mds_axe$points[,7], mds_axe$points[,8], pch=20)
-              plot(mds_axe$points[,9], mds_axe$points[,10], pch=20)
-              plot(mds_axe$points[,11], mds_axe$points[,12], pch=20)
 
 # Calculate the correlation between each local-window's PCs and the full whole-genome PCA, "to see which portions of the genome are associated
 # with the structure seen on the first 3 PCs of the PCa on the whole genome":
@@ -162,39 +193,31 @@ setwd("/Users/pk14885/Downloads/1000")
               window_order$eig_pc2[i]<-window_eigs[i,2]
               window_order$corr_pc1[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,1])$estimate)
               window_order$corr_pc2[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,2])$estimate)
-              window_order$corr_pc3[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,3])$estimate)
-              window_order$corr_pc4[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,4])$estimate)
-              #window_order$corr_pc5[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,5])$estimate)
-              #window_order$corr_pc6[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,6])$estimate)
-              #window_order$corr_pc7[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,7])$estimate)
-              #window_order$corr_pc8[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,8])$estimate)
-              #window_order$corr_pc9[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,9])$estimate)
-              #window_order$corr_pc10[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,10])$estimate)
-              #window_order$corr_pc11[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,11])$estimate)
-              #window_order$corr_pc12[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,12])$estimate)
             }
-write.table(window_order,paste0("analyse_by_window/window_corr_pc_all_LG.txt"), quote=F,row.names=F)  
 
 # P: Focus on the 20 largest scaffolds and make a ggplot:
+            library(ggplot2)
             window_order$LG <- as.numeric(window_order$LG)
             data_for_20_largest_scaffolds = subset(window_order,window_order$LG<21)
             corrPC1_plot <- ggplot(data=data_for_20_largest_scaffolds, aes(x=start/1000000,y=corr_pc1)) +
                                       geom_point(colour='black', size = 0.5, alpha = 0.5) +
                                       facet_grid(~LG,scales = 'free_x', space = 'free_x') + theme_classic() + ylim(0,1) + 
-                                      scale_x_continuous(breaks = seq(5, 200, by = 5)) +
+                                      scale_x_continuous(breaks = seq(5, 200, by = 10)) +
                                       theme(
-                                        strip.background = element_rect(color="white", fill="gray", size=1.5, linetype="solid"),
-                                        strip.text.x = element_text(size = 10, color = "white")) + ylab("PC1 correlation") +
-                                      xlab("Location (Mb)")
+                                        strip.background = element_rect(color="gray", fill="gray", size=1.5, linetype="solid"),
+                                        strip.text.x = element_text(size = 9, color = "white")) + ylab("PC1 correlation") +
+                                      xlab("Genomic location (Mb)") + 
+                                      geom_line(alpha = 0.2)
             corrPC1_plot
             corrPC2_plot <- ggplot(data=data_for_20_largest_scaffolds, aes(x=start/1000000,y=corr_pc2)) +
                                       geom_point(colour='black', size = 0.5, alpha = 0.5) +
                                       facet_grid(~LG,scales = 'free_x', space = 'free_x') + theme_classic() + ylim(0,1) + 
-                                      scale_x_continuous(breaks = seq(5, 200, by = 5)) + 
+                                      scale_x_continuous(breaks = seq(5, 200, by = 10)) + 
                                       theme(
-                                        strip.background = element_rect(color="white", fill="gray", size=1.5, linetype="solid"),
-                                        strip.text.x = element_text(size = 10, color = "white")) + ylab("PC2 correlation") + 
-                                      xlab("Location (Mb)")
+                                        strip.background = element_rect(color="gray", fill="gray", size=1.5, linetype="solid"),
+                                        strip.text.x = element_text(size = 9, color = "white")) + ylab("PC2 correlation") + 
+                                      xlab("Genomic location (Mb)") + 
+                                      geom_line(alpha = 0.2)
             corrPC2_plot
 
 # Show the two plots together on a panel:
