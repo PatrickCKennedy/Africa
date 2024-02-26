@@ -254,7 +254,6 @@ angsd -bam Cameroon.AND.SouthAfrica.randomly.selected.nonrelatives.txt \
     -GL 1 \
     -doGlf 2 \
     -doMaf 1 \
-    -minmaf 0.05 \
     -doMajorMinor 1 \
     -snp_pval 1e-6 \
     -doCounts 1 \
