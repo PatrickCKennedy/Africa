@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=25G
-#SBATCH --time=3-00:00:00
+#SBATCH --time=1-12:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --account=BISC020282
@@ -228,7 +228,7 @@ MIN_IND_FLOAT=$(echo "($N_IND * $PERCENT_IND)"| bc -l)
 MIN_IND=${MIN_IND_FLOAT%.*} 
 
 #"advice: we usually set it at 2-4 times the expected coverage to remove repeated regions" (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
-MAX_DEPTH_FACTOR=10
+MAX_DEPTH_FACTOR=20
 MAX_DEPTH=$(echo "($N_IND * $MAX_DEPTH_FACTOR)" |bc -l)
 
 # -------------------------------------------------------------
@@ -249,9 +249,9 @@ angsd -bam Cameroon.AND.SouthAfrica.randomly.selected.nonrelatives.txt \
     -setMinDepthInd $MIN_DEPTH \
     -C 50 \
     -baq 1 \
-    -minQ 30 \
-    -minMapQ 30 \
-    -GL 2 \
+    -minQ 20 \
+    -minMapQ 20 \
+    -GL 1 \
     -doGlf 2 \
     -doMaf 1 \
     -minmaf 0.05 \
@@ -366,18 +366,18 @@ echo
 # NGSADMIX provides a potentially higher-quality analysis than PCANGSD's in-built admixture programme above.
 
 # Report current step:
-echo
-echo "P: Now about to run NGSadmix to generate an admixture plot."
-echo
+##echo
+##echo "P: Now about to run NGSadmix to generate an admixture plot."
+##echo
 
 # You can run NGSadmix as part of ANGSD. I have installed it independently on the cluster (following the commands at http://www.popgen.dk/software/index.php/NgsAdmix). Here is the path to where I have installed it on my BluePebble account:
-NGSADMIX="/user/work/pk14885/MySoftware/NGSadmix"
+##NGSADMIX="/user/work/pk14885/MySoftware/NGSadmix"
 
 # This means that we can run NGSadmix just by typing $NGSADMIX. We will run it at several different K (cluster number) values:
-$NGSADMIX -likes my_Angsd_file.beagle.gz -K 4 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_4.output -P 10
-$NGSADMIX -likes my_Angsd_file.beagle.gz -K 5 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_5.output -P 10
-$NGSADMIX -likes my_Angsd_file.beagle.gz -K 6 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_6.output -P 10
-$NGSADMIX -likes my_Angsd_file.beagle.gz -K 7 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_7.output -P 10
+##$NGSADMIX -likes my_Angsd_file.beagle.gz -K 4 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_4.output -P 10
+##$NGSADMIX -likes my_Angsd_file.beagle.gz -K 5 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_5.output -P 10
+##$NGSADMIX -likes my_Angsd_file.beagle.gz -K 6 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_6.output -P 10
+##$NGSADMIX -likes my_Angsd_file.beagle.gz -K 7 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_7.output -P 10
 
 # For choosing the maximum likelihood K from the runs above in R, see: https://baylab.github.io/MarineGenomics/week-9-population-structure-using-ngsadmix.html
 
