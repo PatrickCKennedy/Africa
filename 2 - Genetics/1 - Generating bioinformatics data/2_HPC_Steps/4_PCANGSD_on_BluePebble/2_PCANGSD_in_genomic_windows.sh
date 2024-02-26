@@ -43,7 +43,7 @@ PERCENT_IND=0.5
 MIN_DEPTH=1
 
 #"advice: we usually set it at 2-4 times the expected coverage to remove repeated regions" (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
-MAX_DEPTH_FACTOR=10
+MAX_DEPTH_FACTOR=20
 
 window_size=1000 # for small window along a chromosome for instance
 # "adjust memory accordingly - small window = few memory - big window more memory (1G for 1000 snp - 50G for a chromosome)" (https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/01_config.sh)
