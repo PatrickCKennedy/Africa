@@ -103,13 +103,24 @@ my_PCs_to_plot[my_PCs_to_plot$V3 == "Douala",4] = "Humid tropics"
         my_PCs_to_plot[my_PCs_to_plot$V3 == "Pumphouse",4] = "Temperate"
         my_PCs_to_plot[my_PCs_to_plot$V3 == "TrudiesFarm",4] = "Temperate"
         my_PCs_to_plot[my_PCs_to_plot$V3 == "Vusumuzi",4] = "Temperate"
-        my_PCs_to_plot[my_e_to_plot$V3 == "ZebraHouse",4] = "Temperate"
-ggplot(my_PCs_to_plot, aes(x=V1, y=V2, col = as.factor(V4))) +
-    geom_point() + theme_bw() + 
-    labs(
-        x = paste("PC1 (",round(percent_explained_by_PC1,1),"%)",sep=""), 
-        y = paste("PC2 (",round(percent_explained_by_PC2,1),"%)",sep="")) + scale_fill_manual(values = c("#56ddc5","orange","red"))+ guides(col="none") + guides(fill=guide_legend(title="Climate")) + scale_colour_manual(values = c("#56ddc5","orange","red"))
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "ZebraHouse",4] = "Temperate"
 
+library(ggplot2)
+my_PCA_plot <- ggplot(my_PCs_to_plot, aes(x=V1, y=V2, col = as.factor(V4))) +
+    geom_point(size = 0.8) + 
+        theme(panel.grid.major = element_blank(), 
+              panel.grid.minor = element_blank(),
+              panel.background = element_blank(), 
+              axis.line = element_line(size = 0), 
+              panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
+    labs(
+        x = paste("PC1 (",round(var1,1),"%)",sep=""), 
+        y = paste("PC2 (",round(var2,1),"%)",sep="")) + 
+        scale_fill_manual(values = c("#56ddc5","orange","red")) + 
+        guides(col="none") + 
+        guides(fill=guide_legend(title="Climate")) + 
+        scale_colour_manual(values = c("#56ddc5","orange","red"))
+my_PCA_plot
 # -------------------------------------------------------------------------------
 # NOW RUN PCA ON THE LOCAL WINDOWS OF THE GENOME:
 
@@ -183,52 +194,106 @@ setwd("/Users/pk14885/Downloads/1000")
               print("plotting MDS axis")
               plot(mds_axe$points[,1], mds_axe$points[,2], pch=20)
 
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# First, correlate the local-window PC1s with the global PC1 and PC2 axes:
+
 # Calculate the correlation between each local-window's PCs and the full whole-genome PCA, "to see which portions of the genome are associated
 # with the structure seen on the first 3 PCs of the PCa on the whole genome":
+            window_order1 <- window_order
             for (i in 1: dim(window_order)[1])
             {
               print(paste("calculating corr pca for window",i))
               PC_mat_i<- t(rbind(window_eigs[i,4:(3+N_ind)],window_eigs[i,(4+N_ind):(3+2*N_ind)]))
-              window_order$eig_pc1[i]<-window_eigs[i,1] #not sure which number is eigenvalue or sum of square and how to get variance from there
-              window_order$eig_pc2[i]<-window_eigs[i,2]
-              window_order$corr_pc1[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,1])$estimate)
-              window_order$corr_pc2[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,2])$estimate)
+              window_order1$eig_pc1[i]<-window_eigs[i,1] #not sure which number is eigenvalue or sum of square and how to get variance from there
+              window_order1$eig_pc2[i]<-window_eigs[i,2]
+              window_order1$corr_pc1[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,1])$estimate)
+              window_order1$corr_pc2[i]<-abs(cor.test(PC_mat_i[,1], info_pc[,2])$estimate)
             }
 
-# P: Focus on the 20 largest scaffolds and make a ggplot:
+# P: Focus on the 10 largest scaffolds and make a ggplot:
             library(ggplot2)
-            window_order$LG <- as.numeric(window_order$LG)
-            data_for_20_largest_scaffolds = subset(window_order,window_order$LG<21)
-            corrPC1_plot <- ggplot(data=data_for_20_largest_scaffolds, aes(x=start/1000000,y=corr_pc1)) +
-                                      geom_point(colour='black', size = 0.5, alpha = 0.5) +
+            window_order1$LG <- as.numeric(window_order$LG)
+            data_for_10_largest_scaffolds = subset(window_order1,window_order1$LG<11)
+            localPC1_corr_globalPC1_plot <- ggplot(data=data_for_10_largest_scaffolds, aes(x=start/1000000,y=corr_pc1)) +
+                                      geom_point(colour='black', size = 0.2, alpha = 0.5) +
                                       facet_grid(~LG,scales = 'free_x', space = 'free_x') + theme_classic() + ylim(0,1) + 
-                                      scale_x_continuous(breaks = seq(5, 200, by = 10)) +
                                       theme(
-                                        strip.background = element_rect(color="gray", fill="gray", size=1.5, linetype="solid"),
-                                        strip.text.x = element_text(size = 9, color = "white")) + ylab("PC1 correlation") +
+                                        axis.line = element_line(colour = 'black', size = 0.5),      
+                                        strip.background = element_rect(color="gray", fill="gray", size=0.5, linetype="solid"),
+                                        strip.text.x = element_text(size = 6, color = "white")) + ylab(expression(rho*"PC1"))  +
                                       xlab("Genomic location (Mb)") + 
-                                      geom_line(alpha = 0.2)
-            corrPC1_plot
-            corrPC2_plot <- ggplot(data=data_for_20_largest_scaffolds, aes(x=start/1000000,y=corr_pc2)) +
-                                      geom_point(colour='black', size = 0.5, alpha = 0.5) +
+                                      geom_line(alpha = 0.2) +
+                                        scale_x_continuous(breaks = seq(5, 200, by = 15)) +
+                                        scale_y_continuous(breaks = seq(0, 1, by = 1), limits = c(0,1))
+            localPC1_corr_globalPC1_plot
+            localPC1_corr_globalPC2_plot <- ggplot(data=data_for_10_largest_scaffolds, aes(x=start/1000000,y=corr_pc2)) +
+                                      geom_point(colour='black', size = 0.2, alpha = 0.5) +
                                       facet_grid(~LG,scales = 'free_x', space = 'free_x') + theme_classic() + ylim(0,1) + 
-                                      scale_x_continuous(breaks = seq(5, 200, by = 10)) + 
                                       theme(
-                                        strip.background = element_rect(color="gray", fill="gray", size=1.5, linetype="solid"),
-                                        strip.text.x = element_text(size = 9, color = "white")) + ylab("PC2 correlation") + 
+                                        axis.line = element_line(colour = 'black', size = 0.5), 
+                                        strip.background = element_rect(color="gray", fill="gray", size=0.5, linetype="solid"),
+                                        strip.text.x = element_text(size = 6, color = "white")) + ylab(expression(rho*"PC2"))  + 
                                       xlab("Genomic location (Mb)") + 
-                                      geom_line(alpha = 0.2)
-            corrPC2_plot
+                                      geom_line(alpha = 0.2) +
+                                        scale_x_continuous(breaks = seq(5, 200, by = 15)) + 
+                                        scale_y_continuous(breaks = seq(0, 1, by = 1), limits = c(0,1))
+            localPC1_corr_globalPC2_plot
 
-# Show the two plots together on a panel:
-            library(cowplot)
-            plot_grid(corrPC1_plot, corrPC2_plot, labels = c('a', 'b'), ncol = 1)
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# Second, correlate the local-window PC2s with the global PC1 and PC2 axes:
 
-# -------------------------------------------------------------------------------
+# Calculate the correlation between each local-window's PCs and the full whole-genome PCA, "to see which portions of the genome are associated
+# with the structure seen on the first 3 PCs of the PCa on the whole genome":
+            window_order2 <- window_order
+            for (i in 1: dim(window_order)[1])
+            {
+              print(paste("calculating corr pca for window",i))
+              PC_mat_i<- t(rbind(window_eigs[i,4:(3+N_ind)],window_eigs[i,(4+N_ind):(3+2*N_ind)]))
+              window_order2$eig_pc1[i]<-window_eigs[i,1] #not sure which number is eigenvalue or sum of square and how to get variance from there
+              window_order2$eig_pc2[i]<-window_eigs[i,2]
+              window_order2$corr_pc1[i]<-abs(cor.test(PC_mat_i[,2], info_pc[,1])$estimate)
+              window_order2$corr_pc2[i]<-abs(cor.test(PC_mat_i[,2], info_pc[,2])$estimate)
+            }
 
+# P: Focus on the 10 largest scaffolds and make a ggplot:
+            window_order2$LG <- as.numeric(window_order$LG)
+            data_for_10_largest_scaffolds = subset(window_order2,window_order2$LG<11)
+            localPC2_corr_globalPC1_plot <- ggplot(data=data_for_10_largest_scaffolds, aes(x=start/1000000,y=corr_pc1)) +
+                                      geom_point(colour='black', size = 0.2, alpha = 0.5) +
+                                      facet_grid(~LG,scales = 'free_x', space = 'free_x') + theme_classic() + ylim(0,1) + 
+                                      theme(
+                                        axis.line = element_line(colour = 'black', size = 0.5),      
+                                        strip.background = element_rect(color="gray", fill="gray", size=0.5, linetype="solid"),
+                                        strip.text.x = element_text(size = 6, color = "white")) + ylab(expression(rho*"PC1"))  +
+                                      xlab("Genomic location (Mb)") + 
+                                      geom_line(alpha = 0.2) +
+                                        scale_x_continuous(breaks = seq(5, 200, by = 15)) +
+                                        scale_y_continuous(breaks = seq(0, 1, by = 1), limits = c(0,1))
+            localPC2_corr_globalPC1_plot
+            localPC2_corr_globalPC2_plot <- ggplot(data=data_for_10_largest_scaffolds, aes(x=start/1000000,y=corr_pc2)) +
+                                      geom_point(colour='black', size = 0.2, alpha = 0.5) +
+                                      facet_grid(~LG,scales = 'free_x', space = 'free_x') + theme_classic() + ylim(0,1) + 
+                                      theme(
+                                        axis.line = element_line(colour = 'black', size = 0.5), 
+                                        strip.background = element_rect(color="gray", fill="gray", size=0.5, linetype="solid"),
+                                        strip.text.x = element_text(size = 6, color = "white")) + ylab(expression(rho*"PC2"))  + 
+                                      xlab("Genomic location (Mb)") + 
+                                      geom_line(alpha = 0.2) +
+                                        scale_x_continuous(breaks = seq(5, 200, by = 15)) + 
+                                        scale_y_continuous(breaks = seq(0, 1, by = 1), limits = c(0,1))
+            localPC2_corr_globalPC2_plot
 
-
-
+# Show the three plots together on a panel:
+        library(cowplot)
+        my_output_panel <- ggdraw() +
+            draw_plot(my_PCA_plot,  x=0, y=.5, width= .3, height=.5) +
+                draw_plot_label(label = "a", x = 0, y = 1, size = 10) + 
+            draw_plot(localPC1_corr_globalPC1_plot,  x=.3, y=.5, width= .7, height=.5) +
+                draw_plot_label(label = "b", x = 0.3, y = 1, size = 10) + 
+            draw_plot(localPC2_corr_globalPC2_plot,  x=.3, y=0, width= .7, height=.5) +
+                draw_plot_label(label = "c", x = 0.3, y = 0.5, size = 10)
+        my_output_panel
 
 
 
