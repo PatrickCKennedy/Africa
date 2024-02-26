@@ -70,7 +70,9 @@ mkdir "10_pca_by_window/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEP
 # than 'HiC_scaffold'. We do that here:
         # First, make a copy of the whole-genomes Beagle file (so that we still have the untouched original in case an error arises):
                 cp my_Angsd_file.beagle.gz my_Angsd_file.beagle_tempcopy.gz
-        # Second, make an identical beagle file where the only change is that 'HiC_scaffold' has been replaced with 'HiCscaffold' in the first column:
+        # Second, remove the file 'renamed.beagle.gz' if it exists from a previous run:
+                rm renamed.beagle.gz
+        # Third, make an identical beagle file to 'my_Angsd_file.beagle_tempcopy.gz' where the only change is that 'HiC_scaffold' has been replaced with 'HiCscaffold' in the first column, and call it 'renamed.beagle.gz':
                 zcat my_Angsd_file.beagle_tempcopy.gz | cat | awk '{sub("HiC_scaffold","HiCscaffold");print}' | gzip > renamed.beagle.gz
         # Now remove the tempcopy Beagle file:
                 rm my_Angsd_file.beagle_tempcopy.gz
