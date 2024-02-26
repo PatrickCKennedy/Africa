@@ -1,6 +1,8 @@
 # PK (local computer R script)
-# In this script, we correlate the PC scores of each genomic window with the whole-genome PC scores. This script extensively uses
-# and adapts various parts of the R scripts provided by Merot et al. (2011) in their PCANGSD analysis pipeline. We therefore
+# In this script, we correlate the PC scores of each genomic window with the whole-genome PC scores. To run it, you
+# must already have completed '2_PCANGSD_in_genomic_windows.sh' on HPC. 
+
+# This script extensively uses and adapts various parts of the R scripts provided by Merot et al. (2011) in their PCANGSD analysis pipeline. We therefore
 # cite Merot et al. (2011) as the source of this analysis.
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
