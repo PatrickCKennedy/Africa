@@ -10,6 +10,29 @@
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 # -------------------------------------------------------------------------------
+# SECTION TO RUN IN BASH IN THE TERMINAL:
+
+# To run the commands below, you must first download the relevant files from BluePebble:
+
+        # (1) Remove the '04_pca' and '10_pca_by_window' folders in the local computer Downloads if they exist from a previous run:
+                cd Downloads
+                rm -r 04_pca
+                rm -r 10_pca_by_window 
+        
+        # (2) Download the covariance matrix for the whole-genome PCA:
+                scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/04_pca 04_pca
+        
+        # (3) Download the many covariances matrices for the genome-window PCAs:
+                cd Downloads
+                rm -r 1000
+                mkdir 1000
+                cd 1000
+                scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/10_pca_by_window/all_maf0.05_pctind0.5_maxdepth20/1000/cov_by_window  cov_by_window 
+                scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/10_pca_by_window/all_maf0.05_pctind0.5_maxdepth20/1000/analyse_by_window  analyse_by_window
+
+# -------------------------------------------------------------------------------
+# The rest of this script is for R.
+# -------------------------------------------------------------------------------
 # FIRST, RUNNING PCA ON THE WHOLE-GENOME COV FILE:
 # following https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/Rscripts/make_pca_simple.r
 # This section just essentially repeats the analysis that we have already run in the script '1_Analysing PCANGSD results in R.R'
@@ -18,8 +41,8 @@
 # Set the working directory to the folder '04_pca', which contains the whole-genome PCA covariance file:
         setwd("/Users/pk14885/Downloads/04_pca")
 
-# Import the covariance file and call it 'cov_mat':
-        cov_mat<-as.matrix(read.table("all_maf0.05_pctind0.5_maxdepth10.cov"), header=F)
+# Import the right covariance file and call it 'cov_mat':
+        cov_mat<-as.matrix(read.table("all_maf0.05_pctind0.5_maxdepth20.cov"), header=F)
 
 # Eigendecomposition to find the PCA:
         pca<-eigen(cov_mat)
