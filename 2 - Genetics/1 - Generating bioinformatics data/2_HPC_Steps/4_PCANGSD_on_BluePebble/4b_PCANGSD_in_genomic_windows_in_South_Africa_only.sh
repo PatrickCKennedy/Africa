@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Ca_WindowsPCANGSD
+#SBATCH --job-name=SA_WindowsPCANGSD
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
