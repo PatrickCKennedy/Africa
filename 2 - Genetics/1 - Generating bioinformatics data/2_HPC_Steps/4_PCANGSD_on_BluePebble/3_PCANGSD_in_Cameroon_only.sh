@@ -168,9 +168,9 @@ MAX_DEPTH=$(echo "($N_IND * $MAX_DEPTH_FACTOR)" |bc -l)
 module load apps/angsd
 
 # Run ANGSD to generate the Beagle file (which is the input for PCANGSD and NGSadmix below). -doGlf 2 ensures that a beagle file is generated:
-angsd -bam Cameroon_ONLY.randomly.selected.nonrelatives.txt \
+angsd -bam /user/work/pk14885/Wasps/Completed_alignments/Cameroon/Cameroon_ONLY.randomly.selected.nonrelatives.txt \
     -ref $REF  \
-    -out ./juncea_PCANGSD_results_for_Cameroon_ONLY/Cameroon_ONLY.my_Angsd_file \
+    -out /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_Cameroon_ONLY/Cameroon_ONLY.my_Angsd_file \
     -remove_bads 1 \
     -only_proper_pairs 1 \
     -minInd $MIN_IND \
