@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=25G
-#SBATCH --time=1-12:00:00
+#SBATCH --time=1-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --account=BISC020282
