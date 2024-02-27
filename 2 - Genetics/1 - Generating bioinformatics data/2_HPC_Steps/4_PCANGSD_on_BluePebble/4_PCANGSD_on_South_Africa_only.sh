@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=Cam_PCANGSD
+#SBATCH --job-name=SA_PCANGSD
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
@@ -10,11 +10,11 @@
 #SBATCH --account=BISC020282
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
 
-# ---- POPULATION GENOMICS VIEW OF ALL B. JUNCEA POPULATIONS -----
+# ---- POPULATION GENOMICS VIEW OF SOUTH AFRICA ONLY -----
 
 # WHAT THIS SCRIPT DOES:
 
-# This script will work on BOTH POPULATIONS. It runs two main programmes: PCANGSD and NGSadmix. Before running them, it produces a beagle file for ALL B. JUNCEA using ANGSD, which serves as the input file for both PCANGSD and NGSadmix.
+# This script will work on SOUTH AFRICA. It runs two main programmes: PCANGSD and NGSadmix. Before running them, it produces a beagle file for ALL B. JUNCEA using ANGSD, which serves as the input file for both PCANGSD and NGSadmix.
 
 # WHY PCANGSD?
 # PCANGSD generates the data for plotting a PCA in R. It can also be used for looking at selection and inbreeding (see below).
@@ -28,116 +28,113 @@ cd /user/work/pk14885/Wasps/Completed_alignments
 # -------------------------------------------------------------
 # FOCUS JUST ON NON-RELATIVES WITHIN EACH POPULATION:
 
-# This script is designed to be run on multiple populations. So the working directory should be either Cameroon or South Africa. Within the working directory, there should be a folder for each population (e.g., 'Somalomo'), and inside each folder should be the relevant bam (and bai) files.
+# This script is designed to be run on multiple populations. So the working directory should be either SouthAfrica or South Africa. Within the working directory, there should be a folder for each population (e.g., 'Somalomo'), and inside each folder should be the relevant bam (and bai) files.
 
 # Before running this script, you must run the quick code in 'Screening_relatives_on_HPC.sh' manually in each of the populations of interest. Once this has been completed, there will be a file for each population in the country's folder (e.g., 'Somalomo.nonrelatives.bam.filelist.txt').
 
 # If we use all nonrelatives, the PCANGSD run takes a very long time. We therefore select a random sample of up to 10 nonrelatives from each population:
 
-        # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        # SELECT (up to 20) RANDOM NONRELATIVES FROM EACH OF THE CAMEROON POPULATIONS:
+       # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        # NOW SELECT (up to 20) RANDOM NONRELATIVES FROM EACH OF THE SOUTH AFRICAN POPULATIONS:
 
-        # Each list of nonrelatives from each Cameroonian population should already be in the Cameroon folder:
-        cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon
+        # Each list of nonrelatives from each SouthAfricaian population should already be in the SouthAfrica folder:
+        cd /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica
         forwardslash="/"
         myPWD=`pwd`
 
-        # Remove pre-existing file list from any previous runs:
-        rm Cameroon_ONLY.randomly.selected.nonrelatives.txt
-        rm Cameroon_temp.txt
-        rm /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_Cameroon_ONLY/Cameroon_ONLY.PopulationLabels
-        rm /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_Cameroon_ONLY/Cameroon_ONLY.WaspNameList
+        # AFRICAN LABORATORY:
+        shuf -n 20 AfricanLaboratory.nonrelatives.bam.filelist.txt > temp.file.AfricanLaboratory
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.AfricanLaboratory > up.to.20.random.nonrelatives.from.AfricanLaboratory
+        rm temp.file.AfricanLaboratory
+  
+        # COWSHED:
+        shuf -n 20 Cowshed.nonrelatives.bam.filelist.txt > temp.file.Cowshed
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Cowshed > up.to.20.random.nonrelatives.from.Cowshed
+        rm temp.file.Cowshed
 
-        # DOUALA:
-        # Choose up to 20 random nonrelatives from Douala:
-                shuf -n 20 Douala.nonrelatives.bam.filelist.txt > temp.file.Douala
-        # Add each BAM file's full location before its line:
-                awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Douala > up.to.20.random.nonrelatives.from.Douala
-                rm temp.file.Douala
+        # LOVERS' ROCK:
+        shuf -n 20 LoversRock.nonrelatives.bam.filelist.txt > temp.file.LoversRock
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.LoversRock > up.to.20.random.nonrelatives.from.LoversRock
+        rm temp.file.LoversRock
 
-        # MAROUA (the same method as above, and for each population below):
-        shuf -n 20 Maroua.nonrelatives.bam.filelist.txt > temp.file.Maroua
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Maroua > up.to.20.random.nonrelatives.from.Maroua
-        rm temp.file.Maroua
-        
-        # MBOUDA:
-        shuf -n 20 Mbouda.nonrelatives.bam.filelist.txt > temp.file.Mbouda
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Mbouda > up.to.20.random.nonrelatives.from.Mbouda
-        rm temp.file.Mbouda
-    
-        # MESSA:
-        shuf -n 20 Messa.nonrelatives.bam.filelist.txt > temp.file.Messa
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Messa > up.to.20.random.nonrelatives.from.Messa
-        rm temp.file.Messa
+        # PETER ROBERTS:
+        shuf -n 20 PeterRobertsFarm.nonrelatives.bam.filelist.txt > temp.file.PeterRobertsFarm
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.PeterRobertsFarm > up.to.20.random.nonrelatives.from.PeterRobertsFarm
+        rm temp.file.PeterRobertsFarm
 
-        # SOA:
-        shuf -n 20 Soa.nonrelatives.bam.filelist.txt > temp.file.Soa
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Soa > up.to.20.random.nonrelatives.from.Soa
-        rm temp.file.Soa
+        # PUMPHOUSE:
+        shuf -n 20 Pumphouse.nonrelatives.bam.filelist.txt > temp.file.Pumphouse
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Pumphouse > up.to.20.random.nonrelatives.from.Pumphouse
+        rm temp.file.Pumphouse
 
-        # SOMALOMO:
-        shuf -n 20 Somalomo.nonrelatives.bam.filelist.txt > temp.file.Somalomo
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Somalomo > up.to.20.random.nonrelatives.from.Somalomo
-        rm temp.file.Somalomo
+        # TRUDIE'S FARM:
+        shuf -n 20 TrudiesFarm.nonrelatives.bam.filelist.txt > temp.file.TrudiesFarm
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.TrudiesFarm > up.to.20.random.nonrelatives.from.TrudiesFarm
+        rm temp.file.TrudiesFarm
 
-        # YAOUNDE 1:
-        shuf -n 20 Yaounde1.nonrelatives.bam.filelist.txt > temp.file.Yaounde1
-        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Yaounde1 > up.to.20.random.nonrelatives.from.Yaounde1
-        rm temp.file.Yaounde1
+        # VUSUMUZI:
+        shuf -n 20 Vusumuzi.nonrelatives.bam.filelist.txt > temp.file.Vusumuzi
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.Vusumuzi > up.to.20.random.nonrelatives.from.Vusumuzi
+        rm temp.file.Vusumuzi
 
-        # Concatenate all the randomly-selected nonrelatives from Cameroon:
-        cat up.to.20.random* >> Cameroon_temp.txt
+        # ZEBRA HOUSE:
+        shuf -n 20 ZebraHouse.nonrelatives.bam.filelist.txt > temp.file.ZebraHouse
+        awk -v prefix="$myPWD/" '{print prefix $0}' temp.file.ZebraHouse > up.to.20.random.nonrelatives.from.ZebraHouse
+        rm temp.file.ZebraHouse
+
+        # Concatenate all the randomly-selected nonrelatives from South Africa:
+        cat up.to.20.random* >> SouthAfrica.randomly.selected.nonrelatives.txt
 
         # Remove the 'up.to.20.random.nonreatives.from....' files, as we no longer need them:
         rm up.to.20.random*
 
 # Remove extraneous information (e.g., the numbers in the second column):
-        awk '{print $1}' Cameroon_temp.txt > Cameroon_ONLY.randomly.selected.nonrelatives.txt
+        awk '{print $1}' SouthAfrica_temp.txt > SouthAfrica_ONLY.randomly.selected.nonrelatives.txt
 
 # Print all the wasps of interest to the slurm output file:
         echo
         echo "Wasps involved in this analysis:"
-        cat Cameroon_ONLY.randomly.selected.nonrelatives.txt
+        cat SouthAfrica_ONLY.randomly.selected.nonrelatives.txt
 
 # Record the sample size:
         echo
         echo "Total number of wasps in this analysis:"
-        N_IND=$(cat Cameroon_ONLY.randomly.selected.nonrelatives.txt | wc -l)
+        N_IND=$(cat SouthAfrica_ONLY.randomly.selected.nonrelatives.txt | wc -l)
         echo $N_IND
 # We will use the 'N_IND' variable below, when we set -minInd in the angsd function to discard sites if fewer than a certain proportion of individuals 
 
 # Generate a list of which population each sample is from:
-          sed -e 's/Cameroon/ /g' Cameroon_ONLY.randomly.selected.nonrelatives.txt > temp2
+          sed -e 's/SouthAfrica/ /g' SouthAfrica_ONLY.randomly.selected.nonrelatives.txt > temp2
           awk '{print $2}' temp2 > temp3
 	  sed -i -r 's/.{1}//' temp3
    	  cat temp3 | sed 's/\// /' temp3
       	  cat temp3 | sed 's/\// /' temp3 > temp4
-	  rm Cameroon_ONLY.PopulationList
-	  awk '{print $1}' temp4 > Cameroon_ONLY.PopulationList
+	  rm SouthAfrica_ONLY.PopulationList
+	  awk '{print $1}' temp4 > SouthAfrica_ONLY.PopulationList
 
 # It is also helpful to have a text file that gives the wasp's name, rather than the full bam file name. Every bam file has "_CKDL" or "_EKDL" after the wasp name, followed by a code that came from Novogene. To list just the wasps' names, we can delete everything in the text that comes after "_CKDL" or "_EKDL":
 	  awk '{print $2}' temp4 > temp5
 	  sed 's/_CKDL.*//' temp5 > temp6
-	  sed 's/_EKDL.*//' temp6 > Cameroon_ONLY.WaspNameList
+	  sed 's/_EKDL.*//' temp6 > SouthAfrica_ONLY.WaspNameList
 	  
 # Remove all the temporary files:
 	rm temp*
  
 # For a summary table of how many samples are in each population (following http://www.popgen.dk/software/index.php/NgsAdmixTutorial#Plot_the_results_in_R):
-    cut -f 1 -d " " Cameroon_ONLY.PopulationList | sort | uniq -c
+    cut -f 1 -d " " SouthAfrica_ONLY.PopulationList | sort | uniq -c
     
 # Make a population label file (following http://www.popgen.dk/software/index.php/NgsAdmixTutorial#Plot_the_results_in_R). We will use this in the NGSadmix part of the script below:
-    cut -f1 -d" " Cameroon_ONLY.PopulationList > Cameroon_ONLY.PopulationLabels
+    cut -f1 -d" " SouthAfrica_ONLY.PopulationList > SouthAfrica_ONLY.PopulationLabels
 
 # Make a folder for the PCANGSD results:
 	cd /user/work/pk14885/Wasps/Completed_alignments
-	mkdir juncea_PCANGSD_results_for_Cameroon_ONLY
+	mkdir juncea_PCANGSD_results_for_SouthAfrica_ONLY
 
  # Move the wasp name list and population ID table to this folder:
- 	cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon/
-  	mv Cameroon_ONLY.WaspNameList /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_Cameroon_ONLY/
-   	mv Cameroon_ONLY.PopulationLabels /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_Cameroon_ONLY/
-    	rm Cameroon_ONLY.PopulationList
+ 	cd /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica/
+  	mv SouthAfrica_ONLY.WaspNameList /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_SouthAfrica_ONLY/
+   	mv SouthAfrica_ONLY.PopulationLabels /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_SouthAfrica_ONLY/
+    	rm SouthAfrica_ONLY.PopulationList
  
  # Provide the reference genome:
     REF="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta"
@@ -168,9 +165,9 @@ MAX_DEPTH=$(echo "($N_IND * $MAX_DEPTH_FACTOR)" |bc -l)
 module load apps/angsd
 
 # Run ANGSD to generate the Beagle file (which is the input for PCANGSD and NGSadmix below). -doGlf 2 ensures that a beagle file is generated:
-angsd -bam /user/work/pk14885/Wasps/Completed_alignments/Cameroon/Cameroon_ONLY.randomly.selected.nonrelatives.txt \
+angsd -bam /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica/SouthAfrica_ONLY.randomly.selected.nonrelatives.txt \
     -ref $REF  \
-    -out /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_Cameroon_ONLY/Cameroon_ONLY.my_Angsd_file \
+    -out /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_SouthAfrica_ONLY/SouthAfrica_ONLY.my_Angsd_file \
     -remove_bads 1 \
     -only_proper_pairs 1 \
     -minInd $MIN_IND \
@@ -231,10 +228,10 @@ echo "P: Now about to generate a covariance matrix and neighbour joining tree fo
 echo
 
 # Make sure we are in the right directory:
-		cd /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_Cameroon_ONLY
+		cd /user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_SouthAfrica_ONLY
 
 # Run PCANGSD to generate covariance matrix (and tree data) ready for making the PCA (and tree) in R:
-		pcangsd -b Cameroon_ONLY.my_Angsd_file.beagle.gz -t 4 --tree --tree_samples Cameroon_ONLY.WaspNameList -o Cameroon_ONLY.output.for.pca.in.R.pcangsd
+		pcangsd -b SouthAfrica_ONLY.my_Angsd_file.beagle.gz -t 4 --tree --tree_samples SouthAfrica_ONLY.WaspNameList -o SouthAfrica_ONLY.output.for.pca.in.R.pcangsd
 
 # You can now use the output file ('output.for.pca.in.R.pcangsd') to produce a PCA plot in R, following http://www.popgen.dk/software/index.php/PCAngsdTutorial#Plot_the_results_in_R:
 # First, download the output (from outside BluePebble).
@@ -254,7 +251,7 @@ echo
 # The resulting file and folder is not used for the rest of this script, but
 # is used in the following script ('2_PCANGSD_in_genomic_windows.sh'):
 	mkdir 04_pca
- 	cp Cameroon_ONLY.output.for.pca.in.R.pcangsd.cov 04_pca/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov
+ 	cp SouthAfrica_ONLY.output.for.pca.in.R.pcangsd.cov 04_pca/all_maf"$MIN_MAF"_pctind"$PERCENT_IND"_maxdepth"$MAX_DEPTH_FACTOR".cov
 
 # -------------------------------------------------------------
 # (2) ADMIXTURE ANALYSIS USING PCANGSD:
@@ -267,7 +264,7 @@ echo "P: Now about to run admixture analysis using PCANGSD:"
 echo
 
 # Run PCANGSD to conduct admixture analysis (leaving K unspecified so that PCANGSD will automatically infer the most likely value):
-	pcangsd -b Cameroon_ONLY.my_Angsd_file.beagle.gz --admix -o Cameroon_ONLY.PCANGSD_admixture_outputs --admix_alpha 50
+	pcangsd -b SouthAfrica_ONLY.my_Angsd_file.beagle.gz --admix -o SouthAfrica_ONLY.PCANGSD_admixture_outputs --admix_alpha 50
 
 # -------------------------------------------------------------
 # (3) INBREEDING ANALYSIS USING PCANGSD:
@@ -278,7 +275,7 @@ echo "P: Now about run inbreeding analysis using PCANGSD:"
 echo
 
 # Inbreeding analysis with PCANGSD:
-    pcangsd -b Cameroon_ONLY.my_Angsd_file.beagle.gz --inbreedSamples --minMaf 0.05 -t 64 -o Cameroon_ONLY.output.inbreeding_per_individual.pcangsd
+    pcangsd -b SouthAfrica_ONLY.my_Angsd_file.beagle.gz --inbreedSamples --minMaf 0.05 -t 64 -o SouthAfrica_ONLY.output.inbreeding_per_individual.pcangsd
     
 # P: For analysing the inbreeding outputs, you can import the two resulting .npy files into R. There are two outputs from 
 # the pcangsd function: one seems to be the per-site inbreeding coefficient, and the other seems to the the likelihood ratio 
@@ -301,10 +298,10 @@ echo
 ##NGSADMIX="/user/work/pk14885/MySoftware/NGSadmix"
 
 # This means that we can run NGSadmix just by typing $NGSADMIX. We will run it at several different K (cluster number) values:
-##$NGSADMIX -likes Cameroon_ONLY.my_Angsd_file.beagle.gz -K 4 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_4.output -P 10
-##$NGSADMIX -likes Cameroon_ONLY.my_Angsd_file.beagle.gz -K 5 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_5.output -P 10
-##$NGSADMIX -likes Cameroon_ONLY.my_Angsd_file.beagle.gz -K 6 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_6.output -P 10
-##$NGSADMIX -likes Cameroon_ONLY.my_Angsd_file.beagle.gz -K 7 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_7.output -P 10
+##$NGSADMIX -likes SouthAfrica_ONLY.my_Angsd_file.beagle.gz -K 4 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_4.output -P 10
+##$NGSADMIX -likes SouthAfrica_ONLY.my_Angsd_file.beagle.gz -K 5 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_5.output -P 10
+##$NGSADMIX -likes SouthAfrica_ONLY.my_Angsd_file.beagle.gz -K 6 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_6.output -P 10
+##$NGSADMIX -likes SouthAfrica_ONLY.my_Angsd_file.beagle.gz -K 7 -minMaf 0.05 -seed 1 -o NGSadmix_K_as_7.output -P 10
 
 # For choosing the maximum likelihood K from the runs above in R, see: https://baylab.github.io/MarineGenomics/week-9-population-structure-using-ngsadmix.html
 
@@ -314,5 +311,5 @@ echo
 # SELECTION ANALYSIS (NOT SUPPRESSED IN THIS SCRIPT, AS SHOULD BE RUN WITHIN A SINGLE COUNTRY):
 
 # Selection analysis with PCANGSD (should only be run within a continuous population, i.e. just one country):
-    pcangsd -b Cameroon_ONLY.my_Angsd_file.beagle.gz --selection --minMaf 0.05 -t 64 -o Cameroon_ONLY.output.selection.pcangsd --sites_save
+    pcangsd -b SouthAfrica_ONLY.my_Angsd_file.beagle.gz --selection --minMaf 0.05 -t 64 -o SouthAfrica_ONLY.output.selection.pcangsd --sites_save
     
