@@ -2,15 +2,11 @@
 # In this script, we correlate the PC scores of each genomic window with the whole-genome PC scores. To run it, you
 # must already have completed '2_PCANGSD_in_genomic_windows.sh' on HPC. 
 
-# This script extensively uses and adapts various parts of the R scripts provided by Merot et al. (2011) in their PCANGSD analysis pipeline. We therefore
-# cite Merot et al. (2011) as the source of this analysis.
+# Some parts of this script use and adapts various parts of the R scripts provided by Merot et al. (2011) in their PCANGSD analysis pipeline. We therefore
+# cite Merot et al. (2011) as the source of those analyses.
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# Adapted from scripts in Merot et al. (2021) pipeline:
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-# -------------------------------------------------------------------------------
-# SECTION TO RUN IN BASH IN THE TERMINAL:
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+# SECTION TO RUN FIRST IN BASH IN THE TERMINAL:
 
 # To run the commands below, you must first download the relevant files from BluePebble:
 
@@ -35,10 +31,85 @@
                 scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/PopulationLabels PopulationLabels
                 scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/WaspNameList WaspNameList
 
+        # (5) Download the individual inbreeding coefficient results:
+                cd /Users/pk14885/Downloads/04_pca
+                scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/output.inbreeding_per_individual.pcangsd.inbreed.samples output.inbreeding_per_individual.pcangsd.inbreed.samples
+
 # -------------------------------------------------------------------------------
 # The rest of this script is for R.
 # -------------------------------------------------------------------------------
-# FIRST, RUNNING PCA ON THE WHOLE-GENOME COV FILE:
+
+# ANALYSES IN THIS R SCRIPT:
+        # (1) INDIVIDUAL INBREEDING COEFFICIENTS
+        # (2) WHOLE-GENOME PCA [partly adapted from scripts in Merot et al. (2021) pipeline]
+        # (3) LOCAL GENOMIC WINDOWS PCA (AND RESULTING CORRELATION WITH WHOLE-GENOME PCA) [adapted from scripts in Merot et al. (2021) pipeline]
+
+# -----------------------------------------------------------------------------------
+# (1) START WITH ANALYSIS OF INDIVIDUAL INBREEDING COEFFICIENTS:
+
+# Set the working directory to the folder '04_pca', which contains the individual inbreeding coefficients:
+        setwd("/Users/pk14885/Downloads/04_pca")
+
+# Import the individual inbreeding file:
+        inbreeding_results <- as.matrix(read.table("output.inbreeding_per_individual.pcangsd.inbreed.samples"), header=F)
+
+# Combine the inbreeding results with the population labels and wasp IDs:
+        inbreeding_results <- cbind(PopulationLabels,inbreeding_results,WaspNameList)
+        colnames(inbreeding_results) <- c("PopulationLabels","inbreeding_coefficient","WaspID")
+
+# Add climate zone information to a fourth column:
+        inbreeding_results[inbreeding_results$PopulationLabels == "Douala",4] = "Humid tropics"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Maroua",4] = "Semi arid"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Mbouda",4] = "Humid tropics"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Messa",4] = "Humid tropics"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Soa",4] = "Humid tropics"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Douala",4] = "Humid tropics"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Somalomo",4] = "Humid tropics"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Yaounde1",4] = "Humid tropics"
+        inbreeding_results[inbreeding_results$PopulationLabels == "AfricanLaboratory",4] = "Temperate"
+        inbreeding_results[inbreeding_results$PopulationLabels == "LoversRock",4] = "Temperate"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Cowshed",4] = "Temperate"
+        inbreeding_results[inbreeding_results$PopulationLabels == "PeterRobertsFarm",4] = "Temperate"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Pumphouse",4] = "Temperate"
+        inbreeding_results[inbreeding_results$PopulationLabels == "TrudiesFarm",4] = "Temperate"
+        inbreeding_results[inbreeding_results$PopulationLabels == "Vusumuzi",4] = "Temperate"
+        inbreeding_results[inbreeding_results$PopulationLabels == "ZebraHouse",4] = "Temperate"
+        colnames(inbreeding_results)[4] <- "Climate"
+
+# Plot the resulting boxplot (following https://github.com/erocoar/ggpol) for inbreeding coefficients:
+myColors <- c("#56ddc5","orange","red","gray")
+myfontsize <- 10
+library(ggpol)
+my_inbreeding_plot <- ggplot(inbreeding_results) + 
+    geom_boxjitter(aes(x = Climate, 
+                       y = inbreeding_coefficient, 
+                       fill = Climate),
+                   jitter.shape = 21, 
+                   jitter.color = NA, 
+                   jitter.alpha = 0.5,
+                   jitter.size = 0.5,
+                   jitter.params = list(height = 0, width = 0.09),
+                   outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                   errorbar.draw = TRUE) + 
+    scale_fill_manual(values = myColors) +
+    scale_x_discrete(labels=c("Humid\ntropics","Semi-arid","Temperate")) +
+    scale_y_continuous(breaks=c(-0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8)) + 
+    theme_cowplot(font_size = myfontsize) + 
+    labs(y= "Inbreeding coefficient", 
+         x = "Climate") + 
+    theme(legend.position="none") + 
+    theme(axis.line.x.bottom=element_line(size=0.5)) +
+    theme(axis.line.y.left=element_line(size=0.5)) +
+    theme(axis.text.x = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+          axis.text.y = element_text(color = "black", size = myfontsize, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+          axis.title.x = element_text(color = "black", size = myfontsize, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+          axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+my_inbreeding_plot
+
+
+
+# -----------------------------------------------------------------------------------
+## (2) RUNNING PCA ON THE WHOLE-GENOME COV FILE:
 # following https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/Rscripts/make_pca_simple.r
 # This section just essentially repeats the analysis that we have already run in the script '1_Analysing PCANGSD results in R.R'
 # However, we need to import the data to this script in order to construct the correlation plots with the windows later on in the script.
@@ -88,7 +159,7 @@ pca.mat.df$Pop <- PopulationLabels
 
 my_PCs_to_plot <- as.data.frame(cbind(pca.mat[,1],pca.mat[,2]))
 my_PCs_to_plot$V3 <- PopulationLabels
-my_PCs_to_plot[my_PCs_to_plot$V3 == "Douala",4] = "Humid tropics"
+        my_PCs_to_plot[my_PCs_to_plot$V3 == "Douala",4] = "Humid tropics"
         my_PCs_to_plot[my_PCs_to_plot$V3 == "Maroua",4] = "Semi arid"
         my_PCs_to_plot[my_PCs_to_plot$V3 == "Mbouda",4] = "Humid tropics"
         my_PCs_to_plot[my_PCs_to_plot$V3 == "Messa",4] = "Humid tropics"
@@ -122,7 +193,7 @@ my_PCA_plot <- ggplot(my_PCs_to_plot, aes(x=V1, y=V2, col = as.factor(V4))) +
         scale_colour_manual(values = c("#56ddc5","orange","red"))
 my_PCA_plot
 # -------------------------------------------------------------------------------
-# NOW RUN PCA ON THE LOCAL WINDOWS OF THE GENOME:
+# (3) NOW RUN PCA ON THE LOCAL WINDOWS OF THE GENOME (AND CORRELATE THEM TO THE GLOBAL PCA ABOVE):
 
 # Set the working directory to the folder containing the downloaded window data:
 setwd("/Users/pk14885/Downloads/1000")
