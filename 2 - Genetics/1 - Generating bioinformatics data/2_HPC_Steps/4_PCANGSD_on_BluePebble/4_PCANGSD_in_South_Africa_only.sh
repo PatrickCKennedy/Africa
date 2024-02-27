@@ -83,7 +83,7 @@ cd /user/work/pk14885/Wasps/Completed_alignments
         rm temp.file.ZebraHouse
 
         # Concatenate all the randomly-selected nonrelatives from South Africa:
-        cat up.to.20.random* > SouthAfrica.randomly.selected.nonrelatives.txt
+        cat up.to.20.random* > SouthAfrica_temp.txt
 
         # Remove the 'up.to.20.random.nonreatives.from....' files, as we no longer need them:
         rm up.to.20.random*
