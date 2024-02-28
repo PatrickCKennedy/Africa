@@ -13,30 +13,9 @@
 
 # To run the commands below, you must first download the relevant files from BluePebble:
 
-        # (1) Remove the '04_pca' and '10_pca_by_window' folders in the local computer Downloads if they exist from a previous run:
-                cd Downloads
-                rm -r 04_pca
-                rm -r 10_pca_by_window 
-        
-        # (2) Download the covariance matrix for the whole-genome PCA:
-                scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/04_pca 04_pca
-        
-        # (3) Download the many covariances matrices for the genome-window PCAs:
-                cd Downloads
-                rm -r 1000
-                mkdir 1000
-                cd 1000
-                scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/10_pca_by_window/all_maf0.05_pctind0.5_maxdepth20/1000/cov_by_window  cov_by_window 
-                scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/10_pca_by_window/all_maf0.05_pctind0.5_maxdepth20/1000/analyse_by_window  analyse_by_window
-
-        # (4) Download the PopulationLabels and WaspNameList text files corresponding to these particular randomly-chosen nonrelatives:
-                cd /Users/pk14885/Downloads/04_pca
-                scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/PopulationLabels PopulationLabels
-                scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/WaspNameList WaspNameList
-
-        # (5) Download the individual inbreeding coefficient results:
-                cd /Users/pk14885/Downloads/04_pca
-                scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_both_countries_together/output.inbreeding_per_individual.pcangsd.inbreed.samples output.inbreeding_per_individual.pcangsd.inbreed.samples
+       # (1) Download the Cameroon_only results:
+        cd Downloads
+        scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/juncea_PCANGSD_results_for_Cameroon_ONLY juncea_PCANGSD_results_for_Cameroon_ONLY
 
 # -------------------------------------------------------------------------------
 # The rest of this script is for R.
@@ -50,64 +29,7 @@
 # -----------------------------------------------------------------------------------
 # (1) START WITH ANALYSIS OF INDIVIDUAL INBREEDING COEFFICIENTS:
 
-# Set the working directory to the folder '04_pca', which contains the individual inbreeding coefficients:
-        setwd("/Users/pk14885/Downloads/04_pca")
-
-# Import the individual inbreeding file:
-        inbreeding_results <- as.matrix(read.table("output.inbreeding_per_individual.pcangsd.inbreed.samples"), header=F)
-
-# Combine the inbreeding results with the population labels and wasp IDs:
-        inbreeding_results <- cbind(PopulationLabels,inbreeding_results,WaspNameList)
-        colnames(inbreeding_results) <- c("PopulationLabels","inbreeding_coefficient","WaspID")
-
-# Add climate zone information to a fourth column:
-        inbreeding_results[inbreeding_results$PopulationLabels == "Douala",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Maroua",4] = "Semi arid"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Mbouda",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Messa",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Soa",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Douala",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Somalomo",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Yaounde1",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "AfricanLaboratory",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "LoversRock",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Cowshed",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "PeterRobertsFarm",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Pumphouse",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "TrudiesFarm",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Vusumuzi",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "ZebraHouse",4] = "Temperate"
-        colnames(inbreeding_results)[4] <- "Climate"
-
-# Plot the resulting boxplot (following https://github.com/erocoar/ggpol) for inbreeding coefficients:
-myColors <- c("#56ddc5","orange","red","gray")
-myfontsize <- 10
-library(ggpol)
-my_inbreeding_plot <- ggplot(inbreeding_results) + 
-    geom_boxjitter(aes(x = Climate, 
-                       y = inbreeding_coefficient, 
-                       fill = Climate),
-                   jitter.shape = 21, 
-                   jitter.color = NA, 
-                   jitter.alpha = 0.5,
-                   jitter.size = 0.5,
-                   jitter.params = list(height = 0, width = 0.09),
-                   outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
-                   errorbar.draw = TRUE) + 
-    scale_fill_manual(values = myColors) +
-    scale_x_discrete(labels=c("Humid\ntropics","Semi-arid","Temperate")) +
-    scale_y_continuous(breaks=c(-0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8)) + 
-    theme_cowplot(font_size = myfontsize) + 
-    labs(y= "Inbreeding coefficient", 
-         x = "Climate") + 
-    theme(legend.position="none") + 
-    theme(axis.line.x.bottom=element_line(size=0.5)) +
-    theme(axis.line.y.left=element_line(size=0.5)) +
-    theme(axis.text.x = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"),
-          axis.text.y = element_text(color = "black", size = myfontsize, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
-          axis.title.x = element_text(color = "black", size = myfontsize, angle = 0, hjust = .5, vjust = 0, face = "plain"),
-          axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
-my_inbreeding_plot
+# MAKE A NEW INBREEDING SECTION THAT USES THE RESULTS FROM HERE AND FROM THE SOUTH AFRICA FOLDER
 
 
 
@@ -118,14 +40,14 @@ my_inbreeding_plot
 # However, we need to import the data to this script in order to construct the correlation plots with the windows later on in the script.
 
 # Set the working directory to the folder '04_pca', which contains the whole-genome PCA covariance file:
-        setwd("/Users/pk14885/Downloads/04_pca")
+        setwd("/Users/pk14885/Downloads/juncea_PCANGSD_results_for_Cameroon_ONLY/")
 
 # Import the right covariance file and call it 'cov_mat':
-        cov_mat<-as.matrix(read.table("all_maf0.05_pctind0.5_maxdepth20.cov"), header=F)
+        cov_mat<-as.matrix(read.table("04_pca/all_maf0.05_pctind0.5_maxdepth20.cov"), header=F)
 
 # Also download the WaspNameList and PopulationLabels files from BluePebble:
-        WaspNameList<-read.table("WaspNameList",head=F)
-        PopulationLabels<-read.table("PopulationLabels",head=F)
+        WaspNameList<-read.table("Cameroon_ONLY.WaspNameList",head=F)
+        PopulationLabels<-read.table("Cameroon_ONLY.PopulationLabels",head=F)
 
 # Eigendecomposition to find the PCA:
         pca<-eigen(cov_mat)
@@ -162,44 +84,34 @@ pca.mat.df$Pop <- PopulationLabels
 
 my_PCs_to_plot <- as.data.frame(cbind(pca.mat[,1],pca.mat[,2]))
 my_PCs_to_plot$V3 <- PopulationLabels
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Douala",4] = "Humid tropics"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Maroua",4] = "Semi arid"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Mbouda",4] = "Humid tropics"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Messa",4] = "Humid tropics"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Soa",4] = "Humid tropics"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Douala",4] = "Humid tropics"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Somalomo",4] = "Humid tropics"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Yaounde1",4] = "Humid tropics"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "AfricanLaboratory",4] = "Temperate"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "LoversRock",4] = "Temperate"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Cowshed",4] = "Temperate"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "PeterRobertsFarm",4] = "Temperate"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Pumphouse",4] = "Temperate"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "TrudiesFarm",4] = "Temperate"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "Vusumuzi",4] = "Temperate"
-        my_PCs_to_plot[my_PCs_to_plot$V3 == "ZebraHouse",4] = "Temperate"
-
+        
 library(ggplot2)
-my_PCA_plot <- ggplot(my_PCs_to_plot, aes(x=V1, y=V2, col = as.factor(V4))) +
+my_PCA_plot <- ggplot(my_PCs_to_plot, aes(x=V1, y=V2, col = as.factor(V3$V1))) +
     geom_point(size = 0.8) + 
-        theme(panel.grid.major = element_blank(), 
-              panel.grid.minor = element_blank(),
-              panel.background = element_blank(), 
-              axis.line = element_line(size = 0), 
-              panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
+    theme(panel.grid.major = element_blank(), 
+          panel.grid.minor = element_blank(),
+          panel.background = element_blank(), 
+          axis.line = element_line(size = 0), 
+          panel.border = element_rect(colour = "black", fill=NA, size=1)) + 
     labs(
         x = paste("PC1 (",round(var1,1),"%)",sep=""), 
         y = paste("PC2 (",round(var2,1),"%)",sep="")) + 
-        scale_fill_manual(values = c("#56ddc5","orange","red")) + 
-        guides(col="none") + 
-        guides(fill=guide_legend(title="Climate")) + 
-        scale_colour_manual(values = c("#56ddc5","orange","red"))
+    theme(legend.title=element_blank()) + theme(legend.key = element_rect(fill = NA, color = NA)) +
+    guides(colour = guide_legend(override.aes = list(size=2))) + 
+    theme(legend.text=element_text(size=8)) + 
+    theme(legend.background=element_blank()) + 
+    theme(legend.spacing.x = unit(0.01, 'cm'),
+            legend.spacing.y = unit(0.01, 'cm'),
+            legend.key.height = unit(0.1, "cm")) + 
+     theme(legend.direction = "vertical",
+           legend.box = "horizontal",
+           legend.position = "bottom")
 my_PCA_plot
 # -------------------------------------------------------------------------------
 # (3) NOW RUN PCA ON THE LOCAL WINDOWS OF THE GENOME (AND CORRELATE THEM TO THE GLOBAL PCA ABOVE):
 
 # Set the working directory to the folder containing the downloaded window data:
-setwd("/Users/pk14885/Downloads/1000")
+setwd("/Users/pk14885/Downloads/juncea_PCANGSD_results_for_Cameroon_ONLY/10_pca_by_window/all_maf0.05_pctind0.5_maxdepth20/1000")
 
 # Load the 'lostruct' library (note: "If you use this method, please cite Li & Ralph 2019" [https://github.com/petrelharp/local_pca])
       library(lostruct)
@@ -209,7 +121,7 @@ setwd("/Users/pk14885/Downloads/1000")
         PERCENT_IND = 0.5
         WINDOW_SIZE = 1000
         MAX_DEPTH_FACTOR = 20
-        N_ind = 108
+        N_ind = dim(WaspNameList)[1]
         N_PC = 2
         N_MDS = 2
 
@@ -240,7 +152,7 @@ setwd("/Users/pk14885/Downloads/1000")
 
 # Re-order the windows:
       window_order<-window[order(window$LG, window$start),]
-      View(window)
+      View(window_order)
 
 # Running 'lostruct' on each window:
       
@@ -252,7 +164,7 @@ setwd("/Users/pk14885/Downloads/1000")
                 {
                   print(paste("import covariance matrix for window and get eigenvectors",i))
                   window_covmats_i<-as.matrix(read.table(paste0("cov_by_window/",window_order$file_name[i])))
-                  window_eigs [i,]<- cov_pca(k=N_PC, covmat=window_covmats_i)
+                  window_eigs[i,]<- cov_pca(k=N_PC, covmat=window_covmats_i)
                 }
 
       # "run lostruct fonctions to calculate  distances between pca made on each window":
