@@ -31,7 +31,67 @@
 
 # MAKE A NEW INBREEDING SECTION THAT USES THE RESULTS FROM HERE AND FROM THE SOUTH AFRICA FOLDER
 
+# (1) START WITH ANALYSIS OF INDIVIDUAL INBREEDING COEFFICIENTS:
 
+# Set the working directory to the folder '04_pca', which contains the individual inbreeding coefficients:
+        setwd("/Users/pk14885/Downloads/juncea_PCANGSD_results_for_Cameroon_ONLY/")
+
+
+# Import the individual inbreeding file:
+        Cameroon_ONLY.inbreeding_results <- as.matrix(read.table("Cameroon_ONLY.output.inbreeding_per_individual.pcangsd.inbreed.samples"), header=F)
+
+# Combine the inbreeding results with the population labels and wasp IDs:
+        Cameroon_ONLY.inbreeding_results <- cbind(PopulationLabels,Cameroon_ONLY.inbreeding_results,WaspNameList)
+        colnames(Cameroon_ONLY.inbreeding_results) <- c("PopulationLabels","inbreeding_coefficient","WaspID")
+
+# Add climate zone information to a fourth column:
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Douala",4] = "Humid tropics"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Maroua",4] = "Semi arid"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Mbouda",4] = "Humid tropics"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Messa",4] = "Humid tropics"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Soa",4] = "Humid tropics"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Douala",4] = "Humid tropics"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Somalomo",4] = "Humid tropics"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Yaounde1",4] = "Humid tropics"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "AfricanLaboratory",4] = "Temperate"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "LoversRock",4] = "Temperate"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Cowshed",4] = "Temperate"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "PeterRobertsFarm",4] = "Temperate"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Pumphouse",4] = "Temperate"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "TrudiesFarm",4] = "Temperate"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "Vusumuzi",4] = "Temperate"
+        Cameroon_ONLY.inbreeding_results[Cameroon_ONLY.inbreeding_results$PopulationLabels == "ZebraHouse",4] = "Temperate"
+        colnames(Cameroon_ONLY.inbreeding_results)[4] <- "Climate"
+
+# Plot the resulting boxplot (following https://github.com/erocoar/ggpol) for inbreeding coefficients:
+myColors <- c("#56ddc5","orange","red","gray")
+myfontsize <- 10
+library(ggpol)
+my_inbreeding_plot <- ggplot(Cameroon_ONLY.inbreeding_results) + 
+    geom_boxjitter(aes(x = Climate, 
+                       y = inbreeding_coefficient, 
+                       fill = Climate),
+                   jitter.shape = 21, 
+                   jitter.color = NA, 
+                   jitter.alpha = 0.5,
+                   jitter.size = 0.5,
+                   jitter.params = list(height = 0, width = 0.09),
+                   outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
+                   errorbar.draw = TRUE) + 
+    scale_fill_manual(values = myColors) +
+    scale_x_discrete(labels=c("Humid\ntropics","Semi-arid","Temperate")) +
+    scale_y_continuous(breaks=c(-0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8)) + 
+    theme_cowplot(font_size = myfontsize) + 
+    labs(y= "Inbreeding coefficient", 
+         x = "Climate") + 
+    theme(legend.position="none") + 
+    theme(axis.line.x.bottom=element_line(size=0.5)) +
+    theme(axis.line.y.left=element_line(size=0.5)) +
+    theme(axis.text.x = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+          axis.text.y = element_text(color = "black", size = myfontsize, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+          axis.title.x = element_text(color = "black", size = myfontsize, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+          axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+my_inbreeding_plot
 
 # -----------------------------------------------------------------------------------
 ## (2) RUNNING PCA ON THE WHOLE-GENOME COV FILE:
