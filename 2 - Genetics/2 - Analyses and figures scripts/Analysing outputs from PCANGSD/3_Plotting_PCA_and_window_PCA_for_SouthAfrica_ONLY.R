@@ -30,7 +30,7 @@
 # This section just essentially repeats the analysis that we have already run in the script '1_Analysing PCANGSD results in R.R'
 # However, we need to import the data to this script in order to construct the correlation plots with the SA_windows later on in the script.
 
-# Set the working directory to the folder '04_pca', which contains the whole-genome PCA covariance file:
+# Set the working directory to the South African results:
         setwd("/Users/pk14885/Downloads/juncea_PCANGSD_results_for_SouthAfrica_ONLY/")
 
 # Import the right covariance file and call it 'cov_mat':
@@ -277,6 +277,46 @@ setwd("/Users/pk14885/Downloads/juncea_PCANGSD_results_for_SouthAfrica_ONLY/10_p
             draw_plot(localPC2_corr_globalPC2_plot,  x=.3, y=0, width= .7, height=.5) +
                 draw_plot_label(label = "c", x = 0.3, y = 0.5, size = 10)
         my_output_panel
+
+# -----------------------------------------------------------------------------------
+# (3) PLOT THE ADMIXTURE PLOT:
+
+# Set the working directory to the South African results:
+        setwd("/Users/pk14885/Downloads/juncea_PCANGSD_results_for_SouthAfrica_ONLY/")
+
+# Load packages:
+library(RcppCNPy)
+
+q <- read.table("SouthAfrica_ONLY.PCANGSD_admixture_outputs.admix.2.Q", quote="\"", comment.char="")
+
+## order according to population
+barplot(t(q),col=2:10,space=0,border=NA,xlab="",ylab="Admixture proportions")
+text(tapply(1:nrow(SA_PopulationLabels),SA_PopulationLabels[,1],mean),0.05,
+     sort(unique(SA_PopulationLabels[,1])),xpd=T, cex = 0.7, srt = -90, pos = 2, col = "white")
+abline(v=cumsum(sapply(unique(SA_PopulationLabels[,1]),function(x){sum(SA_PopulationLabels[,1]==x)})),col=1,lwd=1.2)
+
+
+
+
+
+
+q$V4 <- WaspNameList
+
+library(tidyverse)
+plot_data <- q %>% 
+  mutate(id = V4) %>% 
+  gather('pop', 'prob', V1:V3) %>% 
+  group_by(id) %>% 
+  mutate(likely_assignment = pop[which.max(prob)],
+         assingment_prob = max(prob)) %>% 
+  arrange(likely_assignment, desc(assingment_prob)) %>% 
+  ungroup() %>% 
+  mutate(id = forcats::fct_inorder(factor(id)))
+
+ggplot(plot_data, aes(id, prob, fill = pop)) +
+  geom_col() +
+  theme_classic()
+
 
 
 
