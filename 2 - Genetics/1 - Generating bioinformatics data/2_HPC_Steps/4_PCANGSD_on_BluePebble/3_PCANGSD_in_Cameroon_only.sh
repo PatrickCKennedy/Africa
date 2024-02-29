@@ -10,20 +10,13 @@
 #SBATCH --account=BISC020282
 # BISC020282 is the project code in ACRC ("Social evolution of animal altruism").
 
-# ---- POPULATION GENOMICS VIEW OF ALL B. JUNCEA POPULATIONS -----
+# ---- POPULATION GENOMICS VIEW OF ALL B. JUNCEA POPULATIONS IN CAMEROON -----
 
 # WHAT THIS SCRIPT DOES:
 
-# This script will work on BOTH POPULATIONS. It runs two main programmes: PCANGSD and NGSadmix. Before running them, it produces a beagle file for ALL B. JUNCEA using ANGSD, which serves as the input file for both PCANGSD and NGSadmix.
-
-# WHY PCANGSD?
-# PCANGSD generates the data for plotting a PCA in R. It can also be used for looking at selection and inbreeding (see below).
-
-# WHY NGSadmix?
-# NGSadmix generates the data for plotting an admixture plot in R.
-
-# Set the working directory to the completed alignments:
-cd /user/work/pk14885/Wasps/Completed_alignments
+# This script runs ANGSD on Cameroon as a whole, and then uses PCANGSD to calculate inbreedng and admixture. 
+# It is also a prerequisite to the next script ('3b_PCANGSD_in_genomic_windows_in_Cameroon_ONLY.sh'), which
+# uses the Beagle file produced here.
 
 # -------------------------------------------------------------
 # FOCUS JUST ON NON-RELATIVES WITHIN EACH POPULATION:
