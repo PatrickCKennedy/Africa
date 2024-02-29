@@ -40,76 +40,11 @@
 # -------------------------------------------------------------------------------
 
 # ANALYSES IN THIS R SCRIPT:
-        # (1) INDIVIDUAL INBREEDING COEFFICIENTS
-        # (2) WHOLE-GENOME PCA [partly adapted from scripts in Merot et al. (2021) pipeline]
-        # (3) LOCAL GENOMIC WINDOWS PCA (AND RESULTING CORRELATION WITH WHOLE-GENOME PCA) [adapted from scripts in Merot et al. (2021) pipeline]
+        # (1) WHOLE-GENOME PCA [partly adapted from scripts in Merot et al. (2021) pipeline]
+        # (2) LOCAL GENOMIC WINDOWS PCA (AND RESULTING CORRELATION WITH WHOLE-GENOME PCA) [adapted from scripts in Merot et al. (2021) pipeline]
 
 # -----------------------------------------------------------------------------------
-# (1) START WITH ANALYSIS OF INDIVIDUAL INBREEDING COEFFICIENTS:
-
-# Set the working directory to the folder '04_pca', which contains the individual inbreeding coefficients:
-        setwd("/Users/pk14885/Downloads/04_pca")
-
-# Import the individual inbreeding file:
-        inbreeding_results <- as.matrix(read.table("output.inbreeding_per_individual.pcangsd.inbreed.samples"), header=F)
-
-# Combine the inbreeding results with the population labels and wasp IDs:
-        inbreeding_results <- cbind(PopulationLabels,inbreeding_results,WaspNameList)
-        colnames(inbreeding_results) <- c("PopulationLabels","inbreeding_coefficient","WaspID")
-
-# Add climate zone information to a fourth column:
-        inbreeding_results[inbreeding_results$PopulationLabels == "Douala",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Maroua",4] = "Semi arid"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Mbouda",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Messa",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Soa",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Douala",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Somalomo",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Yaounde1",4] = "Humid tropics"
-        inbreeding_results[inbreeding_results$PopulationLabels == "AfricanLaboratory",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "LoversRock",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Cowshed",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "PeterRobertsFarm",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Pumphouse",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "TrudiesFarm",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "Vusumuzi",4] = "Temperate"
-        inbreeding_results[inbreeding_results$PopulationLabels == "ZebraHouse",4] = "Temperate"
-        colnames(inbreeding_results)[4] <- "Climate"
-
-# Plot the resulting boxplot (following https://github.com/erocoar/ggpol) for inbreeding coefficients:
-myColors <- c("#56ddc5","orange","red","gray")
-myfontsize <- 10
-library(ggpol)
-my_inbreeding_plot <- ggplot(inbreeding_results) + 
-    geom_boxjitter(aes(x = Climate, 
-                       y = inbreeding_coefficient, 
-                       fill = Climate),
-                   jitter.shape = 21, 
-                   jitter.color = NA, 
-                   jitter.alpha = 0.5,
-                   jitter.size = 0.5,
-                   jitter.params = list(height = 0, width = 0.09),
-                   outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
-                   errorbar.draw = TRUE) + 
-    scale_fill_manual(values = myColors) +
-    scale_x_discrete(labels=c("Humid\ntropics","Semi-arid","Temperate")) +
-    scale_y_continuous(breaks=c(-0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8)) + 
-    theme_cowplot(font_size = myfontsize) + 
-    labs(y= "Inbreeding coefficient", 
-         x = "Climate") + 
-    theme(legend.position="none") + 
-    theme(axis.line.x.bottom=element_line(size=0.5)) +
-    theme(axis.line.y.left=element_line(size=0.5)) +
-    theme(axis.text.x = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"),
-          axis.text.y = element_text(color = "black", size = myfontsize, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
-          axis.title.x = element_text(color = "black", size = myfontsize, angle = 0, hjust = .5, vjust = 0, face = "plain"),
-          axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
-my_inbreeding_plot
-
-
-
-# -----------------------------------------------------------------------------------
-## (2) RUNNING PCA ON THE WHOLE-GENOME COV FILE:
+## (1) RUNNING PCA ON THE WHOLE-GENOME COV FILE:
 # following https://github.com/clairemerot/angsd_pipeline/blob/master/01_scripts/Rscripts/make_pca_simple.r
 # This section just essentially repeats the analysis that we have already run in the script '1_Analysing PCANGSD results in R.R'
 # However, we need to import the data to this script in order to construct the correlation plots with the windows later on in the script.
@@ -193,7 +128,7 @@ my_PCA_plot <- ggplot(my_PCs_to_plot, aes(x=V1, y=V2, col = as.factor(V4))) +
         scale_colour_manual(values = c("#56ddc5","orange","red"))
 my_PCA_plot
 # -------------------------------------------------------------------------------
-# (3) NOW RUN PCA ON THE LOCAL WINDOWS OF THE GENOME (AND CORRELATE THEM TO THE GLOBAL PCA ABOVE):
+# (2) NOW RUN PCA ON THE LOCAL WINDOWS OF THE GENOME (AND CORRELATE THEM TO THE GLOBAL PCA ABOVE):
 
 # Set the working directory to the folder containing the downloaded window data:
 setwd("/Users/pk14885/Downloads/1000")
