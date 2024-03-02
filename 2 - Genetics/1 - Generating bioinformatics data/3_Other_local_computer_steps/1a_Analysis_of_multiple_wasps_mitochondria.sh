@@ -30,14 +30,14 @@ for d in */ ; do
     --outprefix $this_wasp_name \
     --genetic_code 5 \
     --clade Arthropoda \
-    --fastq_read_length 151 \
+    --fastq_read_length 150 \
     --data_size_for_mt_assembly 3,0 \
     --assembler megahit \
-    --kmers_megahit 79 107 131 \
-    --thread_number 8 \
+    --kmers_megahit 59 79 99 \
+    --thread_number 1 \
+    --memory 50 \
     --requiring_taxa Arthropoda
-
-    # Navigate back to the main folder:
+    
     cd ..
     
 done
