@@ -31,11 +31,9 @@ for d in */ ; do
     --genetic_code 5 \
     --clade Arthropoda \
     --fastq_read_length 150 \
-    --data_size_for_mt_assembly 3,0 \
+    --data_size_for_mt_assembly 0 \
     --assembler megahit \
-    --kmers_megahit 59 79 99 \
-    --thread_number 1 \
-    --memory 50 \
+    --thread_number 8 \
     --requiring_taxa Arthropoda
     
     cd ..
