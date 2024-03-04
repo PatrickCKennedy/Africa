@@ -77,8 +77,8 @@ mitoz all \
     --data_size_for_mt_assembly 3,0 \
     --assembler megahit \
     --kmers_megahit 59 79 99 \
-    --thread_number 1 \
-    --memory 50 \
+    --thread_number 4 \
+    --memory 30 \
     --requiring_taxa Arthropoda
 
     # - - - - - - - - - - - - NOTE ABOUT HOW TO RUN MITOZ IN SINGULARITY INSTEAD - - - - - - - - - - - - - - 
