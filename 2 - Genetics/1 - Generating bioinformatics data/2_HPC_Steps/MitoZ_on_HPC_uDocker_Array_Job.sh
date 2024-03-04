@@ -36,6 +36,7 @@
 
 # Before udocker can run, load it into the PATH for the current session:
         export PATH=`pwd`/udocker-1.3.13/udocker:$PATH
+        export UDOCKER_DIR=/user/work/pk14885/My_download
 
 # To check that udocker is working, use:
         which udocker
