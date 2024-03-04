@@ -31,6 +31,9 @@
 # ---------------------------------------------------------------------------------
 # IDENTIFY THE SPECIFIC WASP TARGETTED FOR THIS INSTANCE OF THE ARRAY SCRIPT:
 
+# Navigate to the input folder:
+        cd /user/work/pk14885/Input_wasps_for_Mitoz
+
 # Allocate a specific wasp to this particular entry of the array job:
         this_wasp_to_sample=$(sed -n ${SLURM_ARRAY_TASK_ID}p Wasps_to_target_with_MitoZ.filelist)
 
