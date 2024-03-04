@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=MitoZ
+#SBATCH --job-name=MitoZ_Singularity
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --cpus-per-task=1
@@ -28,21 +28,6 @@
         cd /user/work/pk14885/Input_wasps_for_Mitoz
         ls -d */ > Wasps_to_target_with_MitoZ.filelist
 
-# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# NOTE: THE SCRIPT BELOW USES 'UDOCKER' (A FORM OF DOCKER THAT DOES NOT REQUIRE ROOT PRIVILEGES)
-
-# To run this script, I have already installed 'uDocker' in my work directory on BluePebble (following section 2.1 here: https://indigo-dc.github.io/udocker/installation_manual.html)
-# ...and then installed udocker's 'Mitoz' container onto my BluePebble account using:    udocker pull guanliangmeng/mitoz:3.6     (following section 2.2 here: https://github.com/linzhi2013/MitoZ/wiki/Installation)
-
-# Before udocker can run, load it into the PATH for the current session:
-        export PATH=`pwd`/udocker-1.3.13/udocker:$PATH
-
-# To check that udocker is working, use:
-        which udocker
-
-# To check which udocker images are on your own working directory, use:
-        udocker images
-
 # ---------------------------------------------------------------------------------
 # IDENTIFY THE SPECIFIC WASP TARGETTED FOR THIS INSTANCE OF THE ARRAY SCRIPT:
 
@@ -62,20 +47,23 @@
         this_wasp_val_1_FILE=$(ls *val_1*)
         this_wasp_val_2_FILE=$(ls *val_2*)
 
-singularity run /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
---fq1 $this_wasp_val_1_FILE \
---fq2 $this_wasp_val_2_FILE \
---outprefix $this_wasp_to_sample \
---genetic_code 5 \
---clade Arthropoda \
---fastq_read_length 150 \
---data_size_for_mt_assembly 3,0 \
---assembler megahit \
---kmers_megahit 59 79 99 \
---thread_number 4 \
---memory 30 \
---requiring_taxa Arthropoda
+module load lang/python/miniconda/3.9.7
+module load apps/singularity/1.1.3
 
+singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/:/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/ /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
+    --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_1_FILE \
+    --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_2_FILE \
+    --outprefix PETIO_LR10_1 \
+    --genetic_code 5 \
+    --clade Arthropoda \
+    --fastq_read_length 150 \
+    --data_size_for_mt_assembly 3,0 \
+    --assembler megahit \
+    --kmers_megahit 59 79 99 \
+    --thread_number 1 \
+    --memory 50 \
+    --requiring_taxa Arthropoda
+    
 # ---------------------------------------------------------------------------------
 
 # The result of this script is the annotated mitochondrial genome for the focal wasp. In the next script, we
