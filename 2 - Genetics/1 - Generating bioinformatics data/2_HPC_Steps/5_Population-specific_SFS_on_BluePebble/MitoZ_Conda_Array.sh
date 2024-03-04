@@ -60,7 +60,7 @@ conda-unpack
 mitoz all \
 --fq1 $this_wasp_val_1_FILE \
 --fq2 $this_wasp_val_2_FILE \
---outprefix $this_wasp_name \
+--outprefix $this_wasp_to_sample \
 --genetic_code 5 \
 --clade Arthropoda \
 --fastq_read_length 150 \
