@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=MitoZ_Singularity
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
+#SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=30G
+#SBATCH --mem=10G
 #SBATCH --time=0-06:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
@@ -70,15 +70,15 @@ cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample
 mitoz all \
     --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_1_FILE \
     --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_2_FILE \
-    --outprefix PETIO_LR10_1 \
+    --outprefix $this_wasp_to_sample \
     --genetic_code 5 \
     --clade Arthropoda \
     --fastq_read_length 150 \
     --data_size_for_mt_assembly 3,0 \
     --assembler megahit \
     --kmers_megahit 59 79 99 \
-    --thread_number 4 \
-    --memory 30 \
+    --thread_number 8 \
+    --memory 10 \
     --requiring_taxa Arthropoda
 
     # - - - - - - - - - - - - NOTE ABOUT HOW TO RUN MITOZ IN SINGULARITY INSTEAD - - - - - - - - - - - - - - 
