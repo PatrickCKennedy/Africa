@@ -71,8 +71,8 @@ cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
 # Run 'mitoz' from inside the 'mitozEnz' environment:
 mitoz all \
     --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
-    --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_2_FILE \
-    --outprefix $this_wasp_to_sample \
+    --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
+    --outprefix $this_wasp_name_only \
     --genetic_code 5 \
     --clade Arthropoda \
     --fastq_read_length 150 \
