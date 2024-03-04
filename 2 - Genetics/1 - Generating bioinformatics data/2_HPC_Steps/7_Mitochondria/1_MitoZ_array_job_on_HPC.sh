@@ -4,7 +4,7 @@
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=10G
-#SBATCH --time=0-06:00:00
+#SBATCH --time=0-05:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --mail-user=pk14885@bristol.ac.uk
@@ -32,13 +32,15 @@
 # IDENTIFY THE SPECIFIC WASP TARGETTED FOR THIS INSTANCE OF THE ARRAY SCRIPT:
 
 # Allocate a specific wasp to this particular entry of the array job:
-        this_wasp_to_sample=$(sed -n ${SLURM_ARRAY_TASK_ID}p Wasps_to_target_with_MitoZ.filelist)
+        this_wasp_to_sample_with_backslash_at_end=$(sed -n ${SLURM_ARRAY_TASK_ID}p Wasps_to_target_with_MitoZ.filelist)
 
 # Print the focal wasp's name to the slurm output file:
-        echo $this_wasp_to_sample
+        echo $this_wasp_to_sample_with_backslash_at_end
+        this_wasp_name_only=$(echo ${this_wasp_to_sample%?})
+        # '%?' removes the last character (%?? would remove the last two characters, and so on)
 
 # Navigate to the focal wasp's folder (which should contain only its 'val_1' and 'val_2' files):
-        cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample
+        cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
 
 # Find the names of the two trimmed 'val' .fq.gz files:
         this_wasp_val_1_FILE=$(ls *val_1*)
@@ -64,11 +66,11 @@ which circos
 # RUN MITOZ ON BLUEPEBBLE:
 
 # Make sure that we are in the focal wasp's folder:
-cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample
+cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
 
 # Run 'mitoz' from inside the 'mitozEnz' environment:
 mitoz all \
-    --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_1_FILE \
+    --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
     --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_2_FILE \
     --outprefix $this_wasp_to_sample \
     --genetic_code 5 \
