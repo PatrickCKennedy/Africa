@@ -36,8 +36,8 @@
 
 # Print the focal wasp's name to the slurm output file:
         echo $this_wasp_to_sample_with_backslash_at_end
-        this_wasp_name_only=$(echo ${this_wasp_to_sample%?})
-        # '%?' removes the last character (%?? would remove the last two characters, and so on)
+        this_wasp_name_only=$(echo ${this_wasp_to_sample_with_backslash_at_end%?})
+        # '%?' removes the backslash, which is the last character (%?? would remove the last two characters, and so on)
 
 # Navigate to the focal wasp's folder (which should contain only its 'val_1' and 'val_2' files):
         cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
