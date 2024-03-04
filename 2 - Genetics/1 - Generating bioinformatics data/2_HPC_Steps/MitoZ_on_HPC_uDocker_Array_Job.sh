@@ -63,7 +63,7 @@
         this_wasp_val_2_FILE=$(ls *val_2*)
 
 # Now run MitoZ through uDocker on the focal wasp:
-udocker run -v $PWD:$PWD -w $PWD --rm guanliangmeng/mitoz:3.6  mitoz all \
+udocker run -v $PWD:$PWD -w $PWD --rm guanliangmeng/mitoz:3.6 mitoz all \
 --fq1 $this_wasp_val_1_FILE \
 --fq2 $this_wasp_val_2_FILE \
 --outprefix $this_wasp_name \
@@ -83,3 +83,6 @@ udocker run -v $PWD:$PWD -w $PWD --rm guanliangmeng/mitoz:3.6  mitoz all \
 # will collate the outputs from each wasp, and construct a tree.
 
 # ---------------------------------------------------------------------------------
+
+
+singularity pull MitoZ_v3.6.sif docker://guanliangmeng/mitoz:3.6
