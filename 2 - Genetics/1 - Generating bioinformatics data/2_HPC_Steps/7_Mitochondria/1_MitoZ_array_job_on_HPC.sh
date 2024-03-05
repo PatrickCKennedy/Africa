@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=15G
+#SBATCH --mem=50G
 #SBATCH --partition=short
 #SBATCH --time=0-02:00:00
 # "d-hh:mm:ss"
@@ -112,7 +112,7 @@ mitoz all \
     --assembler megahit \
     --kmers_megahit 39 59 79 99 119 141 \
     --thread_number 8 \
-    --memory 15 \
+    --memory 50 \
     --requiring_taxa Arthropoda
 
 # ---------------------------------------------------------------------------------
