@@ -62,7 +62,7 @@ cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
 # Load Singularity on BluePebble:
 module load apps/singularity/1.1.3
 
-singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/:/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/ /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
+singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/:/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/ /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
                 --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
                 --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
                 --outprefix $this_wasp_name_only \
