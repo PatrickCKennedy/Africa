@@ -3,8 +3,8 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
-#SBATCH --time=0-05:00:00
+#SBATCH --mem=5G
+#SBATCH --time=0-02:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
 #SBATCH --mail-user=pk14885@bristol.ac.uk
@@ -80,7 +80,7 @@ mitoz all \
     --assembler megahit \
     --kmers_megahit 59 79 99 \
     --thread_number 8 \
-    --memory 10 \
+    --memory 5 \
     --requiring_taxa Arthropoda
 
     # - - - - - - - - - - - - NOTE ABOUT HOW TO RUN MITOZ IN SINGULARITY INSTEAD - - - - - - - - - - - - - - 
