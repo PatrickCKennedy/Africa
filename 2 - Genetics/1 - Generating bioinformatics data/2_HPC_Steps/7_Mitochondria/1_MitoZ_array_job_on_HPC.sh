@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=50G
+#SBATCH --mem=15G
 #SBATCH --partition=short
 #SBATCH --time=0-02:00:00
 # "d-hh:mm:ss"
@@ -108,11 +108,11 @@ mitoz all \
     --genetic_code 5 \
     --clade Arthropoda \
     --fastq_read_length 150 \
-    --data_size_for_mt_assembly 0,0 \
+    --data_size_for_mt_assembly 3,0 \
     --assembler megahit \
     --kmers_megahit 39 59 79 99 119 141 \
     --thread_number 8 \
-    --memory 50 \
+    --memory 15 \
     --requiring_taxa Arthropoda
 
 # ---------------------------------------------------------------------------------
