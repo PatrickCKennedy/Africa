@@ -47,6 +47,13 @@
         this_wasp_val_1_FILE=$(ls *val_1*)
         this_wasp_val_2_FILE=$(ls *val_2*)
 
+# If there are any of the output folders or files for this wasp present from a previous run of MitoZ, remove them:
+        rm -r clean_data
+        rm -r mt_assembly
+        rm mitoz.log
+        rm -r mt_annotation
+        rm -r *.results
+
 # ---------------------------------------------------------------------------------
 # RUN MITOZ ON BLUEPEBBLE:
 
