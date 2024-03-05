@@ -65,6 +65,31 @@ mkdir 1_COLLATED_RESULTS_$ADD_TODAYS_DATE_HERE
 # It should print:  /sw/lang/miniconda.3.12.2/envs/mitozEnv/bin/circos
 
 # Run 'mitoz-tools' from inside the 'mitozEnz' environment:
-mitoz-tools  group_seq_by_gene -r gene_f_list -d '_' -p $ADD_TODAYS_DATE_HERE
+mitoz-tools  group_seq_by_gene -r gene_f_list -d '_' -p MitoZ
+
+# Move all the results (they all start with the prefix 'MitoZ', as that's what we set in the line above with the '-p' option).
+# to a single folder:
+mkdir Grouped_by_gene
+mv MitoZ* Grouped_by_gene/
+
 
 # ---------------------------------------------------------------------------------
+# DOWNLOAD THE RESULTING FILES TO THE LOCAL COMPUTER, AND RUN MAFFT IN GENEIOUS:
+
+# (1) Download the 'Grouped_by_gene' folder to the local computer (using 'scp').
+
+# (2) Import to Geneious
+
+# (3) Use MAFFT plugin in Geneious for multiple alignment
+
+# (4) Make bootstrapped tree, and plot consensus
+
+
+
+
+
+
+
+
+
+
