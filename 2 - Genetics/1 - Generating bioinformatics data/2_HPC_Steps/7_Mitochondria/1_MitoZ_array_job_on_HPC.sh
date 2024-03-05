@@ -4,6 +4,7 @@
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=5G
+#SBATCH --partition=short
 #SBATCH --time=0-02:00:00
 # "d-hh:mm:ss"
 #SBATCH --mail-type=end
