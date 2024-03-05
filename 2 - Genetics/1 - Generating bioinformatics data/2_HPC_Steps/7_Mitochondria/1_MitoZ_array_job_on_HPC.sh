@@ -53,61 +53,60 @@
 # Make sure that we are in the focal wasp's folder:
 cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
 
-# - - - - - - - - - - - - OPTION 1: RUNNING MITOZ AS A SINGULARITY CONTAINER - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - OPTION 1 (SUPPRESSED, AS SEEMS NOT TO SUCCEED IN FINAL STEPS) RUNNING MITOZ AS A SINGULARITY CONTAINER - - - - - - - - - - - - - - -
 # I have downloaded the MitoZ Singularity container to /user/work/pk14885 using:   singularity pull MitoZ_v3.6.sif docker://guanliangmeng/mitoz:3.6
 # You don't need to use this Singularity option, since Callum Wright has installed it as a general
 # available programme on BluePebble (see 'Option 2' section below). However, it may produce better results
 # via Singularity (https://github.com/linzhi2013/MitoZ/issues/89).
 
 # Load Singularity on BluePebble:
-module load apps/singularity/1.1.3
+## module load apps/singularity/1.1.3
 
-singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/:/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/ /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
-                --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
-                --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
-                --outprefix $this_wasp_name_only \
-                --genetic_code 5 \
-                --clade Arthropoda \
-                --fastq_read_length 150 \
-                --data_size_for_mt_assembly 3,0 \
-                --assembler megahit \
-                --kmers_megahit 39 59 79 99 119 141 \
-                --thread_number 8 \
-                --memory 15 \
-                --requiring_taxa Arthropoda
+##singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/:/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/ /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
+##                --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
+##                --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
+##                --outprefix $this_wasp_name_only \
+##                --genetic_code 5 \
+##                --clade Arthropoda \
+##                --fastq_read_length 150 \
+##                --data_size_for_mt_assembly 3,0 \
+##                --assembler megahit \
+##                --kmers_megahit 39 59 79 99 119 141 \
+##                --thread_number 8 \
+##                --memory 15 \
+##                --requiring_taxa Arthropoda
                  
  # - - - - - - - - - - - - OPTION 2: RUNNING MITOZ AS INSTALLED VERSION ON BLUEPEBBLE - - - - - - - - - - - - - - 
 # An alternative way to run MitoZ on BluePebble is as an installed programme.
 # Callum Wright (Bristol ACRC) has installed MitoZ on BluePebble, in the module lang/python/miniconda/3.12.2.inc-perl-5.30.0
 
 # The MitoZ website suggests that you may get better results if you use the Singularity version (https://github.com/linzhi2013/MitoZ/issues/89).
-# Therefore, we use the Singularity version above. However, running the installed version is much simpler.
 # If you want to use the installed version, use the following code:
 
 # Start the correct Miniconda module:
-        ##module add lang/python/miniconda/3.12.2.inc-perl-5.30.0
+        module add lang/python/miniconda/3.12.2.inc-perl-5.30.0
 
 # Activate the environment installed by Callum Wright:
-        ##source activate mitozEnv
+        source activate mitozEnv
 
 # Check the installation:
-        ##which circos 
+        which circos 
 # It should print:  /sw/lang/miniconda.3.12.2/envs/mitozEnv/bin/circos
 
 # Run 'mitoz' from inside the 'mitozEnz' environment:
-##mitoz all \
-##    --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
-##    --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
-##    --outprefix $this_wasp_name_only \
-##    --genetic_code 5 \
-##    --clade Arthropoda \
-##    --fastq_read_length 150 \
-##    --data_size_for_mt_assembly 3,0 \
-##    --assembler megahit \
-##    --kmers_megahit 59 79 99 \
-##    --thread_number 8 \
-##    --memory 5 \
-##    --requiring_taxa Arthropoda
+mitoz all \
+    --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
+    --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
+    --outprefix $this_wasp_name_only \
+    --genetic_code 5 \
+    --clade Arthropoda \
+    --fastq_read_length 150 \
+    --data_size_for_mt_assembly 0,0 \
+    --assembler megahit \
+    --kmers_megahit 39 59 79 99 119 141 \
+    --thread_number 8 \
+    --memory 15 \
+    --requiring_taxa Arthropoda
 
 # ---------------------------------------------------------------------------------
 
