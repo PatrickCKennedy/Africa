@@ -109,19 +109,6 @@ singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/
 ##    --memory 5 \
 ##    --requiring_taxa Arthropoda
 
-    # - - - - - - - - - - - - NOTE ABOUT HOW TO RUN MITOZ IN SINGULARITY INSTEAD - - - - - - - - - - - - - - 
-    # Note: There is an alternative way to run MitoZ, which is as a container within Singularity. 
-    # This can be done on my BluePebble working directory, as I have downloaded the MitoZ
-    # Singularity container to /user/work/pk14885 using:   singularity pull MitoZ_v3.6.sif docker://guanliangmeng/mitoz:3.6
-    # You don't need to use this Singularity option, since Callum Wright has installed it as a general
-    # available programme on BluePebble (above). However, for completeness, here is the command you can use
-    # if you would like to run it through Singularity on BluePebble (it runs fine - 4th March 2024):
-    ##module load apps/singularity/1.1.3
-    ##singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/:/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/ /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
-                    ##--fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_1_FILE \
-                    ##--fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_2_FILE \
-                    ##...and so on with the rest of the input parameters as above.
-                    
 # ---------------------------------------------------------------------------------
 
 # The result of this script is the annotated mitochondrial genome for the focal wasp. In the next script, we
