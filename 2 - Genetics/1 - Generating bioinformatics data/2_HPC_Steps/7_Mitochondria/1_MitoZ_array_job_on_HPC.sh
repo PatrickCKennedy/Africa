@@ -3,7 +3,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=8
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=5G
+#SBATCH --mem=15G
 #SBATCH --partition=short
 #SBATCH --time=0-02:00:00
 # "d-hh:mm:ss"
@@ -11,11 +11,11 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=4-60
+#SBATCH --array=1-60
 # Update the array range to the required number of wasps to include in the sample (i.e., the number 
 # of wasps in /user/work/pk14885/Input_wasps_for_Mitoz)
 
-# ARRAY JOB FOR RUNNING 'MITOZ' ON HPC, USING MITOZ AS A UDOCKER CONTAINER
+# ARRAY JOB FOR RUNNING 'MITOZ' ON HPC
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Before running this script, you must do two things:
 
@@ -48,41 +48,66 @@
         this_wasp_val_2_FILE=$(ls *val_2*)
 
 # ---------------------------------------------------------------------------------
-# RUNNING MITOZ ON BLUEPEBBLE
-
-# Callum Wright (Bristol ACRC) has installed MitoZ on BluePebble, in the module:
-# lang/python/miniconda/3.12.2.inc-perl-5.30.0
-
-# Start the correct Miniconda module:
-module add lang/python/miniconda/3.12.2.inc-perl-5.30.0
-
-# Activate the environment installed by Callum Wright:
-source activate mitozEnv
-
-# Check the installation:
-which circos 
-# It should print:     /sw/lang/miniconda.3.12.2/envs/mitozEnv/bin/circos
-
-# ---------------------------------------------------------------------------------
 # RUN MITOZ ON BLUEPEBBLE:
 
 # Make sure that we are in the focal wasp's folder:
 cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
 
+# - - - - - - - - - - - - OPTION 1: RUNNING MITOZ AS A SINGULARITY CONTAINER - - - - - - - - - - - - - - -
+# I have downloaded the MitoZ Singularity container to /user/work/pk14885 using:   singularity pull MitoZ_v3.6.sif docker://guanliangmeng/mitoz:3.6
+# You don't need to use this Singularity option, since Callum Wright has installed it as a general
+# available programme on BluePebble (see 'Option 2' section below). However, it may produce better results
+# via Singularity (https://github.com/linzhi2013/MitoZ/issues/89).
+
+# Load Singularity on BluePebble:
+module load apps/singularity/1.1.3
+
+singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/:/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/ /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
+                --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_1_FILE \
+                --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_2_FILE \
+                --outprefix $this_wasp_name_only \
+                --genetic_code 5 \
+                --clade Arthropoda \
+                --fastq_read_length 150 \
+                --data_size_for_mt_assembly 3,0 \
+                --assembler megahit \
+                --kmers_megahit 39 59 79 99 119 141 \
+                --thread_number 8 \
+                --memory 15 \
+                --requiring_taxa Arthropoda
+                 
+ # - - - - - - - - - - - - OPTION 2: RUNNING MITOZ AS INSTALLED VERSION ON BLUEPEBBLE - - - - - - - - - - - - - - 
+# An alternative way to run MitoZ on BluePebble is as an installed programme.
+# Callum Wright (Bristol ACRC) has installed MitoZ on BluePebble, in the module lang/python/miniconda/3.12.2.inc-perl-5.30.0
+
+# The MitoZ website suggests that you may get better results if you use the Singularity version (https://github.com/linzhi2013/MitoZ/issues/89).
+# Therefore, we use the Singularity version above. However, running the installed version is much simpler.
+# If you want to use the installed version, use the following code:
+
+# Start the correct Miniconda module:
+        ##module add lang/python/miniconda/3.12.2.inc-perl-5.30.0
+
+# Activate the environment installed by Callum Wright:
+        ##source activate mitozEnv
+
+# Check the installation:
+        ##which circos 
+# It should print:  /sw/lang/miniconda.3.12.2/envs/mitozEnv/bin/circos
+
 # Run 'mitoz' from inside the 'mitozEnz' environment:
-mitoz all \
-    --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
-    --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
-    --outprefix $this_wasp_name_only \
-    --genetic_code 5 \
-    --clade Arthropoda \
-    --fastq_read_length 150 \
-    --data_size_for_mt_assembly 3,0 \
-    --assembler megahit \
-    --kmers_megahit 59 79 99 \
-    --thread_number 8 \
-    --memory 5 \
-    --requiring_taxa Arthropoda
+##mitoz all \
+##    --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
+##    --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
+##    --outprefix $this_wasp_name_only \
+##    --genetic_code 5 \
+##    --clade Arthropoda \
+##    --fastq_read_length 150 \
+##    --data_size_for_mt_assembly 3,0 \
+##    --assembler megahit \
+##    --kmers_megahit 59 79 99 \
+##    --thread_number 8 \
+##    --memory 5 \
+##    --requiring_taxa Arthropoda
 
     # - - - - - - - - - - - - NOTE ABOUT HOW TO RUN MITOZ IN SINGULARITY INSTEAD - - - - - - - - - - - - - - 
     # Note: There is an alternative way to run MitoZ, which is as a container within Singularity. 
@@ -97,7 +122,7 @@ mitoz all \
                     ##--fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_2_FILE \
                     ##...and so on with the rest of the input parameters as above.
                     
- # ---------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------
 
 # The result of this script is the annotated mitochondrial genome for the focal wasp. In the next script, we
 # will collate the outputs from each wasp, and construct a tree.
