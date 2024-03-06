@@ -1,18 +1,4 @@
-#!/bin/bash
-#SBATCH --job-name=Collating_MitoZ
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem=500M
-#SBATCH --partition=short
-#SBATCH --time=0-00:10:00
-# "d-hh:mm:ss"
-#SBATCH --mail-type=end
-#SBATCH --mail-user=pk14885@bristol.ac.uk
-#SBATCH --account=BISC020282
-#SBATCH --output=slurm-%x.%j.out
-# Update the array range to the required number of wasps to include in the sample (i.e., the number 
-# of wasps in /user/work/pk14885/Input_wasps_for_Mitoz)
+# Run the following short code just on the login node.
 
 # ---------------------------------------------------------------------------------
 # COLLATING MITOZ RESULTS FROM TARGET WASPS
@@ -33,6 +19,7 @@ mkdir 1_COLLATED_RESULTS_$ADD_TODAYS_DATE_HERE
 
 # Make a text file that contains the sample name in the first column and the path to the fasta
 # file in the second column:
+                cd /user/work/pk14885/Input_wasps_for_Mitoz/1_COLLATED_RESULTS_$ADD_TODAYS_DATE_HERE/
         # Make sure there are no 'temp' files left over from a previous run:
                 rm temp*
         # Make a list of all folders in this 1_COLLATED_RESULTS folder (each one is for a separate wasp):
