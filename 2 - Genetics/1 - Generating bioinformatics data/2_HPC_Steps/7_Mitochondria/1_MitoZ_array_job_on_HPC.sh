@@ -20,7 +20,9 @@
 # Before running this script, you must do two things:
 
 # (1) Upload the chosen wasps to BluePebble. For each wasp, have a folder
-# containing two files: the forward and reverse trimmed files (the '_val_1' and '_val_2' files).
+# containing two files: the forward and reverse files. They do not have to already have
+# been trimmed, as MitoZ does that, but use the trimmed versions ('val_1' and 'val_2') if they are
+# available.
 # Upload that wasp's folder (named for the wasp) within /user/work/pk1488/Input_wasps_for_Mitoz
 # on BluePebble.
 
@@ -44,8 +46,8 @@
         cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
 
 # Find the names of the two trimmed 'val' .fq.gz files:
-        this_wasp_val_1_FILE=$(ls *val_1*)
-        this_wasp_val_2_FILE=$(ls *val_2*)
+        this_wasp_1_FILE=$(ls *_1.fq.gz*)
+        this_wasp_2_FILE=$(ls *_2.fq.gz*)
 
 # If there are any of the output folders or files for this wasp present from a previous run of MitoZ, remove them:
         rm -r clean_data
@@ -70,8 +72,8 @@ cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
 ## module load apps/singularity/1.1.3
 
 ##singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/:/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/ /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
-##                --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
-##                --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
+##                --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_1_FILE \
+##                --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_2_FILE \
 ##                --outprefix $this_wasp_name_only \
 ##                --genetic_code 5 \
 ##                --clade Arthropoda \
@@ -102,8 +104,8 @@ cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only
 
 # Run 'mitoz' from inside the 'mitozEnz' environment:
 mitoz all \
-    --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_1_FILE \
-    --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_val_2_FILE \
+    --fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_1_FILE \
+    --fq2 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_name_only/$this_wasp_2_FILE \
     --outprefix $this_wasp_name_only \
     --genetic_code 5 \
     --clade Arthropoda \
