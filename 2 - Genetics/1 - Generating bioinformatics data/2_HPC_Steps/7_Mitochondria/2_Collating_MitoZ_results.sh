@@ -18,7 +18,7 @@
 # COLLATING MITOZ RESULTS FROM TARGET WASPS
 
 # Enter today's date manually:
-ADD_TODAYS_DATE_HERE="5_MARCH_2024"
+ADD_TODAYS_DATE_HERE="6_MARCH_2024"
 
 # Make a directory to store all the results in (give it today's date):
 mkdir 1_COLLATED_RESULTS_$ADD_TODAYS_DATE_HERE
