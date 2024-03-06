@@ -52,7 +52,7 @@ mkdir 1_COLLATED_RESULTS_$ADD_TODAYS_DATE_HERE
 # It should print:  /sw/lang/miniconda.3.12.2/envs/mitozEnv/bin/circos
 
 # Run 'mitoz-tools' from inside the 'mitozEnz' environment:
-mitoz-tools  group_seq_by_gene -r gene_f_list -d '_' -p MitoZ
+mitoz-tools  group_seq_by_gene -r gene_f_list -d '_' -p MitoZ -clean_header
 
 # Move all the results (they all start with the prefix 'MitoZ', as that's what we set in the line above with the '-p' option).
 # to a single folder:
