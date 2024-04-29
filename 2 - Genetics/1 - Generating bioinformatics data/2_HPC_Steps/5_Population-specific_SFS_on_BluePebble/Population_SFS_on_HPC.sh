@@ -1,10 +1,10 @@
 #!/bin/bash
-#SBATCH --job-name=Maroua_SFS
+#SBATCH --job-name=SA_SFS
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=100G
-#SBATCH --time=4-00:00:00
+#SBATCH --time=1-00:00:00
 # "d-hh:mm:ss"
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
@@ -16,7 +16,7 @@
 # --------------------------------------------------------------------------
 
 # First, set the working directory to the folder of everyone's BAM files:
-	cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon/Maroua
+	cd /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica
  
 # --------------------------------------------------------------------------
 # KEEP A RECORD OF WHICH POPULATION WE ARE FOCUSING ON:
