@@ -147,7 +147,7 @@ project_dir: ${this_FOLDER_NAME}
 stairway_plot_dir: stairway_plot_es
 ninput: 200
 mu: 3.6e-09
-year_per_generation: 0.583
+year_per_generation: 1 # If Cameroon, use 0.583. If South Africa, use 1.
 # Settings for the resulting plot:
 plot_title: ${this_FOLDER_NAME} # title of the plot
 xrange: 0,0 # Time (1k year) range; format: xmin,xmax; "0,0" for default
