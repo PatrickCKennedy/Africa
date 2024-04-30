@@ -13,7 +13,7 @@
 cd /user/work/pk14885/stairway_plot_v2.1.1
 
 # Generate the bash file (i.e., a '.sh' file with the same name as the blueprint file):
-java -cp stairway_plot_es Stairbuilder ${this_FOLDER_NAME}.blueprint
+java -cp stairway_plot_es Stairbuilder Maroua.blueprint
 
 # Now run the newly-created bash file:
-bash ${this_FOLDER_NAME}.blueprint.sh
+bash Maroua.blueprint.sh
