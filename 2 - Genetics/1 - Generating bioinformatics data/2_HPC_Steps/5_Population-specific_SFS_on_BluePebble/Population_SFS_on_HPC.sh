@@ -164,6 +164,9 @@ fontsize: 12 # Font size
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # IF CHOOSING TO RUN STAIRWAYPLOT2 ON HPC:
 
+# Copy the blueprint text file to the folder in which we have downloaded StairwayPlot2 on BluePebble:
+cp SouthAfrica.blueprint /user/work/pk14885/stairway_plot_v2.1.1/
+
 # Navigate to the folder in which we have downloaded StairwayPlot2 on BluePebble:
 cd /user/work/pk14885/stairway_plot_v2.1.1
 
