@@ -107,6 +107,7 @@ my_inbreeding_plot <- ggplot(Combined_inbreeding_dataset) +
     scale_x_discrete(labels=c("Humid\ntropics","Semi-arid","Temperate")) +
     scale_y_continuous(breaks=c(-0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8)) + 
     theme_cowplot(font_size = myfontsize) + 
+    geom_hline(yintercept = 0, linetype = "dashed") +
     labs(y= "Inbreeding coefficient", 
          x = "Climate") + 
     theme(legend.position="none") + 
@@ -118,4 +119,12 @@ my_inbreeding_plot <- ggplot(Combined_inbreeding_dataset) +
           axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
 my_inbreeding_plot
 
+# Export as SVG file for publication:
+library(svglite)
+ggsave(filename = "my_inbreeding_plot.svg", 
+       plot = my_inbreeding_plot, 
+       height = 4,
+       width = 2, dpi = 200)
+# This file is now in the relevant folder, as an SVG file. 
+# Opening it will open Inkscape automatically.
 
