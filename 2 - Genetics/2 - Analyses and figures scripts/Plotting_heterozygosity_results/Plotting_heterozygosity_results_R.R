@@ -48,7 +48,7 @@ heterozygosity_plot
 library(svglite)
 ggsave(filename = "heterozygosity_plot.svg", 
        plot = heterozygosity_plot, 
-       height = 5,
+       height = 4,
        width = 2.5, dpi = 200)
 # This file is now in the relevant folder, as an SVG file. 
 # Opening it will open Inkscape automatically.
