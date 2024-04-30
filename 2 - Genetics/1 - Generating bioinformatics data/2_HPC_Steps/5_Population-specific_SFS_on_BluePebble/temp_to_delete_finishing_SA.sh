@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=SouthAfrica_SFS
+#SBATCH --job-name=SA_SFS
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
@@ -13,7 +13,7 @@
 cd /user/work/pk14885/stairway_plot_v2.1.1
 
 # Generate the bash file (i.e., a '.sh' file with the same name as the blueprint file):
-java -cp stairway_plot_es Stairbuilder Maroua.blueprint
+java -cp stairway_plot_es Stairbuilder SouthAfrica.blueprint
 
 # Now run the newly-created bash file:
-bash Maroua.blueprint.sh
+bash SouthAfrica.blueprint.sh
