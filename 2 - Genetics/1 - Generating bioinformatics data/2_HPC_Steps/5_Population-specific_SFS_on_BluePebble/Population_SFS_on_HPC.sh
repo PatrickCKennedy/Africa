@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=SouthCameroon_SFS
+#SBATCH --job-name=SA_SFS
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
@@ -16,7 +16,7 @@
 # --------------------------------------------------------------------------
 
 # First, set the working directory to the folder of everyone's BAM files:
-	cd /user/work/pk14885/Wasps/Completed_alignments/Cameroon
+	cd /user/work/pk14885/Wasps/Completed_alignments/SouthAfrica
  
 # --------------------------------------------------------------------------
 # KEEP A RECORD OF WHICH POPULATION WE ARE FOCUSING ON:
@@ -147,7 +147,7 @@ project_dir: ${this_FOLDER_NAME}
 stairway_plot_dir: stairway_plot_es
 ninput: 200
 mu: 3.6e-09
-year_per_generation: 0.583 # If Cameroon, use 0.583. If South Africa, use 1.
+year_per_generation: 1 # If Cameroon, use 0.583. If South Africa, use 1.
 # Settings for the resulting plot:
 plot_title: ${this_FOLDER_NAME} # title of the plot
 xrange: 0,0 # Time (1k year) range; format: xmin,xmax; "0,0" for default
