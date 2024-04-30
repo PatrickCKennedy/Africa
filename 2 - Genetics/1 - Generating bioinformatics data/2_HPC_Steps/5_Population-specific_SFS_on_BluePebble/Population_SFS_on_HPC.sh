@@ -145,7 +145,7 @@ pct_training: 0.67
 nrand: $(($(($(($(($file_count*2))-2))/5)))) $(($(($(($(($file_count*2))-2))/2)))) $(($(($(($(($file_count*2))-2))*3/4)))) $(($(($file_count*2))-2))
 project_dir: ${this_FOLDER_NAME}
 stairway_plot_dir: stairway_plot_es
-ninput: ${file_count}
+ninput: 200
 mu: 3.6e-09
 year_per_generation: 0.583 # If Cameroon, use 0.583. If South Africa, use 1.
 # Settings for the resulting plot:
