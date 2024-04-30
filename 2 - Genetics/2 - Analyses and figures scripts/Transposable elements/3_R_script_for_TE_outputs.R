@@ -175,10 +175,10 @@ my_plot <- ggplot(dataset_for_plotting) +
                  outlier.color = 1, outlier.fill = 1, outlier.shape = 21,
                  errorbar.draw = TRUE) + 
   scale_fill_manual(values = myColors) +
-  scale_x_discrete(labels=c("Humid tropics","Semi-arid","Temperate",expression(italic("B. petiolata") ))) +
+  scale_x_discrete(labels=c("Humid\ntropics","Semi-arid","Temperate",expression(italic("B. petiolata") ))) +
   theme_cowplot(font_size = myfontsize) + 
   labs(y= "LTR retrotransposons (%)", 
-       x = "Population") + 
+       x = "Climate") + 
   theme(legend.position="none") + 
   theme(axis.line.x.bottom=element_line(size=0.5)) +
   theme(axis.line.y.left=element_line(size=0.5)) +
@@ -191,12 +191,13 @@ my_plot
 
 # Export as SVG file for publication:
 library(svglite)
-ggsave(filename = "LTR_plot.svg", 
+ggsave(filename = "LTR_plot.eps", 
        plot = my_plot, 
        height = 4,
        width = 2.5, dpi = 200)
 # This file is now in the relevant folder, as an SVG file. 
 # Opening it will open Inkscape automatically.
+
 
 # ----------------------------------------------------------------------------
 # STATISTICAL TEST FOR DIFFERENCES IN TOTAL REPETITIVE CONTENT BETWEEN B. JUNCEA AND B. PETIOLATA:
