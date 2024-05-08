@@ -27,6 +27,9 @@ mat = matrix(ncol = 9, nrow = length(filenames)); TE_results_table=data.frame(ma
 print("Dimensions of data frame") 
 dim(TE_results_table)
 
+# If you have previously run this script, there will be two image files called "LTR_plot.eps" and "LTR_plot.pdf" in the folder,
+# together with a file called "TE_results_table.csv". So that the loop below works, you should delete these three files.
+
 # LOOP THROUGH EACH WASP'S OUTPUT, AND EXTRACT THE GENOMIC PROPORTIONS:
 
 for (wasp in 1:length(filenames)){
@@ -222,7 +225,37 @@ mean(juncea_only_results$LTR/(100-juncea_only_results$`Non-repetitive`))*100
 ## 7.413256
 
 # ----------------------------------------------------------------------------
-# STATISTICAL TEST FOR DIFFERENCES IN LTR WHOLE-GENOME PERCENTAGE BETWEEN CLIMATES:
+# STATISTICAL TEST FOR DIFFERENCES IN LTR WHOLE-GENOME PERCENTAGE BETWEEN CLIMATES (including population as a random effect):
+
+# Following https://jontalle.web.engr.illinois.edu/MISC/lme4/bw_LME_tutorial.pdf:
+# Null model:
+library(lme4)
+my1.null = lmer(LTR ~ (1|Population), data = dataset_for_plotting)
+# Model with climate as a fixed effect:
+my1.model = lmer(LTR ~ Climate + (1|Population), data = dataset_for_plotting)
+# Comparison:
+anova(my1.null,my1.model)
+
+summary(my1.model)
+library(report)
+report(my1.model)
+
+# Checking assumptions of the model (following https://ademos.people.uic.edu/Chapter18.html):
+# (1) Linearity:
+      # Plot the residuals against the outcome variable used in the model:
+      plot(resid(my1.model), dataset_for_plotting$LTR) 
+      # There is clearly a pattern here, so this assumption is violated.
+# (2) Homogeneity of variances (following https://stats.stackexchange.com/questions/255546/test-homogeneity-in-lmer-models)
+      library(car)
+      leveneTest(residuals(my1.model) ~ dataset_for_plotting$Climate)
+      # The p-value is very small, so the assumption of equal variances (homoscedasticity) is violated.
+# (3) Normally-distributed residuals:
+      require("lattice")
+      qqmath(my1.model, id=0.05) #id: identifies values that may be exerting undue influence on the model (i.e. outliers)
+      # This produces a QQ plot. There is deviation from the normal line at both tails.
+      
+# ----------------------------------------------------------------------------
+# STATISTICAL TEST FOR DIFFERENCES IN LTR WHOLE-GENOME PERCENTAGE BETWEEN CLIMATES (not including population as a random effect):
 
 # ANOVA with climate zone as the response variable:
 res_aov <- aov(LTR ~ Climate,
@@ -233,7 +266,7 @@ par(mfrow = c(1, 2)) # combine plots
 hist(res_aov$residuals)
 library(car)
 qqPlot(res_aov$residuals,
-       id = FALSE # id = FALSE to remove point identification)
+       id = FALSE) # id = FALSE to remove point identification
        
        # Shapiro-Wilk test for normality:
        shapiro.test(res_aov$residuals)
@@ -243,7 +276,7 @@ qqPlot(res_aov$residuals,
        ## data:  res_aov$residuals
        ## W = 0.98016, p-value = 2.658e-09
        
-       # Therefore, the data are significantly non-normal.
+       # Therefore, the data are significantly non-normal.
        
        # Levene's test for homogeneity of variances:
        library(car)
@@ -335,15 +368,4 @@ qqPlot(res_aov$residuals,
        sd(100-petiolata_only_results$`Non-repetitive`)
        ## 1.991448
        
-       
-       
-       
-       
-       
-       
-       
-       
-       # ----------------------------------------------------------------------------
-       # PLOTTING LANDSCAPE PLOTS FOR A REPRESENTATIVE WASP FROM EACH CLIMATE ZONE:
-       
-       # 
+      
