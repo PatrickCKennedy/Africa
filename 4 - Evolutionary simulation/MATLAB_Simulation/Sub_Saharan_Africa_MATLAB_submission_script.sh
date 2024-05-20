@@ -3,8 +3,8 @@
 #SBATCH --job-name=MATLAB_Wasps
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=24
-#SBATCH --time=24:00:00
-#SBATCH --mem=10G
+#SBATCH --time=2-00:00:00
+#SBATCH --mem=6G
 #SBATCH --account=BISC020282
 #SBATCH --array 1-269
 
