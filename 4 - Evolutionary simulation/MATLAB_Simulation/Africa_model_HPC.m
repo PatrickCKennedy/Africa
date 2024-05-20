@@ -66,7 +66,7 @@ FiguresOnOrOff = 0; % set '1' to plot figures, '0' otherwise.
     nWasps = (max_Wasps_Per_Colony)*(max_NestCarryingCapacity); % The maximum theoretical number of wasps who can exist in a single deme.
 % How does reproduction work? Reproduction is haplodiploid, with single-mating. We assume female philopatry and male-biased dispersal. Specifically, we assume that males disperse to the two neighbouring demes. If the two neighbouring demes are uninhabited, males mate on their home deme (which may generate inbreeding in harsh landscapes). We assume that mating occurs at the start of each phase.
 % Time clicks forward in phases. There are 6 phases in a year. Here, choose the number of years to run the model for:
-TotalYears = 50; TotalPhases = TotalYears*6; YearlyPhasesList = repmat(1:6,1,TotalYears)';
+TotalYears = 6000; TotalPhases = TotalYears*6; YearlyPhasesList = repmat(1:6,1,TotalYears)';
 % Give each wasp slot an ID number within its site. Within each site, the numbers start at 1 and go up to 'nWasps'. Not every wasp slot is necessarily occupied by a wasp. When a wasp dies and is replaced, a new wasp receives the ID number. The ID numbers are therefore effectively individual slots available in the site (deme).
 Wasps = NaN(90,nWasps,nSites); % For each wasp slot, there are 40 columns of wasp-slot-specific info (you can add more). This is only for females. The first 3 columns are the index position of the wasp slot. The other columns are  info about the current occupant. If no wasp currently occupies the wasp slot, those columns will just show 'NaN':
 % Setting up the fixed first three columns of 'Wasps' (wasp-slot indexes):             
@@ -202,6 +202,7 @@ empty_sites_tracker = nan(TotalPhases,1);
 relatedness_data = [NaN NaN];
 relatedness_tracker = nan(TotalPhases,1);
 whole_year_relatedness_tracker = nan(TotalYears,1);
+Phase_relatedness_tracker = nan(TotalPhases,1); 
 sister_nest_tracker = nan(TotalPhases,1); % records the proportion of subordinates who come from the same parental nest as the dominant (i.e., are sisters)
 HopefulFounderCountTracker = nan(TotalPhases,1); % records the number of hopeful lead founders each phase.
 InstantCooperatorCountTracker = nan(TotalPhases,1); % records the number of instant cooperators each phase.
@@ -1711,25 +1712,9 @@ toc; % end timer
     % Record the phase types for the last 20% of phases:
                 YearlyPhasesList_LastSection = YearlyPhasesList(round(0.8*TotalPhases):end); % take final 20% of phases
 
-    % Sample the final 20% of years for relatednesses:
-                Relatednesses_LastSection = whole_year_relatedness_tracker(round(0.8*TotalYears):end);
-
-    % Average foundress relatedness in the last 20% of phases...:
-                % ...in Phase 1:
-                Final_AverageFoundressRelatedness_Phase1 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 1));
-                % ...in Phase 2:
-                Final_AverageFoundressRelatedness_Phase2 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 2));
-                % ...in Phase 3:
-                Final_AverageFoundressRelatedness_Phase3 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 3));
-                % ...in Phase 4:
-                Final_AverageFoundressRelatedness_Phase4 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 4));
-                % ...in Phase 5:
-                Final_AverageFoundressRelatedness_Phase5 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 5));
-                % ...in Phase 6:
-                Final_AverageFoundressRelatedness_Phase6 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 6));
-               
-        % Final annual mean foundress relatedness (unweighted - you can calculate the weighted value in the output processing script):
-        Final_AnnualMeanRelatednessUnweighted = mean(whole_year_relatedness_tracker(round(0.8*TotalYears):end)); % take the average of 'whole_year_relatedness_tracker' for the final 20% of simulated years (when simulation is likely to have reached equilibrium values).
+    % Sample the final 20% of *years* for relatednesses:
+        % Final annual mean foundress relatedness:
+        Final_AnnualMeanRelatedness = mean(whole_year_relatedness_tracker(round(0.8*TotalYears):end)); % take the average of 'whole_year_relatedness_tracker' for the final 20% of simulated years (when simulation is likely to have reached equilibrium values).
 
     % Sample the final 20% of phases for the following:
     HigherConditionFoundressPhenotype_LastSection = HigherConditionFoundressPhenotype(round(0.8*TotalPhases):end); % take final 20% of phases
@@ -1825,7 +1810,7 @@ toc; % end timer
          
         % Collate these outputs into a single row vector:
         this_Simulation_Outputs_Vector = [ThisSimulationNumber; % Column 1
-             Final_AnnualMeanRelatednessUnweighted; % Column 2                      
+             Final_AnnualMeanRelatedness; % Column 2                      
              Final_HigherConditionFoundressPhenotype_Phase1; % Column 3
              Final_HigherConditionFoundressPhenotype_Phase2; % Column 4
              Final_HigherConditionFoundressPhenotype_Phase3; % Column 5
@@ -1843,31 +1828,25 @@ toc; % end timer
              Final_foundations_Radius_Phase3; % Column 17
              Final_foundations_Radius_Phase4; % Column 18
              Final_foundations_Radius_Phase5; % Column 19
-             Final_foundations_Radius_Phase6]'; % Column 20
-             Final_AverageFoundressRelatedness_Phase1; % Column 21
-             Final_AverageFoundressRelatedness_Phase2; % Column 22
-             Final_AverageFoundressRelatedness_Phase3; % Column 23
-             Final_AverageFoundressRelatedness_Phase4; % Column 24
-             Final_AverageFoundressRelatedness_Phase5; % Column 25
-             Final_AverageFoundressRelatedness_Phase6; % Column 26
-             Final_Average_HopefulLeadFounderCountTracker_Phase1; % Column 27
-             Final_Average_HopefulLeadFounderCountTracker_Phase2; % Column 28
-             Final_Average_HopefulLeadFounderCountTracker_Phase3; % Column 29
-             Final_Average_HopefulLeadFounderCountTracker_Phase4; % Column 30
-             Final_Average_HopefulLeadFounderCountTracker_Phase5; % Column 31
-             Final_Average_HopefulLeadFounderCountTracker_Phase6; % Column 32
-             Final_Average_InstantCooperatorCountTracker_Phase1; % Column 33
-             Final_Average_InstantCooperatorCountTracker_Phase2; % Column 34
-             Final_Average_InstantCooperatorCountTracker_Phase3; % Column 35
-             Final_Average_InstantCooperatorCountTracker_Phase4; % Column 36
-             Final_Average_InstantCooperatorCountTracker_Phase5; % Column 37
-             Final_Average_InstantCooperatorCountTracker_Phase6; % Column 38
-             Final_Average_RedirectedHelperCountTracker_Phase1; % Column 39
-             Final_Average_RedirectedHelperCountTracker_Phase2; % Column 40
-             Final_Average_RedirectedHelperCountTracker_Phase3; % Column 41
-             Final_Average_RedirectedHelperCountTracker_Phase4; % Column 42
-             Final_Average_RedirectedHelperCountTracker_Phase5; % Column 43
-             Final_Average_RedirectedHelperCountTracker_Phase6; % Column 44
+             Final_foundations_Radius_Phase6; % Column 20
+             Final_Average_HopefulLeadFounderCountTracker_Phase1; % Column 21
+             Final_Average_HopefulLeadFounderCountTracker_Phase2; % Column 22
+             Final_Average_HopefulLeadFounderCountTracker_Phase3; % Column 23
+             Final_Average_HopefulLeadFounderCountTracker_Phase4; % Column 24
+             Final_Average_HopefulLeadFounderCountTracker_Phase5; % Column 25
+             Final_Average_HopefulLeadFounderCountTracker_Phase6; % Column 26
+             Final_Average_InstantCooperatorCountTracker_Phase1; % Column 27
+             Final_Average_InstantCooperatorCountTracker_Phase2; % Column 28
+             Final_Average_InstantCooperatorCountTracker_Phase3; % Column 29
+             Final_Average_InstantCooperatorCountTracker_Phase4; % Column 30
+             Final_Average_InstantCooperatorCountTracker_Phase5; % Column 31
+             Final_Average_InstantCooperatorCountTracker_Phase6; % Column 32
+             Final_Average_RedirectedHelperCountTracker_Phase1; % Column 33
+             Final_Average_RedirectedHelperCountTracker_Phase2; % Column 34
+             Final_Average_RedirectedHelperCountTracker_Phase3; % Column 35
+             Final_Average_RedirectedHelperCountTracker_Phase4; % Column 36
+             Final_Average_RedirectedHelperCountTracker_Phase5; % Column 37
+             Final_Average_RedirectedHelperCountTracker_Phase6]'; % Column 38
 
 % To find the final average foundress relatednesses as a weighted average of the number of foundations in each phase, you can multiply the average relatednesses
 % in each phase by the 'foundations_Radius' in that phase, when you process the outputs in 'Processing_HPC_MATLAB_outputs.m'.
