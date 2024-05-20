@@ -9,13 +9,13 @@ clear all
 % SETTING THE SIMULATION INPUTS:
 % Divide the year into 6 2-month periods (m), corresponding to phases in which a focal individual may develop from an egg to adult. For each period, evolve two traits: y_m: Prob of developing as a foundress if you have high absolute body condition. x_m: Prob of developing as a foundress if you have low absolute body condition. The year is fully flexible: you can set the 6 period to whichever climate factors you would like to explore. There is a single variable - "EnvState" - that defines the period. In practice, this could be linked to the WorldClim variables by projecting it as a simple function of temperature and rainfall, based on what we know about the distribution of Belonogaster in Africa (e.g., the region of the 2-dimensional temp-rainfall plot corresponding to the South African winter would be "harsh". The harshness of each period is given by the variable "EnvState". It varies between 0 and 1. At 0, the environment is unsurvivable. At 1, it is maximally benign. The scale is arbitrary, and affects various aspects of fitness (e.g., nest-founding success for foundresses of different body-conditions, stochastic failure rates, landscape fragmentation, body condition achieved during development, etc.):
 
-% Use either the HPC parallel option (many climate zones) or the local computer (single climate zone) options.
+% Use either the HPC parallel option (many climate zones, either directly from the map grid or as part of a systematic variation of parameters) or the local computer (single climate zone) options.
 % Comment out the option that you are not using.
 
 % IF USING HPC ARRAYS (REPLICATING IN PARALLEL ACROSS MULTIPLE CLIMATE LOCATIONS):
     
     % Print the SimID number to the Slurm output file if running on HPC:
-    SimID
+    ThisSimulationNumber = SimID
 
     % Receive EnvState values from Slurm input if running on HPC:
     EnvState = nan(1,6);
@@ -42,10 +42,10 @@ clear all
     IsHibernation
 
 % IF RUNNING ON THE LOCAL COMPUTER (A SINGLE CLIMATE LOCATION), ENTER THE ENVSTATE AND ISHIBERNATION VALUES FOR THIS SPECIFIC CLIMATE:
-    %EnvState    =      [1;          0.7;        0.8;        0.9;        0.6;        1.0];
+    %EnvState    =      [1.0;       0.7;        0.0;        0.0;        1.0;        1.0];
     % Harshness:        Jan-Feb     Mar-Apr     May-June    July-Aug    Sept-Oct    Nov-Dec
 % Are any of the '0' states hibernation (as opposed to torpor)? Set to '1' for all hibernations:
-    %IsHibernation =    [0           0           0           0           0           0];
+    %IsHibernation =    [0           0           1           1           0           0];
 
 % Note: if running on the local computer, comment out the "quit" line at the end of the whole script.
 
@@ -66,7 +66,7 @@ FiguresOnOrOff = 0; % set '1' to plot figures, '0' otherwise.
     nWasps = (max_Wasps_Per_Colony)*(max_NestCarryingCapacity); % The maximum theoretical number of wasps who can exist in a single deme.
 % How does reproduction work? Reproduction is haplodiploid, with single-mating. We assume female philopatry and male-biased dispersal. Specifically, we assume that males disperse to the two neighbouring demes. If the two neighbouring demes are uninhabited, males mate on their home deme (which may generate inbreeding in harsh landscapes). We assume that mating occurs at the start of each phase.
 % Time clicks forward in phases. There are 6 phases in a year. Here, choose the number of years to run the model for:
-TotalYears = 150; TotalPhases = TotalYears*6; YearlyPhasesList = repmat(1:6,1,TotalYears)';
+TotalYears = 50; TotalPhases = TotalYears*6; YearlyPhasesList = repmat(1:6,1,TotalYears)';
 % Give each wasp slot an ID number within its site. Within each site, the numbers start at 1 and go up to 'nWasps'. Not every wasp slot is necessarily occupied by a wasp. When a wasp dies and is replaced, a new wasp receives the ID number. The ID numbers are therefore effectively individual slots available in the site (deme).
 Wasps = NaN(90,nWasps,nSites); % For each wasp slot, there are 40 columns of wasp-slot-specific info (you can add more). This is only for females. The first 3 columns are the index position of the wasp slot. The other columns are  info about the current occupant. If no wasp currently occupies the wasp slot, those columns will just show 'NaN':
 % Setting up the fixed first three columns of 'Wasps' (wasp-slot indexes):             
@@ -101,7 +101,7 @@ StrengthOfKinDiscrimination = 0; % set the probability with which foundresses au
 
 % The opportunity for redirected helping is set by the user (between 0 and 1, inclusive):
 RedirectedHelpingOpportunity = 0.5; % set the probability that a failed lead foundress has the opportunity to become a redirected helper.
-% When '1', attempting to build your own nest and failing does carry an opportunity cost in terms of lost opportunities to be a subordinate (and therefore no chance to help kin, etc.).
+% When '1', attempting to build your own nest and failing does not carry an opportunity cost in terms of lost opportunities to be a subordinate (and therefore no chance to help kin, etc.).
 % When '0', a failed lead foundress has no opportunity to join a nest as a subordinate.                    
 
 % ----------------------------------------------------------------------------
@@ -199,11 +199,13 @@ NewInstantCooperatorAverageCondition = nan(TotalPhases,1);
 HigherConditionFoundressPhenotype = nan(TotalPhases,1);
 LowerConditionFoundressPhenotype = nan(TotalPhases,1);
 empty_sites_tracker = nan(TotalPhases,1);
+relatedness_data = [NaN NaN];
 relatedness_tracker = nan(TotalPhases,1);
-whole_year_relatedness_tracker = nan(TotalPhases,1);
+whole_year_relatedness_tracker = nan(TotalYears,1);
 sister_nest_tracker = nan(TotalPhases,1); % records the proportion of subordinates who come from the same parental nest as the dominant (i.e., are sisters)
-%save_body_condition_distribution = nan(5000,size(Wasps,2)*size(Wasps,3));
-
+HopefulFounderCountTracker = nan(TotalPhases,1); % records the number of hopeful lead founders each phase.
+InstantCooperatorCountTracker = nan(TotalPhases,1); % records the number of instant cooperators each phase.
+RedirectedHelperCountTracker = nan(TotalPhases,1); % records the number of hopeful lead founders who eventually become subordinates on a different nest as a redirected helper.
 %%
 
 %% OPEN THIS COMMENT SECTION FOR A LIST OF WHICH TRAITS/INFORMATION ARE IN WHICH ROWS OF THE MASTER 'WASPS' ARRAY:
@@ -316,6 +318,7 @@ sister_nest_tracker = nan(TotalPhases,1); % records the proportion of subordinat
 
 % Save the true EnvStates (this is used to restore the EnvStates after the initialisation phase):
 true_EnvStates = EnvState;
+tic; % start timer
 % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 for Phase = 1:TotalPhases
         Phase
@@ -328,10 +331,15 @@ for Phase = 1:TotalPhases
             EnvState = true_EnvStates;
         end
 
+        % At the start of each year, set up a vector for storing whole-year relatedness data for the year:
+        if PhaseOfYear == 1
+            whole_year_relatedness_data = [NaN NaN];
+        end
+                                                
         %%    
         % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         % ALLELES AND PHENOTYPES FOR ALL WASPS IN THE POPULATION:
-        "Starting section 1a"
+        disp(['Current Phase: ',num2str(Phase),'. Current section: (1) Reviewing alleles and phenotypes for all wasps in the population'])
         %tic
         %%                       
                         % Which rows' traits are expressed in the current phase?
@@ -407,7 +415,7 @@ for Phase = 1:TotalPhases
         % RE-INITIALISING LOCALLY-EXTINCT SITES:
         % If a site has gone locally extinct, re-initialise it by resetting it with an identical composition to the closest surviving site:
         %%
-         "Starting section 1b"
+         disp(['Current Phase: ',num2str(Phase),'. Current section: (2) Re-initialising locally-extinct sites'])
         % Find sites that are locally extinct:
         idx = find(isnan(Wasps(4,:,:))); 
         [row,col,page] = ind2sub(size(Wasps(4,:,:)),idx);
@@ -579,7 +587,7 @@ end % end of if FiguresOnOrOff toggle.
 
 % --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------    
 % RECORD HOW MANY WASPS ARE CHOOSING TO BECOME FOUNDRESSES IN THIS PHASE:
-"Starting section 2"
+disp(['Current Phase: ',num2str(Phase),'. Current section: (3) Recording how many wasps are choosing to become foundresses in this phase'])
 %%
  % Find proportion of new wasps who are choosing to become foundresses:
  idx = find(Wasps(30,:,:) == 1);
@@ -788,7 +796,7 @@ end
 
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % NEST FOUNDATION AND PLEOMETROSIS: currently around 0.33 seconds if nSites=2000
-                    "Starting section 3"
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (4) Nest foundation and pleometrosis'])
                     %tic
                     %%
                     % Find linear indices for all foundresses (wasps choosing to become a foundress have a '1' in row 33):
@@ -814,9 +822,12 @@ end
                     % Each lead founder's body condition determines whether her initial lone foundation (the construction of a small egg-only nest) fails instantly or proceeds:
                     
                               % The body condition score ranges from 0 to 1. This value is directly the probability that the wasp will succeed in establishing a nest if she attempts to become a lead foundress:
-                              minimum_threshold_condition = 0.1;
-                              early_stage_nest_survival = Foundations(:,6) > (minimum_threshold_condition + rand(size(Foundations(:,6)))); % '1' if nest survives early stage, '0' if dies.
-                               
+                              tolerance = 0.5*EnvState(PhaseOfYear); % Ranges from 0 to 0.5. In a maximally benign environmental state (EnvState = 1), tolerance is high (0.5). This relaxes the importance of body condition in early stage nesting success in the following line.
+                              early_stage_nest_survival = Foundations(:,6) > (rand(size(Foundations(:,6))) - tolerance); % '1' if nest survives early stage, '0' if dies.
+                              % If you would like to impose a minimum condition for success:
+                                %%minimum_threshold_condition = 0.1;
+                                %%early_stage_nest_survival(Foundations(:,6) > minimum_threshold_condition) = 0; % all lead founders below the minimum threshold condition fail
+
                     % REDIRECTED HELPING BY FAILED LEAD FOUNDERS: The lead founders who failed at the early-stage are set aside to add to the upcoming cooperator pool, as redirected helpers:
                                 numrows = size(Foundations(early_stage_nest_survival == 0,1),1);
                                 RedirectedHelpers = nan(numrows,4);
@@ -825,15 +836,13 @@ end
                                 RedirectedHelpers(:,3) = Foundations(early_stage_nest_survival == 0,2);                                                                                 % 'RedirectedHelpers' Column 3: Parental nest (number within its own site)
                                 RedirectedHelpers(:,4) = 100000*Foundations(early_stage_nest_survival == 0,1)+Foundations(early_stage_nest_survival == 0,2);                            % 'RedirectedHelpers' Column 4: Parental nest (unique number within whole population)
     
-    % THE REDIRECTED HELPERS ARE NOT YET USED IN THE MODEL
-
                     % Now eliminate the failed lead founders from their lead foundress positions in 'Foundations':
                                 Foundations = Foundations(early_stage_nest_survival == 1,:);  
              
                     % At this point, there may be no foundations left in the population (especially if this is a phase of the year in which very few wasps choose to be foundresses).
                     % The rest of the foundation section only applies if foundations have actually been built by hopeful lead founder (technically, it requires at least two foundations in the entire population, to ensure that the 'sub2ind' function works smoothly):
 if size(Foundations,1) > 1 % only proceed if there is more than one foundation built in the entire population
-"Starting section 3a"
+disp(['Current Phase: ',num2str(Phase),'. Current section: (5) Proceeding as there is more than a single foundation built in the population'])
 
                     % Identify all instant cooperators in the whole population. All instant cooperators have '1' in row 61:
                                         idx = find(Wasps(61,:,:) == 1);                              
@@ -845,7 +854,7 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
                                         % 'InstantCooperators' Column 4: Parent nest (unique number within whole population)
 
                     % The opportunity for redirected helping can be set by the user.
-                    % When '1', attempting to build your own nest and failing does carry an opportunity cost in terms of lost opportunities to be a subordinate (and therefore no chance to help kin, etc.).
+                    % When '1', attempting to build your own nest and failing does not carry an opportunity cost in terms of lost opportunities to be a subordinate (and therefore no chance to help kin, etc.).
                     % When '0', a failed lead foundress has no opportunity to join a nest as a subordinate.
                     % 'RedirectedHelpingOpportunity' is set above, and can take any value from 0 to 1 (e.g., 0.5). It sets the probability that a failed lead foundress has the opportunity to become a redirected helper:
                     chosen_redirected_helpers = rand(size(RedirectedHelpers,1),1) < RedirectedHelpingOpportunity;
@@ -854,9 +863,19 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
                         InstantCooperators = cat(1,InstantCooperators,RedirectedHelpers);
                     end
                     
+                    % Record the total numbers of each type of foundress this phase:
+                            % First, record how many wasps become hopeful lead founders (which means they had a zero in row 61):
+                                     idx = find(Wasps(61,:,:) == 0);
+                                     HopefulFounderCountTracker(Phase) = max(size(idx));
+                            % All other foundresses chose to become 'instant cooperators' (which means they had a one in row 61). Record how many this was:
+                                     idx = find(Wasps(61,:,:) == 1);
+                                     InstantCooperatorCountTracker(Phase) = max(size(idx));
+                            % Of the hopeful lead founders, record how many ultimately become redirected helpers:
+                                     RedirectedHelperCountTracker(Phase) = max(size(RedirectedHelpers));
+
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % SISTERS JOINING IF AVAILABLE (THROUGH NATAL PHILOPATRY/KIN DISCRIMINATION):            
-"Starting section 3b"                    
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (6) Sisters joining if available'])                    
                     % Identify slots in the 'Foundations' array that are available for filling by subordinates on each site:
                     idx = find(isnan(Foundations));                                         % Find linear indices of all unfilled subordinate slots in the 'Foundations' array.
                     
@@ -903,7 +922,7 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
 
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % RANDOM JOINING (MAY BE SISTERS OR NON-SISTERS):           
-"Starting section 3c-A"                    
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (7) Random joining (may be sisters or non-sisters)'])                  
                     % From the wasps who remain in 'InstantCooperators', we now allocate them at random to foundress nests within their site. They may be sisters or non-sisters.
                     % The process is the same as for the natal philopatry/kin discrimination section.
                     
@@ -919,8 +938,7 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
                                 end % end sanity checkpoint.
                     
                     % Proceed  with random joining if there are slots available for filling:
-                    if ~isempty(idx)
-                                    "Starting section 3c-B"   
+                    if ~isempty(idx)  
                                                % Give every available slot in 'Foundations' a sequence number within its own SITE (i.e., number all the remaining open slots in a site (starting at 1 and counting upwards):
                                                 V1 = Foundations( sub2ind(size(Foundations),row,1*ones(length(row),1)) ); % Site number (from column 1 of 'Foundations').
                                                         % Temporarily reorder, so that we can count number of available slots in each site:
@@ -963,7 +981,7 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
                     % -------------------------------------------------------------------------------
                     % CALCULATE AND RECORD FOUNDRESS RELATEDNESSES:
                     %%
- "Starting section 3c-C"                       
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (8) Calculating foundress relatednesses'])                       
                     % Subordinate relatednesses to dominant:
 
                             % It might be better to create and use a neutral locus, rather than one under selection.
@@ -986,7 +1004,7 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
                                             end
                                             
                                             % Calculate regression relatedness:
-                                                    x = relatedness_data(2:end,2); % subordinate's genetic value (
+                                                    x = relatedness_data(2:end,2); % subordinate's genetic value
                                                     y = relatedness_data(2:end,1); % dominant's genetic value
                                                     p = polyfit(x,y,1); 
                                                     f = polyval(p,x); 
@@ -1014,7 +1032,6 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
                                             
                                             if PhaseOfYear == 1
                                                 relatedness_data_Phase1 = relatedness_data;
-                                                whole_year_relatedness_data = [NaN NaN];
                                                 whole_year_relatedness_data = cat(1,whole_year_relatedness_data,relatedness_data_Phase1);
                                             elseif PhaseOfYear == 2
                                                 relatedness_data_Phase2 = relatedness_data;
@@ -1032,7 +1049,7 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
                                                 relatedness_data_Phase6 = relatedness_data;
                                                 whole_year_relatedness_data = cat(1,whole_year_relatedness_data,relatedness_data_Phase6);
                                                 % Summarise this year in the final phase of the year:
-                                                x = whole_year_relatedness_data(:,2); % subordinate's genetic value (
+                                                x = whole_year_relatedness_data(:,2); % subordinate's genetic value 
                                                 y = whole_year_relatedness_data(:,1); % dominant's genetic value
                                                 p = polyfit(x(~isnan(x)),y(~isnan(x)),1);
                                                 whole_year_relatedness_tracker(find(isnan(whole_year_relatedness_tracker), 1)) = p(1); % fill in the next 'NaN' value in whole_year_relatedness_tracker with the regression relatedness for all this year's phases together.
@@ -1061,11 +1078,15 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
                                     subplot(4,4,11)
                                     plot(sister_nest_tracker); ylim([0 1]); pause(0.001);  
                                 end
+                                % Take annual average of 'sister_nest_tracker' (weighted average based on number of subordinates in each phase):
+                                % SECTION TO BE CONTINUED.
+
+                                
                     %%                 
                     % -------------------------------------------------------------------------------
                     % FOUNDRESS NEST SURVIVAL OR FAILURE:
                     % Once a foundress group has established, the nest's survival depends on the extent of cooperation.
-"Starting section 3d"                    
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (9) Foundress nest survival or failure'])                     
                     % The total number of subordinates on each nest in the whole population:        sum(1-isnan(Foundations(:,[7:end])),2); % Each row is a separate foundation in the 'Foundations' array.
                     % As a proportion of maximum group size:                                        sum(1-isnan(Foundations(:,[7:end])),2)./max_subordinate_group_size
                     
@@ -1088,7 +1109,7 @@ if size(Foundations,1) > 1 % only proceed if there is more than one foundation b
 
                     % A large number of foundations can be set up in a site, in the 'Foundations' array. Free nest slots on the site are filled by the available foundations (unless the site's carrying capacity is reached, at which point surplus foundations fail to secure a nest spot). The number of mature colony slots available in any site depends on the 'Wasps' array.
                     % Larger foundress groups are more successful. We therefore fill the available spaces in the 'Wasps' array in order of foundress group size.
-"Starting section 3e-1"                    
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (10) Foundress nests progress to maturity'])                    
                     % Within each site, sort the foundations in order of group size:
                     Foundations = sortrows([Foundations (sum(1-isnan(Foundations(:,7:end)),2))], [1 size(Foundations,2)+1], {'ascend' 'descend'}); % A result of this line (besides the fact that the foundress nests are now sorted by group size) is that there is now a new column in 'Foundations' at the end, containing the group sizes.
                     
@@ -1117,7 +1138,7 @@ end
                     total_foundation_count_entering_Wasps_for_this_site = foundation_count_entering_Wasps_array(Foundations(:,1));       
                     
                     % For the surplus foundress groups in 'Foundations' (i.e., those over the nest carrying capacity for the site): save them in a new array called 'SurplusFoundations', and eliminate them from 'Foundations':
-                    SurplusFoundations = Foundations(Sequences_3 > total_foundation_count_entering_Wasps_for_this_site,:); % save the surplus foundations in their own array: they will be involved in short-range female dispersal to neighbouring sites.
+                    SurplusFoundations = Foundations(Sequences_3 > total_foundation_count_entering_Wasps_for_this_site,:); 
                     Foundations = Foundations(total_foundation_count_entering_Wasps_for_this_site>=Sequences_3,:); % eliminate the surplus foundations from the original 'Foundations' array.
 
                    % We need a column vector containing the destination nest slot in 'Wasps' that this foundation will be entered into:
@@ -1127,7 +1148,7 @@ end
                             [row,col,page] = ind2sub(size(Wasps(3,:,:)), ind);
                             open_dominant_positions = [col page];
                     
-% NEW ADDITION: If this is the first phase after a hibernation, however, all the nest spots are biologically (even though they won't appear that way looking only at the 'Wasps' array), as all the wasps in the 'Wasps' array will actually be in hibernacula:
+% If this is the first phase after a hibernation, however, all the nest spots are biologically (even though they won't appear that way looking only at the 'Wasps' array), as all the wasps in the 'Wasps' array will actually be in hibernacula:
 if Phase > 1 && IsHibernation(YearlyPhasesList(Phase-1)) == 1 && IsHibernation(YearlyPhasesList(Phase)) == 0
         ind = find(Wasps(3,:,:) == 1);
         [row,col,page] = ind2sub(size(Wasps(3,:,:)), ind);
@@ -1165,31 +1186,17 @@ end
                     end % end of if Foundations array exists.
 end % End long section that only applies if foundations have been constructed.
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-"Starting section 3e-2"
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (12) Ensuring that foundresses are no longer listed in their parent colony'])   
                     % ENSURE THAT FOUNDRESSES ARE NO LONGER LISTED IN THEIR PARENT COLONY:
                     % All foundresses are now set to 'NaN' in their old (parent) colony. This includes foundresses who failed. We assume that foundresses who fail, and who then fail to join an existing foundress nest as a helper.
                             identify_foundresses = sub2ind(  [nWasps,nSites],all_foundresses(:,2),all_foundresses(:,3)  ); % Using the 'all_foundresses' array from the start of the nest foundation sections.
                             Wasps(4:end,identify_foundresses)=nan; % Any wasp who attempted to become a foundress is now 'NaN' in their parental colony: their old wasp slot has opened.                
-                   % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                    % STORE BODY CONDITION DATA:
-"Starting section 3f"                    
-                                % Store data to plot changes in distribution of body condition among new (1st adult phase) over the first 500 phases:
-                                if Phase < 5001
-                                    idx = find(Wasps(30,:,:) == 1);
-
-                                    % The plotting takes an enormous amount of time, because there are many thousands of datapoints.
-                                    % Since many are overlapping, we can try to speed up the plotting by thinning the dataset at random:
-                                    proportion_to_keep = 0.01;
-                                    thinning = rand(size(idx,1),1) < proportion_to_keep;
-
-                                    save_body_condition_distribution(Phase,1:size(idx(thinning),1)) = Wasps(28,idx(thinning));
-                                    
-                                end % end body condition distribution plot (applies to the first 500 phases only).                                
+                                                            
                     %%
 
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % WHO DID THE SUCCESSFUL FOUNDRESSES MATE WITH?
-                    "Starting section 4"
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (13) Identifying who the successful foundresses mated with'])  
                     %tic
                     %%
                     % The new successful lead foundresses can be identified in 'Wasps' by the fact that they:
@@ -1216,7 +1223,7 @@ end % End long section that only applies if foundations have been constructed.
                     %toc
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % INDIVIDUAL WASPS DIE (END OF THE PHASE):
-                    "Starting section 5"
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (14) Individual wasps die'])  
                     %tic
                     %%
                     % Individual wasps die with probability 'death_rate' each phase:
@@ -1243,7 +1250,7 @@ end % End long section that only applies if foundations have been constructed.
                     %toc
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % HELPER INVESTMENTS OCCUR:
-                    "Starting section 6"
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (15) Totalling helper investments'])  
                     %tic
                     %%
                     ind = find(~isnan(Wasps(4,:,:)));                               % Identifies all existing wasps in the population.
@@ -1262,7 +1269,7 @@ end % End long section that only applies if foundations have been constructed.
                     %toc
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % WHOLE COLONIES DIE (END OF THE PHASE): 
-                    "Starting section 7"
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (16) Whole colonies die']) 
                     %tic
                     %%
                     % The colony survival function can be changed:
@@ -1293,7 +1300,7 @@ end % End long section that only applies if foundations have been constructed.
                     colony_survival = colony_survival_probability > rand(length(colony_survival_probability),1);
                     % To see which nests have survived, use:        which_nest(~colony_survival);
 
-                    % COLONIES THAT REACH THEIR 6TH PHASE MUST ALSO DIE (WE CAN RELAX THIS LATER IF WE WANT TO INTRODUCE SERIAL POLYGYNY):
+                    % COLONIES THAT REACH THEIR 6TH PHASE MUST ALSO DIE (this could be relaxed in a future model incorporating serial polygyny):
                             % Find all queens who are older than 5 phases:
                             idx = find(Wasps(3,:,:) == 1 & ~isnan(Wasps(4,:,:)) & Wasps(30,:,:) > 5);
                             % Find the population-wide unique nest ID for these queens:
@@ -1317,11 +1324,11 @@ end % End long section that only applies if foundations have been constructed.
                     %toc
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % SURVIVING COLONIES PRODUCE DAUGHTERS: 
-                    "Starting section 8"
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (17) Surviving colonies produce daughters']) 
                     %tic
                     %%
                     % Nests of age 1 produce g1 offspring. Nests of age 2 produce g2 offspring. And so on. (The quality/condition of the offspring
-                    % will depend on worker helping effort, as does nest survival to the next phase. But I currently have not let offspring quantity
+                    % will depend on worker helping effort, as does nest survival to the next phase. We have not let offspring quantity
                     % depend on worker helping effort directly (though it does affect it indirectly, by increasing nest survival between phases).
                     % We can easily change that in future if required.
                     % In row 90, record the total female offspring produced by each queen:
@@ -1363,8 +1370,7 @@ end % End long section that only applies if foundations have been constructed.
                         V1 = (100000*slots(:,3)+slots(:,2)); % the unique IDs for each colony in the population
                         t = diff([0; find([diff(V1)~=0; true])]);V2 = ones(sum(t), 1);V2(cumsum(t(1:end-1))+1) = 1-t(1:end-1);V2 = cumsum(V2);  % A generic/useful line of code (from https://stackoverflow.com/questions/49780361/create-vector-which-ascends-based-on-repeated-values-of-another-vector-matlab) for generating a sequence of numbers (starting at 1 each time) for members of each group.
                         % e.g., you can see these sequences by running [new_available_slots V2]
-                        % THIS IS A PRETTY FAST METHOD FOR ADDING THE NUMBER SEQUENCES. REPLACE THE METHOD IN THE FOUNDATIONS SECTION WITH THIS ONE TOO!
-
+                        
                         % How many offspring did the queen for each of these colonies produce?
                             % Because there are 'max_Wasps_Per_Colony' slots in each colony, we can find the first slot (i.e., the queen) for each colony number using:     (max_Wasps_Per_Colony*(ColonyID-1))+1
                                 slot_of_corresponding_queen = (max_Wasps_Per_Colony*((slots(:,2)-1)))+1;  % e.g., [slots slot_of_corresponding_queen]
@@ -1495,7 +1501,7 @@ end % End long section that only applies if foundations have been constructed.
                     %%
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % MALE GENOMES, DISPERSAL, AND INTRODUCTION OF MUTATIONS:       
-                    "Starting section 9"
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (18) Male genomes, dispersal, and introduction of mutations']) 
                     %tic
                     %%
                     %toc
@@ -1566,22 +1572,12 @@ end % End long section that only applies if foundations have been constructed.
                     %toc                                               
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
                     % INCREMENT ALL AGES BY +1:
-                    "Starting section 10"
+                    disp(['Current Phase: ',num2str(Phase),'. Current section: (19) Incrementing ages by +1']) 
                     idx = find(~isnan(Wasps(30,:,:)));
                     Wasps(30,idx) = Wasps(30,idx) + 1; 
                     % The increment only occurs during 'livable' phases (i.e., not hibernation/torpor phases).
                     % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-                    % RECORD OUTCOMES:
-                    "Starting section 11"
-                    %track_y1 = Wasps(5,:,:);
-                    %hist(track_y1(~isnan(track_y1)),linspace(0, 1, 100)); pause(0.01);                   
-                    y1_mean = mean(Wasps(4,:,:),"all","omitnan");
-                    y2_mean = mean(Wasps(6,:,:),"all","omitnan");
-                    y3_mean = mean(Wasps(8,:,:),"all","omitnan");
-                    y4_mean = mean(Wasps(10,:,:),"all","omitnan");
-                    y5_mean = mean(Wasps(12,:,:),"all","omitnan");
-                    y6_mean = mean(Wasps(14,:,:),"all","omitnan");
-
+                    
 % Plot spatial overview of the population:
 if FiguresOnOrOff == 1
     figure(1)
@@ -1598,6 +1594,9 @@ end
 % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % Plot panel of polar plots:
 %%
+% Save data for plotting:
+foundations_Radius(Phase) = mean(number_of_nests); % The value 'foundations_Radius(Phase)' is used at the end of the phase to plot the number of foundations that were established.
+             
 if FiguresOnOrOff == 1
     figure(888)
     subplot(1,3,1)
@@ -1667,8 +1666,6 @@ subplot(1,3,2)
 figure(888)
 subplot(1,3,3)
  % PLOT OF NUMBER OF MEAN SURVIVING FOUNDRESS NESTS PER SITE:
-             % Save data for plotting:
-                foundations_Radius(Phase) = mean(number_of_nests); % The value 'foundations_Radius(Phase)' is used at the end of the phase to plot the number of foundations that were established.
              % First, shade the different sectors according to harshness (harsher is darker):
                 my_transparency_baseline = 0;       my_face_color = [0.5,0.5,0.5];      my_radius_max = 100;
                 Jan_to_Mar_theta = deg2rad(repelem(360,my_radius_max)); polarhistogram(Jan_to_Mar_theta,1,'BinLimits',deg2rad([330 390]),'FaceColor',my_face_color,'FaceAlpha',IsHibernation(1));
@@ -1700,17 +1697,189 @@ end
 %%
 % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         end % end if statement for non-hibernation/non-torpor phases.
-end % end phase.    
+end % end phase.   
+toc; % end timer
+
+% Print completion message:
+"This simulation run has now completed running."
 
 % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 % EXPORT OUTPUTS (PARTICULARLY IF ON HPC):
 
-save('MATLAB_Output_SimID_"SimID".mat')
+% Specify the outputs to save:
+
+    % Record the phase types for the last 20% of phases:
+                YearlyPhasesList_LastSection = YearlyPhasesList(round(0.8*TotalPhases):end); % take final 20% of phases
+
+    % Sample the final 20% of years for relatednesses:
+                Relatednesses_LastSection = whole_year_relatedness_tracker(round(0.8*TotalYears):end);
+
+    % Average foundress relatedness in the last 20% of phases...:
+                % ...in Phase 1:
+                Final_AverageFoundressRelatedness_Phase1 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 1));
+                % ...in Phase 2:
+                Final_AverageFoundressRelatedness_Phase2 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 2));
+                % ...in Phase 3:
+                Final_AverageFoundressRelatedness_Phase3 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 3));
+                % ...in Phase 4:
+                Final_AverageFoundressRelatedness_Phase4 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 4));
+                % ...in Phase 5:
+                Final_AverageFoundressRelatedness_Phase5 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 5));
+                % ...in Phase 6:
+                Final_AverageFoundressRelatedness_Phase6 = nanmean(Relatednesses_LastSection(YearlyPhasesList_LastSection == 6));
+               
+        % Final annual mean foundress relatedness (unweighted - you can calculate the weighted value in the output processing script):
+        Final_AnnualMeanRelatednessUnweighted = mean(whole_year_relatedness_tracker(round(0.8*TotalYears):end)); % take the average of 'whole_year_relatedness_tracker' for the final 20% of simulated years (when simulation is likely to have reached equilibrium values).
+
+    % Sample the final 20% of phases for the following:
+    HigherConditionFoundressPhenotype_LastSection = HigherConditionFoundressPhenotype(round(0.8*TotalPhases):end); % take final 20% of phases
+    LowerConditionFoundressPhenotype_LastSection = LowerConditionFoundressPhenotype(round(0.8*TotalPhases):end); % take final 20% of phases
+    foundations_Radius_LastSection = foundations_Radius(round(0.8*TotalPhases):end); % take final 20% of phases
+    HopefulFounderCountTracker_LastSection = HopefulFounderCountTracker(round(0.8*TotalPhases):end); % take final 20% of phases
+    InstantCooperatorCountTracker_LastSection = InstantCooperatorCountTracker(round(0.8*TotalPhases):end); % take final 20% of phases
+    RedirectedHelperCountTracker_LastSection = RedirectedHelperCountTracker(round(0.8*TotalPhases):end); % take final 20% of phases
+
+        % Probability of becoming a foundress for higher condition wasps:
+        % ...in Phase 1:
+        Final_HigherConditionFoundressPhenotype_Phase1 = mean(HigherConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 1));
+        % ...in Phase 2:
+        Final_HigherConditionFoundressPhenotype_Phase2 = mean(HigherConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 2));
+        % ...in Phase 3:
+        Final_HigherConditionFoundressPhenotype_Phase3 = mean(HigherConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 3));
+        % ...in Phase 4:
+        Final_HigherConditionFoundressPhenotype_Phase4 = mean(HigherConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 4));
+        % ...in Phase 5:
+        Final_HigherConditionFoundressPhenotype_Phase5 = mean(HigherConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 5));
+        % ...in Phase 6:
+        Final_HigherConditionFoundressPhenotype_Phase6 = mean(HigherConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 6));
+        
+        % Probability of becoming a foundress for lower condition wasps:
+        % ...in Phase 1:
+        Final_LowerConditionFoundressPhenotype_Phase1 = mean(LowerConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 1));
+        % ...in Phase 2:
+        Final_LowerConditionFoundressPhenotype_Phase2 = mean(LowerConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 2));
+        % ...in Phase 3:
+        Final_LowerConditionFoundressPhenotype_Phase3 = mean(LowerConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 3));
+        % ...in Phase 4:
+        Final_LowerConditionFoundressPhenotype_Phase4 = mean(LowerConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 4));
+        % ...in Phase 5:
+        Final_LowerConditionFoundressPhenotype_Phase5 = mean(LowerConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 5));
+        % ...in Phase 6:
+        Final_LowerConditionFoundressPhenotype_Phase6 = mean(LowerConditionFoundressPhenotype_LastSection(YearlyPhasesList_LastSection == 6));
+        
+        % Record the mean number of foundations established in each phase (the variable 'foundations_Radius' above):
+        % ...in Phase 1:
+        Final_foundations_Radius_Phase1 = mean(foundations_Radius_LastSection(YearlyPhasesList_LastSection == 1));
+        % ...in Phase 2:
+        Final_foundations_Radius_Phase2 = mean(foundations_Radius_LastSection(YearlyPhasesList_LastSection == 2));
+        % ...in Phase 3:
+        Final_foundations_Radius_Phase3 = mean(foundations_Radius_LastSection(YearlyPhasesList_LastSection == 3));
+        % ...in Phase 4:
+        Final_foundations_Radius_Phase4 = mean(foundations_Radius_LastSection(YearlyPhasesList_LastSection == 4));
+        % ...in Phase 5:
+        Final_foundations_Radius_Phase5 = mean(foundations_Radius_LastSection(YearlyPhasesList_LastSection == 5));
+        % ...in Phase 6:
+        Final_foundations_Radius_Phase6 = mean(foundations_Radius_LastSection(YearlyPhasesList_LastSection == 6));
+
+        % Record the average number of hopeful lead founders:
+        % ...in Phase 1:
+        Final_Average_HopefulLeadFounderCountTracker_Phase1 = mean(HopefulFounderCountTracker_LastSection(YearlyPhasesList_LastSection == 1));
+        % ...in Phase 2:
+        Final_Average_HopefulLeadFounderCountTracker_Phase2 = mean(HopefulFounderCountTracker_LastSection(YearlyPhasesList_LastSection == 2));
+        % ...in Phase 3:
+        Final_Average_HopefulLeadFounderCountTracker_Phase3 = mean(HopefulFounderCountTracker_LastSection(YearlyPhasesList_LastSection == 3));
+        % ...in Phase 4:
+        Final_Average_HopefulLeadFounderCountTracker_Phase4 = mean(HopefulFounderCountTracker_LastSection(YearlyPhasesList_LastSection == 4));
+        % ...in Phase 5:
+        Final_Average_HopefulLeadFounderCountTracker_Phase5 = mean(HopefulFounderCountTracker_LastSection(YearlyPhasesList_LastSection == 5));
+        % ...in Phase 6:
+        Final_Average_HopefulLeadFounderCountTracker_Phase6 = mean(HopefulFounderCountTracker_LastSection(YearlyPhasesList_LastSection == 6));
+         
+        % Record the average number of instant cooperators:
+        % ...in Phase 1:
+        Final_Average_InstantCooperatorCountTracker_Phase1 = mean(InstantCooperatorCountTracker_LastSection(YearlyPhasesList_LastSection == 1));
+        % ...in Phase 2:
+        Final_Average_InstantCooperatorCountTracker_Phase2 = mean(InstantCooperatorCountTracker_LastSection(YearlyPhasesList_LastSection == 2));
+        % ...in Phase 3:
+        Final_Average_InstantCooperatorCountTracker_Phase3 = mean(InstantCooperatorCountTracker_LastSection(YearlyPhasesList_LastSection == 3));
+        % ...in Phase 4:
+        Final_Average_InstantCooperatorCountTracker_Phase4 = mean(InstantCooperatorCountTracker_LastSection(YearlyPhasesList_LastSection == 4));
+        % ...in Phase 5:
+        Final_Average_InstantCooperatorCountTracker_Phase5 = mean(InstantCooperatorCountTracker_LastSection(YearlyPhasesList_LastSection == 5));
+        % ...in Phase 6:
+        Final_Average_InstantCooperatorCountTracker_Phase6 = mean(InstantCooperatorCountTracker_LastSection(YearlyPhasesList_LastSection == 6));
+         
+        % Record the average number of redirected helpers:
+        % ...in Phase 1:
+        Final_Average_RedirectedHelperCountTracker_Phase1 = mean(RedirectedHelperCountTracker_LastSection(YearlyPhasesList_LastSection == 1));
+        % ...in Phase 2:
+        Final_Average_RedirectedHelperCountTracker_Phase2 = mean(RedirectedHelperCountTracker_LastSection(YearlyPhasesList_LastSection == 2));
+        % ...in Phase 3:
+        Final_Average_RedirectedHelperCountTracker_Phase3 = mean(RedirectedHelperCountTracker_LastSection(YearlyPhasesList_LastSection == 3));
+        % ...in Phase 4:
+        Final_Average_RedirectedHelperCountTracker_Phase4 = mean(RedirectedHelperCountTracker_LastSection(YearlyPhasesList_LastSection == 4));
+        % ...in Phase 5:
+        Final_Average_RedirectedHelperCountTracker_Phase5 = mean(RedirectedHelperCountTracker_LastSection(YearlyPhasesList_LastSection == 5));
+        % ...in Phase 6:
+        Final_Average_RedirectedHelperCountTracker_Phase6 = mean(RedirectedHelperCountTracker_LastSection(YearlyPhasesList_LastSection == 6));
+         
+        % Collate these outputs into a single row vector:
+        this_Simulation_Outputs_Vector = [ThisSimulationNumber; % Column 1
+             Final_AnnualMeanRelatednessUnweighted; % Column 2                      
+             Final_HigherConditionFoundressPhenotype_Phase1; % Column 3
+             Final_HigherConditionFoundressPhenotype_Phase2; % Column 4
+             Final_HigherConditionFoundressPhenotype_Phase3; % Column 5
+             Final_HigherConditionFoundressPhenotype_Phase4; % Column 6
+             Final_HigherConditionFoundressPhenotype_Phase5; % Column 7
+             Final_HigherConditionFoundressPhenotype_Phase6; % Column 8
+             Final_LowerConditionFoundressPhenotype_Phase1; % Column 9
+             Final_LowerConditionFoundressPhenotype_Phase2; % Column 10
+             Final_LowerConditionFoundressPhenotype_Phase3; % Column 11
+             Final_LowerConditionFoundressPhenotype_Phase4; % Column 12
+             Final_LowerConditionFoundressPhenotype_Phase5; % Column 13
+             Final_LowerConditionFoundressPhenotype_Phase6; % Column 14
+             Final_foundations_Radius_Phase1; % Column 15
+             Final_foundations_Radius_Phase2; % Column 16
+             Final_foundations_Radius_Phase3; % Column 17
+             Final_foundations_Radius_Phase4; % Column 18
+             Final_foundations_Radius_Phase5; % Column 19
+             Final_foundations_Radius_Phase6]'; % Column 20
+             Final_AverageFoundressRelatedness_Phase1; % Column 21
+             Final_AverageFoundressRelatedness_Phase2; % Column 22
+             Final_AverageFoundressRelatedness_Phase3; % Column 23
+             Final_AverageFoundressRelatedness_Phase4; % Column 24
+             Final_AverageFoundressRelatedness_Phase5; % Column 25
+             Final_AverageFoundressRelatedness_Phase6; % Column 26
+             Final_Average_HopefulLeadFounderCountTracker_Phase1; % Column 27
+             Final_Average_HopefulLeadFounderCountTracker_Phase2; % Column 28
+             Final_Average_HopefulLeadFounderCountTracker_Phase3; % Column 29
+             Final_Average_HopefulLeadFounderCountTracker_Phase4; % Column 30
+             Final_Average_HopefulLeadFounderCountTracker_Phase5; % Column 31
+             Final_Average_HopefulLeadFounderCountTracker_Phase6; % Column 32
+             Final_Average_InstantCooperatorCountTracker_Phase1; % Column 33
+             Final_Average_InstantCooperatorCountTracker_Phase2; % Column 34
+             Final_Average_InstantCooperatorCountTracker_Phase3; % Column 35
+             Final_Average_InstantCooperatorCountTracker_Phase4; % Column 36
+             Final_Average_InstantCooperatorCountTracker_Phase5; % Column 37
+             Final_Average_InstantCooperatorCountTracker_Phase6; % Column 38
+             Final_Average_RedirectedHelperCountTracker_Phase1; % Column 39
+             Final_Average_RedirectedHelperCountTracker_Phase2; % Column 40
+             Final_Average_RedirectedHelperCountTracker_Phase3; % Column 41
+             Final_Average_RedirectedHelperCountTracker_Phase4; % Column 42
+             Final_Average_RedirectedHelperCountTracker_Phase5; % Column 43
+             Final_Average_RedirectedHelperCountTracker_Phase6; % Column 44
+
+% To find the final average foundress relatednesses as a weighted average of the number of foundations in each phase, you can multiply the average relatednesses
+% in each phase by the 'foundations_Radius' in that phase, when you process the outputs in 'Processing_HPC_MATLAB_outputs.m'.
+
+% Clear everything except variables of interest (to reduce the file size of the resulting output MAT file):
+clearvars -except this_Simulation_Outputs_Vector foundations_Radius HigherConditionFoundressPhenotype LowerConditionFoundressPhenotype mean_group_size median_body_condition NewHopefulLeadFounderAverageCondition NewInstantCooperatorAverageCondition NewWorkerAverageCondition PleometrosisPhenotype relatedness_tracker sister_nest_tracker YearlyPhasesList
+
+% Save and export the output to a MAT file:        
+save('MATLAB_Output_SimulationID_"SimID".mat')
+
+% Print report:
+"Outputs from this simulation have now been saved in a MAT file."
 
 % ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 quit; % end MATLAB (this is necessary for finishing the job if running on HPC. Comment out this line if running on the local computer; otherwise, it will shut down MATLAB.
-
-
-
-
-
