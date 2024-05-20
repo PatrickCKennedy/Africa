@@ -5,7 +5,11 @@
 % the data to the local computer's desktop using this command in the terminal:
 %           scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MATLAB_Simulation/MATLAB_Outputs/ Desktop
 
-% Manually enter the number of simulations in the 'SimulationInputData' file (i.e., the number of rows).
+% Run the 'Importing_climate_data_to_MATLAB' script again at this point, so that the Workspace contains the 'SimulationInputData' array (and the other information needed for plotting the map, such as 'downscaled_longitude_axis', etc.).
+% Column 2 of 'SimulationInputData' contains the location of each grid cell on the world map.
+% 'SimulationInputData' and 'Outputs' have corresponding rows (i.e., row 14 in each array contains the information for simulation ID 14, and so on).
+
+% Find the number of simulations in the 'SimulationInputData' file (i.e., the number of rows).
 % You can find this using:  size(SimulationInputData,1);
 NumberOfSimulationsInInputData = size(SimulationInputData,1);
 
@@ -21,16 +25,12 @@ for z=1:NumberOfSimulationsInInputData
     load(filename);
     Outputs(z,:) = this_Simulation_Outputs_Vector;
     %%sister_nest_tracker
-    clearvars -except Outputs z NumberOfSimulationsInInputData
+    clearvars -except Outputs z SimulationInputData NumberOfSimulationsInInputData EnvStatesGrid downscaled_longitude_axis downscaled_latitude_axis coastlat coastlon
     z
 end
 
 % Save and export the output to a MAT file so that they can be rapidly opened later without needing to re-run the loop above:        
 save('MATLAB_Simulation_Outputs_Collated.mat')
-
-% Run the 'Importing_climate_data_to_MATLAB' script again at this point, so that the Workspace contains the 'SimulationInputData' array (and the other information needed for plotting the map, such as 'downscaled_longitude_axis', etc.).
-% Column 2 of 'SimulationInputData' contains the location of each grid cell on the world map.
-% 'SimulationInputData' and 'Outputs' have corresponding rows (i.e., row 14 in each array contains the information for simulation ID 14, and so on).
 
 % ---------------------------------------------------------------------------------------------
 % PLOTTING ANNUAL MEAN RELATEDNESS OUTPUT:
@@ -354,18 +354,3 @@ load(filename);
                     % Plot the final points:
                     hold off
                 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
