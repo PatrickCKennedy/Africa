@@ -14,18 +14,50 @@
 NumberOfSimulationsInInputData = size(SimulationInputData,1);
 
 % The simulation output vector ('this_Simulation_Outputs_Vector') generated in each run of the model contains the most important output summary variables.
-% It has ___TWENTY____ columns (more can be added to record other variables).
+% It has ___38____ columns (more can be added to record other variables).
 % To see what each column contains, look at the end of the simulation ('Africa_model_HPC.m').
 % Set up an empty array to record these outputs:
-Outputs = nan(NumberOfSimulationsInInputData,20);
+NumberOfColumnsInSimulationOutputsVectors = 38;
+Outputs = nan(NumberOfSimulationsInInputData,NumberOfColumnsInSimulationOutputsVectors+2);
 
 % Extract these summary variables from the MAT files:
 for z=1:NumberOfSimulationsInInputData
-    filename = ['/Users/pk14885/Desktop/MATLAB_Outputs/MATLAB_Output_SimulationID_', num2str(z)];
-    load(filename);
-    Outputs(z,:) = this_Simulation_Outputs_Vector;
-    %%sister_nest_tracker
-    clearvars -except Outputs z SimulationInputData NumberOfSimulationsInInputData EnvStatesGrid downscaled_longitude_axis downscaled_latitude_axis coastlat coastlon
+    filename = ['/Users/pk14885/Downloads/MATLAB_Simulation/MATLAB_Output_SimulationID_"', num2str(z),'"'];
+    try
+        load(filename);
+        Outputs(z,1:NumberOfColumnsInSimulationOutputsVectors) = this_Simulation_Outputs_Vector;
+
+        % Calculate weighted average of within-phase relatednesses during this simulation run (weighted by number of foundress groups) to find average annual relatedness:
+                    % Focus on the final 20% of phases:
+                    temp_table = [relatedness_tracker foundations_Radius relatedness_tracker.*foundations_Radius];
+                    % Remove 'NaN' values (i.e., where there are no foundations):
+                    temp_table = temp_table(~isnan(temp_table(:,3)),:);
+                    temp_table = temp_table(round(0.8*size(temp_table,1)):size(temp_table,1),:);
+                    temp_table = temp_table(temp_table(:,1)<1,:); % Remove small number of phases in which regression for relatedness produces greater than 1 (typically due to only one or very few foundations in the population) 
+                    temp_table = temp_table(temp_table(:,1)>-1,:); % As above, but for those in which regression is less than -1.  
+                    this_Simulation_weighted_relatedness = sum(temp_table(:,3))/sum(temp_table(:,2));
+                    % Add this as column 39 to the outputs:
+                    Outputs(z,39) = this_Simulation_weighted_relatedness;
+                    % Note: To plot the relationship between number of foundress nests and within-phase relatedness for this 
+                    % simulation run, use:      scatter(temp_table(:,2),temp_table(:,1), 2,'MarkerFaceColor','red','MarkerFaceAlpha',1,'MarkerEdgeAlpha',.0)      
+
+        % Find average new worker body condition (AvNWBC) in each phase for this simulation:
+                    AvNWBC_P1 = mean(NewWorkerAverageCondition(YearlyPhasesList == 1));
+                    AvNWBC_P2 = mean(NewWorkerAverageCondition(YearlyPhasesList == 2));
+                    AvNWBC_P3 = mean(NewWorkerAverageCondition(YearlyPhasesList == 3));
+                    AvNWBC_P4 = mean(NewWorkerAverageCondition(YearlyPhasesList == 4));
+                    AvNWBC_P5 = mean(NewWorkerAverageCondition(YearlyPhasesList == 5));
+                    AvNWBC_P6 = mean(NewWorkerAverageCondition(YearlyPhasesList == 6));
+                    AverageNewWorkerBodyConditionAcrossTheYear = [AvNWBC_P1 AvNWBC_P2 AvNWBC_P3 AvNWBC_P4 AvNWBC_P5 AvNWBC_P6];
+                    AverageNewWorkerBodyConditionAcrossTheYear = AverageNewWorkerBodyConditionAcrossTheYear(~isnan(AverageNewWorkerBodyConditionAcrossTheYear)); % drop any phases where no workers are being produced at all, which are just 'NaN'.
+                    % Calculate coefficient of variation in new worker body condition over the year:
+                    AverageNewWorkerBodyCondition_SeasonalCV = std(AverageNewWorkerBodyConditionAcrossTheYear)/mean(AverageNewWorkerBodyConditionAcrossTheYear);
+                    % Add this as column 40 to the outputs:
+                    Outputs(z,40) = AverageNewWorkerBodyCondition_SeasonalCV;         
+
+    catch
+    end%%sister_nest_tracker
+    clearvars -except NumberOfColumnsInSimulationOutputsVectors Outputs z SimulationInputData NumberOfSimulationsInInputData EnvStatesGrid downscaled_longitude_axis downscaled_latitude_axis coastlat coastlon
     z
 end
 
@@ -37,12 +69,24 @@ save('MATLAB_Simulation_Outputs_Collated.mat')
 
 % Set up empty array to hold the output data on the world map grid:
 AnnualMeanRelatednessGrid = nan(size(EnvStatesGrid));
-% Fill in the positions with the annual mean relatedness output (column 2 of 'Outputs'):
-AnnualMeanRelatednessGrid(SimulationInputData(:,2)) = Outputs(:,2);
+% Fill in the positions with the WEIGHTED annual mean relatedness output (column 39 of 'Outputs'):
+AnnualMeanRelatednessGrid(SimulationInputData(:,2)) = Outputs(:,39);
 
-% Plot annual mean relatedness predictions:
-                figure(100); worldmap('Africa') % Using the 'Mapping' MATLAB add-in.
+% Plot annual mean relatedness predictions using the weighted average calculated above :
+                figure(101); worldmap('Africa') % Using the 'Mapping' MATLAB add-in.
                 h = pcolorm(downscaled_latitude_axis,downscaled_longitude_axis, AnnualMeanRelatednessGrid)
+                load coastlines; plotm(coastlat,coastlon,'k');
+                colormap(cool); mlabel off; plabel off; gridm off; framem('FlineWidth',0.2,'FEdgeColor','white'); set(gcf,'color','w');
+                    a = colorbar; a.Label.String = 'Relatedness'; a.Label.Rotation = 270; a.Label.Position(1) = 3; a.Label.FontSize=16; a.FontSize = 16
+                    set(a,'position',[.25 .25 .02 .2]); % colourbar position and size
+
+% Plot annual mean relatedness predictions using previous method:
+% Set up empty array to hold the output data on the world map grid:
+OLD_AnnualMeanRelatednessGrid = nan(size(EnvStatesGrid));
+% Fill in the positions with the annual mean relatedness output (column 2 of 'Outputs'):
+OLD_AnnualMeanRelatednessGrid(SimulationInputData(:,2)) = Outputs(:,2);
+                figure(102); worldmap('Africa') % Using the 'Mapping' MATLAB add-in.
+                h = pcolorm(downscaled_latitude_axis,downscaled_longitude_axis, OLD_AnnualMeanRelatednessGrid)
                 load coastlines; plotm(coastlat,coastlon,'k');
                 colormap(cool); mlabel off; plabel off; gridm off; framem('FlineWidth',0.2,'FEdgeColor','white'); set(gcf,'color','w');
                     a = colorbar; a.Label.String = 'Relatedness'; a.Label.Rotation = 270; a.Label.Position(1) = 3; a.Label.FontSize=16; a.FontSize = 16
@@ -68,7 +112,7 @@ habitat_type(unlivable_phases_count == 0 & hibernation_phases_count == 0) = 3;
 
     figure(123);
     pointsize = 15;
-    scatter(rainfall_coefficients_of_variation, Outputs(:,2), pointsize,habitat_type,'filled', 'MarkerFaceAlpha',.9,'MarkerEdgeAlpha',1); set(gcf,'color','w');
+    scatter(rainfall_coefficients_of_variation, Outputs(:,39), pointsize,habitat_type,'filled', 'MarkerFaceAlpha',.9,'MarkerEdgeAlpha',1); set(gcf,'color','w');
     xlabel('Rainfall seasonality (CoV)');
     ylabel('Predicted evolved relatedness'); ylim([0 1]);
     groupColors = [0 0 0; 1 0.7 0.0; 0.9 0.9 0.9]; colormap(groupColors)
@@ -77,7 +121,6 @@ habitat_type(unlivable_phases_count == 0 & hibernation_phases_count == 0) = 3;
 % PLOTTING PROBABILITY THAT DOMINANT IS A SISTER:
 
      mean(sister_nest_tracker,'Omitnan')
-
 
 % ---------------------------------------------------------------------------------------------
 % PLOTTING SOCIAL SYNCHRONY:
@@ -135,6 +178,27 @@ habitat_type(unlivable_phases_count == 0 & hibernation_phases_count == 0) = 3;
     ylabel('Social synchrony (CoV)'); 
     groupColors = [0 0 0; 1 0.7 0.0; 0.9 0.9 0.9]; colormap(groupColors)
     axis square
+
+% ---------------------------------------------------------------------------------------------
+% PLOT BETWEEN-SEASON (I.E. BETWEEN-PHASE) VARIATION IN NEW WORKER BODY CONDITION:
+
+figure(98); scatter(YearlyPhasesList,NewWorkerAverageCondition)
+figure(99); scatter(YearlyPhasesList,NewHopefulLeadFounderAverageCondition)
+
+
+% Set up empty array to hold the output data on the world map grid:
+NewWorkerBodyConditionCV_Grid = nan(size(EnvStatesGrid));
+NewWorkerBodyConditionCV_Grid(SimulationInputData(:,2)) = Outputs(:,40); 
+
+% Plot coefficient of variation in new worker body condition between phases in which workers are produced:
+                figure(50); worldmap('Africa') % Using the 'Mapping' MATLAB add-in.
+                h = pcolorm(downscaled_latitude_axis,downscaled_longitude_axis, NewWorkerBodyConditionCV_Grid)
+                load coastlines; plotm(coastlat,coastlon,'k');
+                colormap(cool); mlabel off; plabel off; gridm off; framem('FlineWidth',0.2,'FEdgeColor','white'); set(gcf,'color','w');
+                    a = colorbar; 
+                    clim([0.2 0.6]); 
+                    a.Label.String = 'Seasonal variation'; a.Label.Rotation = 270; a.Label.Position(1) = 4; a.Label.FontSize=16; a.FontSize = 16
+                    set(a,'position',[.25 .25 .02 .2]); cbarrow % colourbar position and size
 
 
 
@@ -354,3 +418,18 @@ load(filename);
                     % Plot the final points:
                     hold off
                 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
