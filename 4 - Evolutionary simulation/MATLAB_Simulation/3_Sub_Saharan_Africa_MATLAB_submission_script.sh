@@ -8,6 +8,11 @@
 #SBATCH --account=BISC020282
 #SBATCH --array 1-269
 
+# ARRAY JOB SUBMISSION SCRIPT FOR RUNNING THE SIMULATION ACROSS MULTIPLE GRID CELLS IN MAP OF AFRICA
+# This HPC submission script runs 'Africa_model_HPC.m' across real-world climate data on a grid of Africa, which 
+# you set up by first running the 'Importing_climate_data.m' script in MATLAB on the local computer and uploading
+# the resulting 'SimulationInputData.txt' file to the MATLAB_Simulation/Input_data folder on BluePebble.
+
 # Manually add the correct number of grid cells to simulate above (e.g., --array 1-269 if there are 269 simulations to run).
 
 # The MATLAB script ('Africa_model_HPC.sh') and this script should be uploaded to the relevant folder on HPC ('MATLAB_Simulation'). The input data ('SimulationDataInput.txt') should be uploaded to 'MATLAB_Simulation/Input_data'.
