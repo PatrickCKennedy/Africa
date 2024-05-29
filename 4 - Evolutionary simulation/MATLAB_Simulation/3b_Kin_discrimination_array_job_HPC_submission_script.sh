@@ -6,16 +6,18 @@
 #SBATCH --time=2-00:00:00
 #SBATCH --mem=6G
 #SBATCH --account=BISC020282
-#SBATCH --array 1-269
+#SBATCH --array 1-10
 
 # ARRAY JOB SUBMISSION SCRIPT FOR RUNNING THE SIMULATION AT DIFFERENT LEVELS OF KIN DISCRIMINATION
-# This HPC submission script runs 'Africa_model_HPC.m' across real-world climate data on a grid of Africa, which 
-# you set up by first running the 'Importing_climate_data.m' script in MATLAB on the local computer and uploading
-# the resulting 'SimulationInputData.txt' file to the MATLAB_Simulation/Input_data folder on BluePebble.
+# This HPC submission script runs 'Africa_model_HPC.m' across 5 different levels of kin discrimination
+# (0, 0.25, 0.5, 0.75, 1) in each of two climates (southern Cameroon and Pretoria), so 10 jobs in total. 
+# The climate data that you need to supply for these two input climates are produced in the local computer MATLAB script
+# '3a_Setting_up_kin_discrimination_simulations.m', which produces the text file 
+# 'KinDiscriminationSimulationInputData.txt'. Upload this to the 
+# MATLAB_Simulation/KinDiscriminationSimulations/Input_data on BluePebble.
 
-# Manually add the correct number of grid cells to simulate above (e.g., --array 1-269 if there are 269 simulations to run).
-
-# The MATLAB script ('Africa_model_HPC.sh') and this script should be uploaded to the relevant folder on HPC ('MATLAB_Simulation'). The input data ('SimulationDataInput.txt') should be uploaded to 'MATLAB_Simulation/Input_data'.
+# This script runs the standard MATLAB script ('Africa_model_HPC.sh'), which is identical to that used
+# in the grid map of Africa array job.
 
 # -------------------------------------------------------------------
 # START THE LOOP THROUGH THE DIFFERENT MATLAB SIMULATIONS:
@@ -26,30 +28,30 @@ SimID=${SLURM_ARRAY_TASK_ID}
 # --------------------------------------------------------------------------------------------
 # READ IN THE ENVSTATE INPUTS FOR EACH SIMULATION IN THE LOOP:
 
-# Set working directory to the folder on BluePebble containing the input data (in the textfile 'SimulationInputData.txt', generated already in MATLAB on the local computer and uploaded to the cluster):
-cd /user/work/pk14885/MATLAB_Simulation/Input_data
+# Set working directory to the folder on BluePebble containing the input data (in the textfile 'KinDiscriminationSimulationInputData.txt', generated already in MATLAB on the local computer and uploaded to the cluster):
+cd /user/work/pk14885/MATLAB_Simulation/KinDiscriminationSimulations/Input_data
 
-# Env1: For EnvState in Phase 1 (stored in column 3 of 'SimulationInputData'):
+# Env1: For EnvState in Phase 1 (stored in column 3 of 'KinDiscriminationSimulationInputData'):
 Env1=$(awk '//{print $3 }' SimulationInputData.txt)
 Env1_in_this_simulation=$(echo $Env1 | awk '{print $'$SimID'}'); echo $Env1_in_this_simulation
 
-# Env2: For EnvState in Phase 2 (stored in column 4 of 'SimulationInputData'):
+# Env2: For EnvState in Phase 2 (stored in column 4 of 'KinDiscriminationSimulationInputData'):
 Env2=$(awk '//{print $4 }' SimulationInputData.txt)
 Env2_in_this_simulation=$(echo $Env2 | awk '{print $'$SimID'}'); echo $Env2_in_this_simulation
 
-# Env3: For EnvState in Phase 2 (stored in column 5 of 'SimulationInputData'):
+# Env3: For EnvState in Phase 2 (stored in column 5 of 'KinDiscriminationSimulationInputData'):
 Env3=$(awk '//{print $5 }' SimulationInputData.txt)
 Env3_in_this_simulation=$(echo $Env3 | awk '{print $'$SimID'}'); echo $Env3_in_this_simulation
 
-# Env4: For EnvState in Phase 2 (stored in column 6 of 'SimulationInputData'):
+# Env4: For EnvState in Phase 2 (stored in column 6 of 'KinDiscriminationSimulationInputData'):
 Env4=$(awk '//{print $6 }' SimulationInputData.txt)
 Env4_in_this_simulation=$(echo $Env4 | awk '{print $'$SimID'}'); echo $Env4_in_this_simulation
 
-# Env5: For EnvState in Phase 2 (stored in column 7 of 'SimulationInputData'):
+# Env5: For EnvState in Phase 2 (stored in column 7 of 'KinDiscriminationSimulationInputData'):
 Env5=$(awk '//{print $7 }' SimulationInputData.txt)
 Env5_in_this_simulation=$(echo $Env5 | awk '{print $'$SimID'}'); echo $Env5_in_this_simulation
 
-# Env6: For EnvState in Phase 2 (stored in column 8 of 'SimulationInputData'):
+# Env6: For EnvState in Phase 2 (stored in column 8 of 'KinDiscriminationSimulationInputData'):
 Env6=$(awk '//{print $8 }' SimulationInputData.txt)
 Env6_in_this_simulation=$(echo $Env6 | awk '{print $'$SimID'}'); echo $Env6_in_this_simulation
 
@@ -81,6 +83,13 @@ Hib6=$(awk '//{print $14 }' SimulationInputData.txt)
 Hib6_in_this_simulation=$(echo $Hib6 | awk '{print $'$SimID'}'); echo $Hib6_in_this_simulation
 
 # --------------------------------------------------------------------------------------------
+# READ IN THE LEVEL OF KIN DISCRIMINATION FOR THIS SIMULATION:
+
+# KinDiscrimValue: stored in column 15 of 'SimulationInputData':
+KinDiscrimValue=$(awk '//{print $15 }' SimulationInputData.txt)
+KinDiscrimValue_in_this_simulation=$(echo $KinDiscrimValue | awk '{print $'$SimID'}'); echo $KinDiscrimValue_in_this_simulation
+
+# --------------------------------------------------------------------------------------------
 # CREATE A MATLAB SCRIPT FOR THIS SPECIFIC SIMULATED GRID CELL:
 
 # Set working directory to the main MATLAB_Simulation folder:
@@ -110,6 +119,9 @@ sed -i "s/ARRAYINPUT_ISHIBERNATION_PHASE3/${Hib3_in_this_simulation}/g" Africa_m
 sed -i "s/ARRAYINPUT_ISHIBERNATION_PHASE4/${Hib4_in_this_simulation}/g" Africa_model_HPC_${SimID}.m
 sed -i "s/ARRAYINPUT_ISHIBERNATION_PHASE5/${Hib5_in_this_simulation}/g" Africa_model_HPC_${SimID}.m
 sed -i "s/ARRAYINPUT_ISHIBERNATION_PHASE6/${Hib6_in_this_simulation}/g" Africa_model_HPC_${SimID}.m
+
+# Insert the level of kin discrimination parameter into the MATLAB (.m) script file:
+sed -i "s/ARRAYINPUT_KIN_DISCRIM_VALUE/${KinDiscrimValue_in_this_simulation}/g" Africa_model_HPC_${SimID}.m
 
 # --------------------------------------------------------------------------------------------
 # INITIALISE THIS SIMULATION RUN:
