@@ -92,11 +92,11 @@ KinDiscrimValue_in_this_simulation=$(echo $KinDiscrimValue | awk '{print $'$SimI
 # --------------------------------------------------------------------------------------------
 # CREATE A MATLAB SCRIPT FOR THIS SPECIFIC SIMULATED GRID CELL:
 
-# Set working directory to the main MATLAB_Simulation folder:
-cd /user/work/pk14885/MATLAB_Simulation
+# Set working directory to the main MATLAB_Simulation/KinDiscriminationSimulations folder:
+cd /user/work/pk14885/MATLAB_Simulation/KinDiscriminationSimulations
 
-# Create a new MATLAB script:
-cp Africa_model_HPC.m Africa_model_HPC_${SimID}.m
+# Create a new MATLAB script, using the standard 'Africa_model_HPC.m' script that we have already uploaded:
+cp /user/work/pk14885/MATLAB_Simulation/Africa_model_HPC.m Africa_model_HPC_${SimID}.m
 
 # Number the output file that will be produced by the MATLAB script:
 sed -i "s/SimID/${SimID}/g" Africa_model_HPC_${SimID}.m
@@ -143,6 +143,6 @@ mkdir MATLAB_Outputs
 # Move the output file into the folder:
 mv MATLAB_Output_SimulationID_${SimID}.mat MATLAB_Outputs
 
-# Now that this specific simulated grid cell has completed, delete its corresponding MATLAB script from BluePebble:
+# Now that this specific simulation run has completed, delete its corresponding MATLAB script from BluePebble:
 rm Africa_model_HPC_${SimID}.m
 # --------------------------------------------------------------------------------------------
