@@ -1,6 +1,6 @@
 % In this MATLAB script for the local computer, we generate inputs for 10 simulations: 5 in the Congo Basin and 5 in South Africa. 
-% For each country, we run the 'Africa_model_HPC.m' simulation at 5 different levels of kin discrimination. The aim is to predict
-% the relatedness that evolves purely by demographic processes when kin discrimination is progressively turned off.
+% For each country, we run the 'Africa_model_HPC.m' simulation at 5 different levels of kin discrimination (0, 0.25, 0.5, 0.75, and 1). 
+% The aim is to predict the relatedness that evolves purely by demographic processes when kin discrimination is progressively turned off.
 
 % The input values for temperate South Africa:
         % We will use grid square 163, which is Pretoria.
@@ -30,10 +30,11 @@
                 % Column 12: IsHibernation in Phase 4
                 % Column 13: IsHibernation in Phase 5
                 % Column 14: IsHibernation in Phase 6
+                % Column 15: Kin discrimination parameter
 
 % To generate the simulation inputs for the 10 simulation runs, therefore, we use:
     % First 5 rows are South Africa; last 5 rows are southern Cameroon.
-       [PretoriaClimateData;
+       KinDiscriminationSimulationInputData = [PretoriaClimateData;
         PretoriaClimateData;
         PretoriaClimateData;
         PretoriaClimateData;
@@ -44,4 +45,10 @@
         SouthernCameroonClimateData;
         SouthernCameroonClimateData]
 
-% Now 
+% The 'SimulationInputData.txt' used for the grid map simiulation has a default kin discrimination
+% parameter supplied. For the current simulaton input data, we now replace that default value with
+% the 5 different kin discrimination levels that we want to simulate:
+KinDiscriminationSimulationInputData(:,15) = repmat([0 0.25 0.5 0.75 1],1,2)'
+
+% Export the text file, which you can now upload to BluePebble:
+writematrix(KinDiscriminationSimulationInputData,'KinDiscriminationSimulationInputData.txt','Delimiter','\t')
