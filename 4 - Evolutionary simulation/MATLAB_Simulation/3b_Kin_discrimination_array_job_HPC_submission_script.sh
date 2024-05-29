@@ -8,7 +8,7 @@
 #SBATCH --account=BISC020282
 #SBATCH --array 1-10
 
-# NOTE: As soon as the 269 current Africa grid map simulations have finished, replace 'Africa_model_HPC.m' with the very slightly
+# NOTE on 29th May 2024: As soon as the 269 current Africa grid map simulations have finished, replace 'Africa_model_HPC.m' with the very slightly
 # updated version here on GitHub, which has ARRAYINPUT_KIN_DISCRIM_VALUE. That will then be the new version used for all
 # scripts. Then you can run this submission script to generate the kin discrimination plot.
 
