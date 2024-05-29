@@ -8,6 +8,12 @@
 #SBATCH --account=BISC020282
 #SBATCH --array 1-10
 
+# NOTE: As soon as the 269 current Africa grid map simulations have finished, replace 'Africa_model_HPC.m' with the very slightly
+# updated version here on GitHub, which has ARRAYINPUT_KIN_DISCRIM_VALUE. That will then be the new version used for all
+# scripts. Then you can run this submission script to generate the kin discrimination plot.
+
+# - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 # ARRAY JOB SUBMISSION SCRIPT FOR RUNNING THE SIMULATION AT DIFFERENT LEVELS OF KIN DISCRIMINATION
 # This HPC submission script runs 'Africa_model_HPC.m' across 5 different levels of kin discrimination
 # (0, 0.25, 0.5, 0.75, 1) in each of two climates (southern Cameroon and Pretoria), so 10 jobs in total. 
