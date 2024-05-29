@@ -81,6 +81,13 @@ Hib6=$(awk '//{print $14 }' SimulationInputData.txt)
 Hib6_in_this_simulation=$(echo $Hib6 | awk '{print $'$SimID'}'); echo $Hib6_in_this_simulation
 
 # --------------------------------------------------------------------------------------------
+# READ IN THE LEVEL OF KIN DISCRIMINATION FOR THIS SIMULATION:
+
+# KinDiscrimValue: stored in column 15 of 'SimulationInputData':
+KinDiscrimValue=$(awk '//{print $15 }' SimulationInputData.txt)
+KinDiscrimValue_in_this_simulation=$(echo $KinDiscrimValue | awk '{print $'$SimID'}'); echo $KinDiscrimValue_in_this_simulation
+
+# --------------------------------------------------------------------------------------------
 # CREATE A MATLAB SCRIPT FOR THIS SPECIFIC SIMULATED GRID CELL:
 
 # Set working directory to the main MATLAB_Simulation folder:
@@ -110,6 +117,9 @@ sed -i "s/ARRAYINPUT_ISHIBERNATION_PHASE3/${Hib3_in_this_simulation}/g" Africa_m
 sed -i "s/ARRAYINPUT_ISHIBERNATION_PHASE4/${Hib4_in_this_simulation}/g" Africa_model_HPC_${SimID}.m
 sed -i "s/ARRAYINPUT_ISHIBERNATION_PHASE5/${Hib5_in_this_simulation}/g" Africa_model_HPC_${SimID}.m
 sed -i "s/ARRAYINPUT_ISHIBERNATION_PHASE6/${Hib6_in_this_simulation}/g" Africa_model_HPC_${SimID}.m
+
+# Insert the level of kin discrimination parameter into the MATLAB (.m) script file:
+sed -i "s/ARRAYINPUT_KIN_DISCRIM_VALUE/${KinDiscrimValue_in_this_simulation}/g" Africa_model_HPC_${SimID}.m
 
 # --------------------------------------------------------------------------------------------
 # INITIALISE THIS SIMULATION RUN:
