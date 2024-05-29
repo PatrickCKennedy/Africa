@@ -92,7 +92,7 @@ death_rate = 0.05; % Probability with which each individual non-queen wasp dies 
 % Foundress kin discrimination means that subordinates automatically join sister dominants if one is available (i.e., if there is a slot available on a nest with a sister as dominant).
 % This can be via kin recognition (CHCs) or natal philopatry within the site.
 % The strength of foundress kin discrimination varies from 0 (absent) to 1 (complete), and can be set here:
-StrengthOfKinDiscrimination = 0; % set the probability with which foundresses automatically associate through kin discrimination.
+StrengthOfKinDiscrimination = ARRAYINPUT_KIN_DISCRIM_VALUE; % set the probability with which foundresses automatically associate through kin discrimination.
 % Foundress who do not associate through kin discrimination join foundress nests at random within the site.
 
 % The model should be run at different levels of kin discrimination to reveal the extent to which kin discrimination is required to maintain high kinship across different climatic contexts.
