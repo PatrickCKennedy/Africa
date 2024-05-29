@@ -314,6 +314,14 @@ SimulationInputData = [SimulationNumber idx];
             SimulationInputData = [SimulationInputData IsHibernationGrid(idx)];
         end
 
+% Finally, manually choose the level of kin discrimination that you would like to assume in this run of the
+% simulation:
+MyKinDiscriminationValue = 0
+SimulationInputData = [SimulationInputData ones(size(SimulationInputData,1),1)*MyKinDiscriminationValue]
+% Note - if you are running the kin discrimination array job, which runs the simulation across different
+% levels of kin discrimination, whatever you enter here is overrided - it is replaced in the
+% '3a_Setting_up_kin_discrimination.m' MATLAB code.
+
         % SimulationInputData columns:
                 % Column 1: Simulation ID number (in sequence starting at 1)
                 % Column 2: Location on the downscaled world map of this grid cell (which we will subsequently use for plotting the results)
@@ -329,6 +337,7 @@ SimulationInputData = [SimulationNumber idx];
                 % Column 12: IsHibernation in Phase 4
                 % Column 13: IsHibernation in Phase 5
                 % Column 14: IsHibernation in Phase 6
+                % Column 15: The strength of kin discrimination you will assume in this simulation.
 
 % Write the simulation input data to a CSV file ready for BluePebble:
 %writematrix(SimulationInputData,'SimulationInputData.csv') 
