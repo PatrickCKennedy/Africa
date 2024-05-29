@@ -14,9 +14,11 @@
 # The climate data that you need to supply for these two input climates are produced in the local computer MATLAB script
 # '3a_Setting_up_kin_discrimination_simulations.m', which produces the text file 
 # 'KinDiscriminationSimulationInputData.txt'. Upload this to the 
-# MATLAB_Simulation/KinDiscriminationSimulations/Input_data on BluePebble.
+# MATLAB_Simulation/KinDiscriminationSimulations/Input_data on BluePebble, by running the following
+# command in the local computer's terminal:
+            ## scp /Users/pk14885/Documents/KinDiscriminationSimulationInputData.txt pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MATLAB_Simulation/KinDiscriminationSimulations/Input_data/
 
-# This script runs the standard MATLAB script ('Africa_model_HPC.sh'), which is identical to that used
+# The script below runs the standard MATLAB script ('Africa_model_HPC.sh'), which is identical to that used
 # in the grid map of Africa array job.
 
 # -------------------------------------------------------------------
