@@ -136,10 +136,10 @@ matlab -nodisplay -nodesktop -nosplash < Africa_model_HPC_${SimID}.m
 # The MATLAB script produces a MAT file containing the output variables, called 'MATLAB_Output_${SimID}.m'. Move this to the results folder:
 
 # Make a folder to store the outputs (if it does not already exist):
-mkdir MATLAB_Outputs
+mkdir Africa_Grid_Simulation_Outputs
 
 # Move the output file into the folder:
-mv MATLAB_Output_SimulationID_${SimID}.mat MATLAB_Outputs
+mv 'MATLAB_Output_SimulationID_"'$SimID'".mat' /user/work/pk14885/Africa_Grid_Simulation_Outputs
 
 # Now that this specific simulated grid cell has completed, delete its corresponding MATLAB script from BluePebble:
 rm Africa_model_HPC_${SimID}.m
