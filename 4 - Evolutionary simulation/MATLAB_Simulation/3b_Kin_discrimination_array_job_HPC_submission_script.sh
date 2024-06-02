@@ -40,61 +40,61 @@ SimID=${SLURM_ARRAY_TASK_ID}
 cd /user/work/pk14885/MATLAB_Simulation/KinDiscriminationSimulations/Input_data
 
 # Env1: For EnvState in Phase 1 (stored in column 3 of 'KinDiscriminationSimulationInputData'):
-Env1=$(awk '//{print $3 }' SimulationInputData.txt)
+Env1=$(awk '//{print $3 }' KinDiscriminationSimulationInputData.txt)
 Env1_in_this_simulation=$(echo $Env1 | awk '{print $'$SimID'}'); echo $Env1_in_this_simulation
 
 # Env2: For EnvState in Phase 2 (stored in column 4 of 'KinDiscriminationSimulationInputData'):
-Env2=$(awk '//{print $4 }' SimulationInputData.txt)
+Env2=$(awk '//{print $4 }' KinDiscriminationSimulationInputData.txt)
 Env2_in_this_simulation=$(echo $Env2 | awk '{print $'$SimID'}'); echo $Env2_in_this_simulation
 
 # Env3: For EnvState in Phase 2 (stored in column 5 of 'KinDiscriminationSimulationInputData'):
-Env3=$(awk '//{print $5 }' SimulationInputData.txt)
+Env3=$(awk '//{print $5 }' KinDiscriminationSimulationInputData.txt)
 Env3_in_this_simulation=$(echo $Env3 | awk '{print $'$SimID'}'); echo $Env3_in_this_simulation
 
 # Env4: For EnvState in Phase 2 (stored in column 6 of 'KinDiscriminationSimulationInputData'):
-Env4=$(awk '//{print $6 }' SimulationInputData.txt)
+Env4=$(awk '//{print $6 }' KinDiscriminationSimulationInputData.txt)
 Env4_in_this_simulation=$(echo $Env4 | awk '{print $'$SimID'}'); echo $Env4_in_this_simulation
 
 # Env5: For EnvState in Phase 2 (stored in column 7 of 'KinDiscriminationSimulationInputData'):
-Env5=$(awk '//{print $7 }' SimulationInputData.txt)
+Env5=$(awk '//{print $7 }' KinDiscriminationSimulationInputData.txt)
 Env5_in_this_simulation=$(echo $Env5 | awk '{print $'$SimID'}'); echo $Env5_in_this_simulation
 
 # Env6: For EnvState in Phase 2 (stored in column 8 of 'KinDiscriminationSimulationInputData'):
-Env6=$(awk '//{print $8 }' SimulationInputData.txt)
+Env6=$(awk '//{print $8 }' KinDiscriminationSimulationInputData.txt)
 Env6_in_this_simulation=$(echo $Env6 | awk '{print $'$SimID'}'); echo $Env6_in_this_simulation
 
 # --------------------------------------------------------------------------------------------
 # READ IN THE ISHIBERNATION INPUTS FOR THIS SIMULATION:
 
-# Hib1: For IsHibernation in Phase 1 (stored in column 9 of 'SimulationInputData'):
-Hib1=$(awk '//{print $9 }' SimulationInputData.txt)
+# Hib1: For IsHibernation in Phase 1 (stored in column 9 of 'KinDiscriminationSimulationInputData'):
+Hib1=$(awk '//{print $9 }' KinDiscriminationSimulationInputData.txt)
 Hib1_in_this_simulation=$(echo $Hib1 | awk '{print $'$SimID'}'); echo $Hib1_in_this_simulation
 
-# Hib2: For IsHibernation in Phase 1 (stored in column 10 of 'SimulationInputData'):
-Hib2=$(awk '//{print $10 }' SimulationInputData.txt)
+# Hib2: For IsHibernation in Phase 1 (stored in column 10 of 'KinDiscriminationSimulationInputData'):
+Hib2=$(awk '//{print $10 }' KinDiscriminationSimulationInputData.txt)
 Hib2_in_this_simulation=$(echo $Hib2 | awk '{print $'$SimID'}'); echo $Hib2_in_this_simulation
 
-# Hib3: For IsHibernation in Phase 1 (stored in column 11 of 'SimulationInputData'):
-Hib3=$(awk '//{print $11 }' SimulationInputData.txt)
+# Hib3: For IsHibernation in Phase 1 (stored in column 11 of 'KinDiscriminationSimulationInputData'):
+Hib3=$(awk '//{print $11 }' KinDiscriminationSimulationInputData.txt)
 Hib3_in_this_simulation=$(echo $Hib3 | awk '{print $'$SimID'}'); echo $Hib3_in_this_simulation
 
-# Hib4: For IsHibernation in Phase 1 (stored in column 12 of 'SimulationInputData'):
-Hib4=$(awk '//{print $12 }' SimulationInputData.txt)
+# Hib4: For IsHibernation in Phase 1 (stored in column 12 of 'KinDiscriminationSimulationInputData'):
+Hib4=$(awk '//{print $12 }' KinDiscriminationSimulationInputData.txt)
 Hib4_in_this_simulation=$(echo $Hib4 | awk '{print $'$SimID'}'); echo $Hib4_in_this_simulation
 
-# Hib5: For IsHibernation in Phase 1 (stored in column 13 of 'SimulationInputData'):
-Hib5=$(awk '//{print $13 }' SimulationInputData.txt)
+# Hib5: For IsHibernation in Phase 1 (stored in column 13 of 'KinDiscriminationSimulationInputData'):
+Hib5=$(awk '//{print $13 }' KinDiscriminationSimulationInputData.txt)
 Hib5_in_this_simulation=$(echo $Hib5 | awk '{print $'$SimID'}'); echo $Hib5_in_this_simulation
 
-# Hib6: For IsHibernation in Phase 1 (stored in column 14 of 'SimulationInputData'):
-Hib6=$(awk '//{print $14 }' SimulationInputData.txt)
+# Hib6: For IsHibernation in Phase 1 (stored in column 14 of 'KinDiscriminationSimulationInputData'):
+Hib6=$(awk '//{print $14 }' KinDiscriminationSimulationInputData.txt)
 Hib6_in_this_simulation=$(echo $Hib6 | awk '{print $'$SimID'}'); echo $Hib6_in_this_simulation
 
 # --------------------------------------------------------------------------------------------
 # READ IN THE LEVEL OF KIN DISCRIMINATION FOR THIS SIMULATION:
 
-# KinDiscrimValue: stored in column 15 of 'SimulationInputData':
-KinDiscrimValue=$(awk '//{print $15 }' SimulationInputData.txt)
+# KinDiscrimValue: stored in column 15 of 'KinDiscriminationSimulationInputData':
+KinDiscrimValue=$(awk '//{print $15 }' KinDiscriminationSimulationInputData.txt)
 KinDiscrimValue_in_this_simulation=$(echo $KinDiscrimValue | awk '{print $'$SimID'}'); echo $KinDiscrimValue_in_this_simulation
 
 # --------------------------------------------------------------------------------------------
@@ -146,10 +146,10 @@ matlab -nodisplay -nodesktop -nosplash < Africa_model_HPC_${SimID}.m
 # The MATLAB script produces a MAT file containing the output variables, called 'MATLAB_Output_${SimID}.m'. Move this to the results folder:
 
 # Make a folder to store the outputs (if it does not already exist):
-mkdir MATLAB_Outputs
+mkdir MATLAB_KinDiscrimination_Outputs
 
 # Move the output file into the folder:
-mv MATLAB_Output_SimulationID_${SimID}.mat MATLAB_Outputs
+mv MATLAB_Output_SimulationID_${SimID}.mat MATLAB_KinDiscrimination_Outputs
 
 # Now that this specific simulation run has completed, delete its corresponding MATLAB script from BluePebble:
 rm Africa_model_HPC_${SimID}.m
