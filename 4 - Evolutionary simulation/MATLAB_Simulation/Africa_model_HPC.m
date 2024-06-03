@@ -540,7 +540,7 @@ end % end of if FiguresOnOrOff toggle.
                 % (2) In torpor phases, all wasps remain on their parental nest (effectively in a state of suspended animation), rather than leaving the nest to enter a hibernaculum with other wasps on the site
                 % (3) In torpor phases, the parental nest survives, but brood production is temporarily suspended
 
-        % We assume that larger colonies are more likely to survive torpor:
+        % Torpor survival function:
                     ind = find(~isnan(Wasps(4,:,:)));                               % Identifies all existing wasps in the population.
                     [row,col,page] = ind2sub(size(Wasps(4,:,:)), ind);              % Provides the wasp slot id (column, 'col') and site ('page') for each existing wasp in the population.
                     torpor_existing_wasps = [col page 100000*page+Wasps(2,sub2ind([nWasps,nSites],col,page))'];  % The third column of 'existing_wasps' lists the home colony for every individual (i.e., the mature colony or the newly secure foundress nest that they have just entered 'Wasps' in). Every colony in the population has a unique code, as earlier.
