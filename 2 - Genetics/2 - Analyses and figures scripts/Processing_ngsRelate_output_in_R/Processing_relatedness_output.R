@@ -1064,26 +1064,23 @@ SA.ExperimentSubordinatesRelatednessPlot
 var1 <- Cameroon.ExperimentSubordinates$DidThisWaspEverVisitPrize
 var2 <- Cameroon.ExperimentSubordinates$rab
 
+Cameroon.ExperimentSubordinates$MoreThan25PercentOnPrize <- ifelse(Cameroon.ExperimentSubordinates$`Proportion of observations on prize`>0.25, 1, 0)
+
 # Run logistic regression on the data:
-logistic_model <- glm(DidThisWaspEverVisitPrize ~ rab, 
+logistic_model <- glm(MoreThan25PercentOnPrize ~ rab, 
                       data=Cameroon.ExperimentSubordinates, family=binomial)
 summary(logistic_model)
 report(logistic_model)
 # OUTPUT (29TH JANUARY 2024) SHOWS NO SIGNIFICANT EFFECT OF RELATEDNESS
-## report() function output: "We fitted a logistic model (estimated using ML) to predict DidThisWaspEverVisitPrize
-## with rab (formula: DidThisWaspEverVisitPrize ~ rab). The model's explanatory power is
-## weak (Tjur's R2 = 0.04). The model's intercept, corresponding to rab = 0, is at 0.42
-## (95% CI [-0.70, 1.59], p = 0.464). Within this model:
-##   - The effect of rab is statistically non-significant and negative (beta = -1.64, 95%
-## CI [-4.06, 0.63], p = 0.164; Std. beta = -0.41, 95% CI [-1.01, 0.16])
-## Standardized parameters were obtained by fitting the model on a standardized version
-## of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using a
-## Wald z-distribution approximation.
-## Number of Fisher Scoring iterations: 4"
+## report() function output: "We fitted a logistic model (estimated using ML) to predict MoreThan25PercentOnPrize with rab (formula: MoreThan25PercentOnPrize ~ rab). The model's explanatory power is weak
+## (Tjur's R2 = 0.02). The model's intercept, corresponding to rab = 0, is at -0.18 (95% CI [-1.29, 0.89], p = 0.738). Within this model:
+##   - The effect of rab is statistically non-significant and negative (beta = -1.44, 95% CI [-3.80, 0.84], p = 0.218; Std. beta = -0.36, 95% CI [-0.94, 0.21])
+## Standardized parameters were obtained by fitting the model on a standardized version of the dataset. 95% Confidence Intervals (CIs) and p-values were computed using a Wald
+## z-distribution approximation."
 
 # To plot the logistic regression, you can use ggplot2:
 ggplot(Cameroon.ExperimentSubordinates, 
-       aes(x=Cameroon.ExperimentSubordinates$rab, y=Cameroon.ExperimentSubordinates$DidThisWaspEverVisitPrize, )) + 
+       aes(x=Cameroon.ExperimentSubordinates$rab, y=Cameroon.ExperimentSubordinates$MoreThan25PercentOnPrize, )) + 
   geom_point() +
   stat_smooth(method="glm", color="red", se=FALSE,
               method.args = list(family=binomial))    
