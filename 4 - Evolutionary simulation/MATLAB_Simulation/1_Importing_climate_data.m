@@ -65,15 +65,6 @@
             % We assume a linear relationship between harshness and rainfall between these two points.
             % The relationship is: (value_of_interest-RainfallMeetsMaxHarsh)/(RainfallMeetsMaxBenign-RainfallMeetsMaxHarsh);
 
-% For the paper, we could write something like this:
-% ALL P: In the wet humid zones of tropical West and Central Africa, Belonogaster are active year-round. By contrast, in the cold dry seasons (winters) of temperate South Africa, hopeful foundresses hibernate in hibernacula (crevices
-% away from the parental nest), and all other wasps die. In parts of Africa with very hot dry seasons, the data on Belonogaster behaviour are extremely sparse. In Somalia, for instance, Pardi & 
-% Piccioli (1981 [the fourth paper], p.140) report wasps as 'completely inactive' and in 'constant rest on the old nest' during 
-% the intense dry season (implying a state of torpor). Similarly, we have observed completely inactive wasps on the remains of post-emergence nest at the end of the intense dry
-% season on the margins of the Sahel in Far-North Cameroon (PK, pers. obs., Maroua). However, we have also found large and active brood-rearing nests during the dry season in Kenya (PK & DRR, pers. obs., Laikipia County),
-% which implies that wasps avoid torpor except when there is extreme dryness. Accordingly, in simulations we have assumed obligatory torpor when 
-% monthly rainfall falls below an extreme threshold (here, 40mm); immediately above 40mm, simulated environments are harsh but viable for brood-rearing.
-
 % -------------------------------------------------------------------------------------------
 % PLOT RAINFALL DATA ACROSS THE DOWNSCALED GRID CELLS FOR SIMULATION:
 
