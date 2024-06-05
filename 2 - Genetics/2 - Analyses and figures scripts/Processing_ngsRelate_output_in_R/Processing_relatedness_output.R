@@ -1071,7 +1071,7 @@ logistic_model <- glm(MoreThan25PercentOnPrize ~ rab,
                       data=Cameroon.ExperimentSubordinates, family=binomial)
 summary(logistic_model)
 report(logistic_model)
-# OUTPUT (29TH JANUARY 2024) SHOWS NO SIGNIFICANT EFFECT OF RELATEDNESS
+# OUTPUT (5th June 2024) SHOWS NO SIGNIFICANT EFFECT OF RELATEDNESS
 ## report() function output: "We fitted a logistic model (estimated using ML) to predict MoreThan25PercentOnPrize with rab (formula: MoreThan25PercentOnPrize ~ rab). The model's explanatory power is weak
 ## (Tjur's R2 = 0.02). The model's intercept, corresponding to rab = 0, is at -0.18 (95% CI [-1.29, 0.89], p = 0.738). Within this model:
 ##   - The effect of rab is statistically non-significant and negative (beta = -1.44, 95% CI [-3.80, 0.84], p = 0.218; Std. beta = -0.36, 95% CI [-0.94, 0.21])
