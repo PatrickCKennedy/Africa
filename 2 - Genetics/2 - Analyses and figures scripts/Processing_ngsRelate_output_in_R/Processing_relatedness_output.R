@@ -1178,15 +1178,10 @@ MeanParticipantRelatednesses <- subset(MeanParticipantRelatednesses, Trial != "T
 # BROOD RELATEDNESS:
 
 # Focus on the brood only:
-All_brood <- subset(All, All$`Wasp type.x` == "Brood" & All$`Wasp type.y` == "Brood")
+All_brood <- subset(All, All$`Wasp_type.x` == "Brood" & All$`Wasp_type.y` == "Brood")
 
 # Add a new column, identifying if they are brood on the same nest:
-All_brood$Same_nest_brood 
-
-# Add a new column, containing a '1' if two wasps are foundresses tagged on the same nest:
 All_brood$Same_nest_brood <- as.numeric(All_brood$Nest_if_brood.x == All_brood$Nest_if_brood.y)
-# (Note: Some entries are 'NA'. That is because at least one of the two wasps in the comparison
-# is not a foundress (e.g., it's a larva). Foundresses have either a '0' or a '1'.)
 
 # Extract brood on the same nest:
 All_brood <- subset(All_brood, Same_nest_brood == 1)
@@ -1240,7 +1235,6 @@ myColors <- c("#56ddc5","red")
 All_brood$ida_Country <- as.factor(All_brood$ida_Country)
 All_brood$Nest_if_brood.x <- as.factor(All_brood$Nest_if_brood.x)
 
-
 library(ggplot2)
 library(ggbeeswarm)
 
@@ -1269,6 +1263,12 @@ ggplot(All_brood, aes(x = my_x_variable, y = my_y_variable, fill = my_color_vari
         axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
         axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
         axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"))
+
+# There are some brood with approx r=0.25 relatedness to each other. That is the relatedness you would expect from a 
+# sister to a brother. Check whether these are brothers by seeing whether they have zero heterozygosity (i.e., haploids):
+Estimated_heterozygosity_table <- read_excel("Estimated_heterozygosity_table.xlsx")
+View(Estimated_heterozygosity_table) 
+test1 <-merge(All_brood, Estimated_heterozygosity_table, by.x = "ida_WaspID", by.y = "WaspID")
 
 # -----------------------------------------------------------------------------
 # NETWORK DIAGRAMS TO VISUALISE KINSHIP STRUCTURE AMONG THE BROOD WITHIN EACH TARGET NEST:
@@ -1385,4 +1385,3 @@ for (nest in 1:length(BROOD_nestlist)){
 }# end for-loop through each nest.
 
 # The diagrams are now available in the current directory, and can be imported into Illustrator/Powerpoint for arranging.
-
