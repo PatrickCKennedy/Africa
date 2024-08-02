@@ -7,7 +7,7 @@ library(ggpol)
 # Copy-paste the ovary dissection results Excel sheet into its own document, and 
 # import it into R as 'tempfile_ImportDissectionResults':
 
-View(tempfile_ImportDissectionResults)
+View(Ovary_dissections_table)
 
 # First, focus on the subset of the data that comprises rows with largest-egg measurements (keeping wasps with no oocytes as '0') *and* with dominance categorisations:
 WaspsWithEggMeasurementsAndDominanceCategorisation <- drop_na(tempfile_ImportDissectionResults,c(LargestEgg,FoundressDominanceCategory))
