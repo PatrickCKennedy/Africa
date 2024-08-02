@@ -11,7 +11,7 @@ View(Ovary_dissections_table)
 tempfile_ImportDissectionResults <- Ovary_dissections_table
 
 # First, focus on the subset of the data that comprises rows with largest-egg measurements (keeping wasps with no oocytes as '0') *and* with dominance categorisations:
-WaspsWithEggMeasurementsAndDominanceCategorisation <- drop_na(tempfile_ImportDissectionResults,c(LargestEgg,FoundressDominanceCategory))
+WaspsWithEggMeasurementsAndDominanceCategorisation <- drop_na(tempfile_ImportDissectionResults,c(LargestEgg,DominanceCode))
 View(WaspsWithEggMeasurementsAndDominanceCategorisation)
 WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg <- as.numeric(WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg)
 WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory <- as.factor(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory)
@@ -22,17 +22,17 @@ WaspsWithEggMeasurementsAndDominanceCategorisation <- subset(WaspsWithEggMeasure
 
 # Quick overview plot using violin plot:
 library(ggrain)
-ggplot(WaspsWithEggMeasurementsAndDominanceCategorisation, aes(x = FoundressDominanceCategory, y = LargestEgg, fill=Country)) +
-    geom_rain(rain.side = 'l') + theme_cowplot()
+ggplot(WaspsWithEggMeasurementsAndDominanceCategorisation, aes(x = FoundressDominanceCategory, y = LargestEgg, fill=Climate)) +
+  geom_rain(rain.side = 'l') + theme_cowplot()
 
-myColors <- c("#56ddc5","red")
+myColors <- c("#56ddc5","orange","red")
 myfontsize <- 10
 
 # Generate boxplots (following https://github.com/erocoar/ggpol):
 largestegg.plot <- ggplot(WaspsWithEggMeasurementsAndDominanceCategorisation) + 
   geom_boxjitter(aes(x = FoundressDominanceCategory, 
                      y = LargestEgg, 
-                     fill = Country),
+                     fill = Climate),
                  jitter.shape = 21, 
                  jitter.color = NA, 
                  jitter.alpha = 0.5,
@@ -60,87 +60,86 @@ largestegg.plot
 # STATS ON THE PLOTTED DATA (following https://statsandr.com/blog/anova-in-r/):
 
 # Sample sizes:
-sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Ca D")
-sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="SA D")
-sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Ca S")
-sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="SA S")
-
-
-
-
+sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Humid tropics D")
+sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Temperate D")
+sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Humid tropics S")
+sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Temperate S")
+sum(WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Semi-arid D")
 
 # Run ANOVA:
 largestegg.res_aov <- aov(LargestEgg ~ FoundressDominanceCategory, 
-               data = WaspsWithEggMeasurementsAndDominanceCategorisation)
+                          data = WaspsWithEggMeasurementsAndDominanceCategorisation)
 summary(largestegg.res_aov)
 
 # Check for normality (https://statsandr.com/blog/anova-in-r/):
-      # First, with histogram:
-      hist(largestegg.res_aov$residuals)
-      # Second, with Q-Q plot:
-      library(car)
-      qqPlot(largestegg.res_aov$residuals, id = FALSE) # id = FALSE to remove point identification
-      # Third, with Shapiro-Wilk test:
-      shapiro.test(largestegg.res_aov$residuals)
-      # If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
+# First, with histogram:
+hist(largestegg.res_aov$residuals)
+# Second, with Q-Q plot:
+library(car)
+qqPlot(largestegg.res_aov$residuals, id = FALSE) # id = FALSE to remove point identification
+# Third, with Shapiro-Wilk test:
+shapiro.test(largestegg.res_aov$residuals)
+# If the p-value is less than 0.05, we would reject the null hypothesis of a normal distribution.
 
-            # SHAPIRO-WILK OUTPUT (18th JANUARY 2024):
-            ## Shapiro-Wilk normality test
-            ## data:  largestegg.res_aov$residuals
-            ## W = 0.90699, p-value = 7.122e-08
+# SHAPIRO-WILK OUTPUT (2nd August 2024):
+## Shapiro-Wilk normality test
+## data:  largestegg.res_aov$residuals
+## W = 0.96748, p-value = 2.049e-05
 
 # Since the data is highly non-normal, we will use a Kruskal-Wallis test instead of ANOVA:
 
 largestegg.kruskal_wallis <- kruskal.test(LargestEgg ~ FoundressDominanceCategory, 
-            data = WaspsWithEggMeasurementsAndDominanceCategorisation)
+                                          data = WaspsWithEggMeasurementsAndDominanceCategorisation)
 largestegg.kruskal_wallis
 
-          # KRUSKAL-WALLIS TEST OUTPUT (19TH JANUARY 2024):
-          ## Kruskal-Wallis rank sum test
-          ## data:  LargestEgg by FoundressDominanceCategory
-          ## Kruskal-Wallis chi-squared = 62.734, df = 3, p-value = 1.531e-13
+# KRUSKAL-WALLIS TEST OUTPUT (2nd August 2024):
+## Kruskal-Wallis rank sum test
+## data:  LargestEgg by FoundressDominanceCategory
+## Kruskal-Wallis chi-squared = 101.18, df = 4, p-value < 2.2e-16
 
 # Since there is a significant effect in the Kruskal-Wallis test, we can use Wilcox
 # tests for pairwise comparisons:
 
 pairwise.wilcox.test(WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg, 
-                    WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory,
-                    p.adjust.method = "BH")
+                     WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory,
+                     p.adjust.method = "BH")
 
-                        # WILCOX PAIRWISE TEST OUTPUT (20TH JANUARY 2024):
-                        ##	Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
-                        ##	
-                        ##	data:  WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg and WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory 
-                        ##	
-                        ##	     Ca D    Ca S    SA D   
-                        ##	Ca S 0.0019  -       -      
-                        ##	SA D 0.0019  6.7e-06 -      
-                        ##	SA S 5.5e-06 0.1952  7.0e-11
-                        ##	
-                        ##	P value adjustment method: BH 
-                        # (Note that *exact* p-values cannot be computed with ties).
+# WILCOX PAIRWISE TEST OUTPUT (20TH JANUARY 2024):
+##	Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
+##	
+##	data:  WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg and WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory 
+##	
+##	                Humid tropics D Humid tropics S Semi-arid D Temperate D
+##	Humid tropics S   0.00021         -               -           -          
+##	  Semi-arid D     4.4e-05         0.00675         -           -          
+##	  Temperate D     0.00117         4.2e-07         6.2e-13     -          
+##	  Temperate S     7.2e-07         0.21168         1.9e-08     3.5e-11    
+##	
+##	P value adjustment method: BH 
+# (Note that *exact* p-values cannot be computed with ties).
 
-                        # In the Wilcox pairwise test output above, there is a significant 
-                        # difference between CA D all other categories (including SA D). The only categories
-                        # without a significant difference are CaS and SA S. We therefore add a,b,c,b as 
-                        # significance letters to the plot below.
+# In the Wilcox pairwise test output above, there is a significant 
+# difference between Humid tropics D and all other categories (including Temperate D). The only categories
+# without a significant difference are Temperate S and Humid tropics S. We therefore add a,b,c,b as 
+# significance letters to the plot below.
 
 # Since Wilcox pairwise comparisons find significant effects, *manually* plot the significance letters on the graph using the following:
 
-        largestegg.annotation <- data.frame(
-           x = c(1, 2, 3, 4),
-           y = c(0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Ca D")$LargestEgg),
-                 0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Ca S")$LargestEgg),
-                 0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="SA D")$LargestEgg),
-                 0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="SA S")$LargestEgg)),
-          label = c("a","b","c","b"))
-        
-        # Add text
-        largestegg.plot <- largestegg.plot + 
-                geom_text(data=largestegg.annotation, 
-                          aes(x=x, y=y, label=label),
-                          size=4)
-        largestegg.plot
+largestegg.annotation <- data.frame(
+  x = c(1, 2, 3, 4, 5),
+  y = c(0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Humid tropics D")$LargestEgg),
+        0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Humid tropics S")$LargestEgg),
+        0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Semi-arid D")$LargestEgg),
+        0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Temperate D")$LargestEgg),
+        0.2+max(subset(WaspsWithEggMeasurementsAndDominanceCategorisation,WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory=="Temperate S")$LargestEgg)),
+  label = c("a","b","c","d","b"))
+
+# Add text
+largestegg.plot <- largestegg.plot + 
+  geom_text(data=largestegg.annotation, 
+            aes(x=x, y=y, label=label),
+            size=4)
+largestegg.plot
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -156,80 +155,93 @@ View(WaspsWithStageAndDominanceCategorisation)
 # For concision below, give it a smaller name ('q'):
 q<-WaspsWithStageAndDominanceCategorisation
 
-test <- data.frame( c("Ca D","Ca D","Ca D","Ca D","Ca D",
-                      "Ca S","Ca S","Ca S","Ca S","Ca S",
-                      "SA D","SA D","SA D","SA D","SA D",
-                      "SA S","SA S","SA S","SA S","SA S"),
-
-                    c("a","b","c","d","e","a","b","c","d","e","a","b","c","d","e","a","b","c","d","e"),
+test <- data.frame( c("Humid tropics D","Humid tropics D","Humid tropics D","Humid tropics D","Humid tropics D",
+                      "Humid tropics S","Humid tropics S","Humid tropics S","Humid tropics S","Humid tropics S",
+                      "Semi-arid D","Semi-arid D","Semi-arid D","Semi-arid D","Semi-arid D",
+                      "Temperate D","Temperate D","Temperate D","Temperate D","Temperate D",
+                      "Temperate S","Temperate S","Temperate S","Temperate S","Temperate S"),
+                    
+                    c("a","b","c","d","e","a","b","c","d","e","a","b","c","d","e","a","b","c","d","e","a","b","c","d","e"),
                     c(
-sum(q$Stage=="a" & q$FoundressDominanceCategory=="Ca D"),
-sum(q$Stage=="b" & q$FoundressDominanceCategory=="Ca D"),
-sum(q$Stage=="c" & q$FoundressDominanceCategory=="Ca D"),
-sum(q$Stage=="d" & q$FoundressDominanceCategory=="Ca D"),
-sum(q$Stage=="e" & q$FoundressDominanceCategory=="Ca D"),
-
-sum(q$Stage=="a" & q$FoundressDominanceCategory=="Ca S"),
-sum(q$Stage=="b" & q$FoundressDominanceCategory=="Ca S"),
-sum(q$Stage=="c" & q$FoundressDominanceCategory=="Ca S"),
-sum(q$Stage=="d" & q$FoundressDominanceCategory=="Ca S"),
-sum(q$Stage=="e" & q$FoundressDominanceCategory=="Ca S"),
-
-sum(q$Stage=="a" & q$FoundressDominanceCategory=="SA D"),
-sum(q$Stage=="b" & q$FoundressDominanceCategory=="SA D"),
-sum(q$Stage=="c" & q$FoundressDominanceCategory=="SA D"),
-sum(q$Stage=="d" & q$FoundressDominanceCategory=="SA D"),
-sum(q$Stage=="e" & q$FoundressDominanceCategory=="SA D"),
-
-sum(q$Stage=="a" & q$FoundressDominanceCategory=="SA S"),
-sum(q$Stage=="b" & q$FoundressDominanceCategory=="SA S"),
-sum(q$Stage=="c" & q$FoundressDominanceCategory=="SA S"),
-sum(q$Stage=="d" & q$FoundressDominanceCategory=="SA S"),
-sum(q$Stage=="e" & q$FoundressDominanceCategory=="SA S")
-),
-c(
-sum(q$FoundressDominanceCategory=="Ca D"),
-sum(q$FoundressDominanceCategory=="Ca D"),
-sum(q$FoundressDominanceCategory=="Ca D"),
-sum(q$FoundressDominanceCategory=="Ca D"),
-sum(q$FoundressDominanceCategory=="Ca D"),
-
-sum(q$FoundressDominanceCategory=="Ca S"),
-sum(q$FoundressDominanceCategory=="Ca S"),
-sum(q$FoundressDominanceCategory=="Ca S"),
-sum(q$FoundressDominanceCategory=="Ca S"),
-sum(q$FoundressDominanceCategory=="Ca S"),
-
-sum(q$FoundressDominanceCategory=="SA D"),
-sum(q$FoundressDominanceCategory=="SA D"),
-sum(q$FoundressDominanceCategory=="SA D"),
-sum(q$FoundressDominanceCategory=="SA D"),
-sum(q$FoundressDominanceCategory=="SA D"),
-
-sum(q$FoundressDominanceCategory=="SA S"),
-sum(q$FoundressDominanceCategory=="SA S"),
-sum(q$FoundressDominanceCategory=="SA S"),
-sum(q$FoundressDominanceCategory=="SA S"),
-sum(q$FoundressDominanceCategory=="SA S")
-))
+                      sum(q$Stage=="a" & q$FoundressDominanceCategory=="Humid tropics D"),
+                      sum(q$Stage=="b" & q$FoundressDominanceCategory=="Humid tropics D"),
+                      sum(q$Stage=="c" & q$FoundressDominanceCategory=="Humid tropics D"),
+                      sum(q$Stage=="d" & q$FoundressDominanceCategory=="Humid tropics D"),
+                      sum(q$Stage=="e" & q$FoundressDominanceCategory=="Humid tropics D"),
+                      
+                      sum(q$Stage=="a" & q$FoundressDominanceCategory=="Humid tropics S"),
+                      sum(q$Stage=="b" & q$FoundressDominanceCategory=="Humid tropics S"),
+                      sum(q$Stage=="c" & q$FoundressDominanceCategory=="Humid tropics S"),
+                      sum(q$Stage=="d" & q$FoundressDominanceCategory=="Humid tropics S"),
+                      sum(q$Stage=="e" & q$FoundressDominanceCategory=="Humid tropics S"),
+                      
+                      sum(q$Stage=="a" & q$FoundressDominanceCategory=="Semi-arid D"),
+                      sum(q$Stage=="b" & q$FoundressDominanceCategory=="Semi-arid D"),
+                      sum(q$Stage=="c" & q$FoundressDominanceCategory=="Semi-arid D"),
+                      sum(q$Stage=="d" & q$FoundressDominanceCategory=="Semi-arid D"),
+                      sum(q$Stage=="e" & q$FoundressDominanceCategory=="Semi-arid D"),
+                      
+                      sum(q$Stage=="a" & q$FoundressDominanceCategory=="Temperate D"),
+                      sum(q$Stage=="b" & q$FoundressDominanceCategory=="Temperate D"),
+                      sum(q$Stage=="c" & q$FoundressDominanceCategory=="Temperate D"),
+                      sum(q$Stage=="d" & q$FoundressDominanceCategory=="Temperate D"),
+                      sum(q$Stage=="e" & q$FoundressDominanceCategory=="Temperate D"),
+                      
+                      sum(q$Stage=="a" & q$FoundressDominanceCategory=="Temperate S"),
+                      sum(q$Stage=="b" & q$FoundressDominanceCategory=="Temperate S"),
+                      sum(q$Stage=="c" & q$FoundressDominanceCategory=="Temperate S"),
+                      sum(q$Stage=="d" & q$FoundressDominanceCategory=="Temperate S"),
+                      sum(q$Stage=="e" & q$FoundressDominanceCategory=="Temperate S")
+                    ),
+                    c(
+                      sum(q$FoundressDominanceCategory=="Humid tropics D"),
+                      sum(q$FoundressDominanceCategory=="Humid tropics D"),
+                      sum(q$FoundressDominanceCategory=="Humid tropics D"),
+                      sum(q$FoundressDominanceCategory=="Humid tropics D"),
+                      sum(q$FoundressDominanceCategory=="Humid tropics D"),
+                      
+                      sum(q$FoundressDominanceCategory=="Humid tropics S"),
+                      sum(q$FoundressDominanceCategory=="Humid tropics S"),
+                      sum(q$FoundressDominanceCategory=="Humid tropics S"),
+                      sum(q$FoundressDominanceCategory=="Humid tropics S"),
+                      sum(q$FoundressDominanceCategory=="Humid tropics S"),
+                      
+                      sum(q$Stage=="a" & q$FoundressDominanceCategory=="Semi-arid D"),
+                      sum(q$Stage=="b" & q$FoundressDominanceCategory=="Semi-arid D"),
+                      sum(q$Stage=="c" & q$FoundressDominanceCategory=="Semi-arid D"),
+                      sum(q$Stage=="d" & q$FoundressDominanceCategory=="Semi-arid D"),
+                      sum(q$Stage=="e" & q$FoundressDominanceCategory=="Semi-arid D"),   
+                      
+                      sum(q$FoundressDominanceCategory=="Temperate D"),
+                      sum(q$FoundressDominanceCategory=="Temperate D"),
+                      sum(q$FoundressDominanceCategory=="Temperate D"),
+                      sum(q$FoundressDominanceCategory=="Temperate D"),
+                      sum(q$FoundressDominanceCategory=="Temperate D"),
+                      
+                      sum(q$FoundressDominanceCategory=="Temperate S"),
+                      sum(q$FoundressDominanceCategory=="Temperate S"),
+                      sum(q$FoundressDominanceCategory=="Temperate S"),
+                      sum(q$FoundressDominanceCategory=="Temperate S"),
+                      sum(q$FoundressDominanceCategory=="Temperate S")
+                    ))
 colnames(test) <- c("Category","Stage","Count","TotalinCategory")
 test$Percentages <- test$Count/test$TotalinCategory*100
 
 ovarystage.plot <- ggplot(test, 
-       aes(fill=Stage, y=Count, x=Category)) + 
-    geom_bar(position="fill", stat="identity",colour="black", linewidth=0.3) + theme_cowplot() +   theme(axis.line.x.bottom=element_line(size=0.5))+
-    theme(axis.line.y.left=element_line(size=0.5)) +
-    labs(   y = "Proportion", 
-            x = "Social role") +
-    scale_y_continuous(breaks = seq(0,1,by = 0.2),expand = expansion(mult = c(0,0.05))) +
-    theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
-          axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
-          axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
-          axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) + 
-    scale_fill_manual("", values = c("a" = "cornsilk", "b" = "azure", "c" = "darkslategray4","d" = "darkslategrey","e" = "white")) +
-    theme(legend.title = element_text(size = 8), 
-          legend.text = element_text(size = 8)) + 
-    theme(legend.key.size = unit(0.3, 'cm'))
+                          aes(fill=Stage, y=Count, x=Category)) + 
+  geom_bar(position="fill", stat="identity",colour="black", linewidth=0.3) + theme_cowplot() +   theme(axis.line.x.bottom=element_line(size=0.5))+
+  theme(axis.line.y.left=element_line(size=0.5)) +
+  labs(   y = "Proportion", 
+          x = "Social role") +
+  scale_y_continuous(breaks = seq(0,1,by = 0.2),expand = expansion(mult = c(0,0.05))) +
+  theme(axis.text.x = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain"),
+        axis.text.y = element_text(color = "black", size = 12, angle = 0, hjust = 1, vjust = 0, face = "plain"),  
+        axis.title.x = element_text(color = "black", size = 12, angle = 0, hjust = .5, vjust = 0, face = "plain"),
+        axis.title.y = element_text(color = "black", size = 12, angle = 90, hjust = .5, vjust = .5, face = "plain")) + 
+  scale_fill_manual("", values = c("a" = "cornsilk", "b" = "azure", "c" = "darkslategray4","d" = "darkslategrey","e" = "white")) +
+  theme(legend.title = element_text(size = 8), 
+        legend.text = element_text(size = 8)) + 
+  theme(legend.key.size = unit(0.3, 'cm'))
 ovarystage.plot
 
 # STATISTICS ON OVARY GRADE:
@@ -239,41 +251,44 @@ ovarystage.plot
 WaspsWithStageAndDominanceCategorisation$Stage_d_OrNot = 0
 WaspsWithStageAndDominanceCategorisation$Stage_d_OrNot[WaspsWithStageAndDominanceCategorisation$Stage=="d"] = 1
 
-model = glm(Stage_d_OrNot ~ DominanceCode + Country + Country*DominanceCode, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
+model = glm(Stage_d_OrNot ~ DominanceCode + Climate + Climate*DominanceCode, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
 summary(model)
 
-                        # LOGISTIC REGRESSION OUTPUT (21ST JANUARY 2024):
-                        ## 
-                        ## Call:
-                        ## glm(formula = Stage_d_OrNot ~ DominanceCode + Country + Country * 
-                        ##     DominanceCode, family = "binomial", data = WaspsWithStageAndDominanceCategorisation)
-                        ## 
-                        ## Coefficients:
-                        ##                          Estimate Std. Error z value Pr(>|z|)    
-                        ## (Intercept)                0.4055     0.4564   0.888 0.374364    
-                        ## DominanceCodeS            -1.4351     0.6926  -2.072 0.038277 *  
-                        ## CountrySA                  1.5404     0.7029   2.192 0.028408 *  
-                        ## DominanceCodeS:CountrySA  -3.7163     1.0547  -3.524 0.000426 ***
-                        ## ---
-                        ## Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-                        ## 
-                        ## (Dispersion parameter for binomial family taken to be 1)
-                        ## 
-                        ##     Null deviance: 186.505  on 147  degrees of freedom
-                        ## Residual deviance:  98.287  on 144  degrees of freedom
-                        ## AIC: 106.29
-                        ## 
-                        ## Number of Fisher Scoring iterations: 6
+# LOGISTIC REGRESSION OUTPUT (21ST JANUARY 2024):
+## 
+## Call:
+##   glm(formula = Stage_d_OrNot ~ DominanceCode + Climate + Climate * 
+##         DominanceCode, family = "binomial", data = WaspsWithStageAndDominanceCategorisation)
+## 
+## Coefficients: (1 not defined because of singularities)
+##                                    Estimate Std. Error z value Pr(>|z|)    
+## (Intercept)                           0.5596     0.4432   1.263    0.20671    
+##   DominanceCodeS                     -1.9947     0.6664  -2.993    0.00276 ** 
+##   ClimateSemi-arid                   -2.6161     0.5468  -4.785    1.71e-06 ***
+##   ClimateTemperate                    1.4214     0.6935   2.050    0.04040 *  
+##   DominanceCodeS:ClimateSemi-arid         NA         NA      NA       NA    
+##   DominanceCodeS:ClimateTemperate    -3.1918     1.0369  -3.078  0.00208 ** 
+##   ---
+##   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+## Null deviance: 282.88  on 254  degrees of freedom
+## Residual deviance: 172.62  on 250  degrees of freedom
+## (1 observation deleted due to missingness)
+## AIC: 182.62
+## 
+## Number of Fisher Scoring iterations: 5
 
 # ----------------------------------------------------------------------
 # COMBINE PLOTS FOR PUBLICATION AS PANEL:
 
 library("cowplot")
 my_output_panel3 <- ggdraw() +
-                        draw_plot(ovarystage.plot, x=0, y=0.5, width= 0.3,height=0.5) +
-                        draw_plot(largestegg.plot,  x=.3, y=0.5, width= 0.3,height=0.5) +
-                        draw_plot_label("a", x = 0, y = 1, size = myfontsize, fontface = "bold") +
-                        draw_plot_label("b", x = .3, y = 1, size = myfontsize, fontface = "bold") 
+  draw_plot(ovarystage.plot, x=0, y=0.5, width= 0.3,height=0.5) +
+  draw_plot(largestegg.plot,  x=.3, y=0.5, width= 0.3,height=0.5) +
+  draw_plot_label("a", x = 0, y = 1, size = myfontsize, fontface = "bold") +
+  draw_plot_label("b", x = .3, y = 1, size = myfontsize, fontface = "bold") 
 my_output_panel3
 
 # Export as SVG file for publication:
@@ -284,10 +299,3 @@ ggsave(filename = "my_output_panel3.svg",
        width = 5, dpi = 200)
 # This file is now in the relevant folder, as an SVG file. 
 # Opening it will open Inkscape automatically.
-
-
-
-
-
-
-
