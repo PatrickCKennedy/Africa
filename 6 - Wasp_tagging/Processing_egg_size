@@ -104,7 +104,7 @@ pairwise.wilcox.test(WaspsWithEggMeasurementsAndDominanceCategorisation$LargestE
                      WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory,
                      p.adjust.method = "BH")
 
-# WILCOX PAIRWISE TEST OUTPUT (20TH JANUARY 2024):
+# WILCOX PAIRWISE TEST OUTPUT (2nd August 2024):
 ##	Pairwise comparisons using Wilcoxon rank sum test with continuity correction 
 ##	
 ##	data:  WaspsWithEggMeasurementsAndDominanceCategorisation$LargestEgg and WaspsWithEggMeasurementsAndDominanceCategorisation$FoundressDominanceCategory 
@@ -254,31 +254,56 @@ WaspsWithStageAndDominanceCategorisation$Stage_d_OrNot[WaspsWithStageAndDominanc
 model = glm(Stage_d_OrNot ~ DominanceCode + Climate + Climate*DominanceCode, family = 'binomial', data = WaspsWithStageAndDominanceCategorisation)
 summary(model)
 
-# LOGISTIC REGRESSION OUTPUT (21ST JANUARY 2024):
-## 
-## Call:
-##   glm(formula = Stage_d_OrNot ~ DominanceCode + Climate + Climate * 
-##         DominanceCode, family = "binomial", data = WaspsWithStageAndDominanceCategorisation)
-## 
-## Coefficients: (1 not defined because of singularities)
-##                                    Estimate Std. Error z value Pr(>|z|)    
-## (Intercept)                           0.5596     0.4432   1.263    0.20671    
-##   DominanceCodeS                     -1.9947     0.6664  -2.993    0.00276 ** 
-##   ClimateSemi-arid                   -2.6161     0.5468  -4.785    1.71e-06 ***
-##   ClimateTemperate                    1.4214     0.6935   2.050    0.04040 *  
-##   DominanceCodeS:ClimateSemi-arid         NA         NA      NA       NA    
-##   DominanceCodeS:ClimateTemperate    -3.1918     1.0369  -3.078  0.00208 ** 
-##   ---
-##   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
-## 
-## (Dispersion parameter for binomial family taken to be 1)
-## 
-## Null deviance: 282.88  on 254  degrees of freedom
-## Residual deviance: 172.62  on 250  degrees of freedom
-## (1 observation deleted due to missingness)
-## AIC: 182.62
-## 
-## Number of Fisher Scoring iterations: 5
+                            # LOGISTIC REGRESSION OUTPUT (21ST JANUARY 2024):
+                            ## 
+                            ## Call:
+                            ##   glm(formula = Stage_d_OrNot ~ DominanceCode + Climate + Climate * 
+                            ##         DominanceCode, family = "binomial", data = WaspsWithStageAndDominanceCategorisation)
+                            ## 
+                            ## Coefficients: (1 not defined because of singularities)
+                            ##                                    Estimate Std. Error z value Pr(>|z|)    
+                            ## (Intercept)                           0.5596     0.4432   1.263    0.20671    
+                            ##   DominanceCodeS                     -1.9947     0.6664  -2.993    0.00276 ** 
+                            ##   ClimateSemi-arid                   -2.6161     0.5468  -4.785    1.71e-06 ***
+                            ##   ClimateTemperate                    1.4214     0.6935   2.050    0.04040 *  
+                            ##   DominanceCodeS:ClimateSemi-arid         NA         NA      NA       NA    
+                            ##   DominanceCodeS:ClimateTemperate    -3.1918     1.0369  -3.078  0.00208 ** 
+                            ##   ---
+                            ##   Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+                            ## 
+                            ## (Dispersion parameter for binomial family taken to be 1)
+                            ## 
+                            ## Null deviance: 282.88  on 254  degrees of freedom
+                            ## Residual deviance: 172.62  on 250  degrees of freedom
+                            ## (1 observation deleted due to missingness)
+                            ## AIC: 182.62
+                            ## 
+                            ## Number of Fisher Scoring iterations: 5
+                            
+
+# Model using 'D' or 'C' ovaries:
+
+SubordinatesWithStageAndDominanceCategorisation <- subset(WaspsWithStageAndDominanceCategorisation, DominanceCode == "S")
+SubordinatesWithStageAndDominanceCategorisation$Stage_D_Or_C = 0
+SubordinatesWithStageAndDominanceCategorisation$Stage_D_Or_C[SubordinatesWithStageAndDominanceCategorisation$Stage=="d"] = 1
+SubordinatesWithStageAndDominanceCategorisation$Stage_D_Or_C[SubordinatesWithStageAndDominanceCategorisation$Stage=="c"] = 1
+
+model2 = glm(Stage_D_Or_C ~ Climate, family = 'binomial', data = SubordinatesWithStageAndDominanceCategorisation)
+summary(model2)
+report(model2)
+
+              # LOGISTIC REGRESSION 'REPORT' OUTPUT (5th August 2024):
+              ## "We fitted a logistic model (estimated using ML) to predict Stage_D_Or_C with Climate
+              ## (formula: Stage_D_Or_C ~ Climate). The model's explanatory power is weak (Tjur's R2 = 0.07).
+              ## The model's intercept, corresponding to Climate = Humid tropics, is at -0.31 (95% CI [-1.11,
+              ## 0.46], p = 0.435). Within this model:
+              ## 
+              ##   - The effect of Climate [Temperate] is statistically significant and negative (beta = -1.28,
+              ## 95% CI [-2.28, -0.30], p = 0.010; Std. beta = -1.28, 95% CI [-2.28, -0.30])
+              ## 
+              ## Standardized parameters were obtained by fitting the model on a standardized version of the
+              ## dataset. 95% Confidence Intervals (CIs) and p-values were computed using a Wald
+              ## z-distribution approximation."
 
 # ----------------------------------------------------------------------
 # COMBINE PLOTS FOR PUBLICATION AS PANEL:
