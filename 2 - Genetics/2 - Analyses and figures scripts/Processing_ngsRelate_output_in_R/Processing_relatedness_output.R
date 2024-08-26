@@ -117,6 +117,7 @@ temp_BAM_list <- subset(temp_BAM_list, temp_BAM_list$`Main sample or backup` == 
 
 # From that file, extract the columns of interest:
 WaspIDlist <- cbind(temp_BAM_list$`BAM file`,
+                    temp_BAM_list$Climate,
                     temp_BAM_list$Country,
                     temp_BAM_list$Population,
                     temp_BAM_list$SpecificAggregation,
@@ -128,6 +129,7 @@ WaspIDlist <- cbind(temp_BAM_list$`BAM file`,
 
 # Name those three columns:
 colnames(WaspIDlist) <- cbind("BAM",
+                              "Climate",
                               "Country",
                               "Population",
                               "SpecificAggregation",
@@ -147,6 +149,7 @@ colnames(WaspIDlist) <- cbind("BAM",
 All <- merge(All, WaspIDlist, by.x="idb", by.y = "BAM")
 
 # And similarly rename the new columns with the "idb_" prefix:
+colnames(All)[colnames(All) == 'Climate'] <- 'idb_Climate'
 colnames(All)[colnames(All) == 'Country'] <- 'idb_Country'
 colnames(All)[colnames(All) == 'Population'] <- 'idb_Population'
 colnames(All)[colnames(All) == 'WaspID'] <- 'idb_WaspID'
@@ -155,6 +158,7 @@ colnames(All)[colnames(All) == 'Tagging_nest_if_foundress'] <- 'idb_Tagging_nest
 # Now do a VLOOKUP ('merge') for the ida wasp:
 All <- merge(All, WaspIDlist, by.x="ida", by.y = "BAM")
 
+colnames(All)[colnames(All) == 'Climate'] <- 'ida_Climate'
 colnames(All)[colnames(All) == 'Country'] <- 'ida_Country'
 colnames(All)[colnames(All) == 'Population'] <- 'ida_Population'
 colnames(All)[colnames(All) == 'WaspID'] <- 'ida_WaspID'
@@ -183,20 +187,20 @@ Cofoundresses_data <- subset(All, Same_nest == 1 & Wasp_type.x == 'F' & Wasp_typ
 # will otherwise be missed out):
 Cofoundresses_data$rab <- as.numeric(Cofoundresses_data$rab)
 
-# Focus on the South African cofoundresses only:
-SouthAfrican_cofoundresses <- subset(Cofoundresses_data, ida_Country == "SouthAfrica")
-mean(as.numeric((SouthAfrican_cofoundresses$rab)))
-sd(as.numeric((SouthAfrican_cofoundresses$rab)))
-hist(as.numeric((SouthAfrican_cofoundresses$rab)))
+# Focus on the temperate cofoundresses only:
+Temperate_cofoundresses <- subset(Cofoundresses_data, ida_Climate == "Temperate")
+mean(as.numeric((Temperate_cofoundresses$rab)))
+sd(as.numeric((Temperate_cofoundresses$rab)))
+hist(as.numeric((Temperate_cofoundresses$rab)))
 
-# Focus on the Cameroonian cofoundresses only:
-Cameroon_cofoundresses <- subset(Cofoundresses_data, ida_Country == "Cameroon")
-mean(as.numeric((Cameroon_cofoundresses$rab)))
-sd(as.numeric((Cameroon_cofoundresses$rab)))
-hist(as.numeric((Cameroon_cofoundresses$rab)))
+# Focus on the humid tropical cofoundresses only:
+Humid_tropics_cofoundresses <- subset(Cofoundresses_data, ida_Climate == "Humid_tropics")
+mean(as.numeric((Humid_tropics_cofoundresses$rab)))
+sd(as.numeric((Humid_tropics_cofoundresses$rab)))
+hist(as.numeric((Humid_tropics_cofoundresses$rab)))
 
 # ----------------------------------------------------------------------
-# PLOT BOXPLOT COMPARING SOUTH AFRICA AND CAMEROON:
+# PLOT BOXPLOT COMPARING TEMPERATE AND HUMID TROPICAL:
 
 # Load the libraries:
 library(ggplot2)
@@ -204,7 +208,7 @@ library(ggthemes)
 library(ggpol)
 library(cowplot)
 
-my_x_variable <-  as.factor(Cofoundresses_data$ida_Country)
+my_x_variable <-  as.factor(Cofoundresses_data$ida_Climate)
 my_y_variable <-  as.numeric(Cofoundresses_data$rab)
 my_color_variable <- Cofoundresses_data$ida_Country
 
@@ -245,7 +249,7 @@ myCameroonColour <- "#56ddc5"
 mySouthAfricaColour <- "red"
 
 # Cameroon only:
-Cameroon_plot <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(rab), fill=ida_Country)) + 
+Humidtropics_plot <- ggplot(Humid_tropics_cofoundresses, aes(x=as.numeric(rab), fill=ida_Climate)) + 
   geom_histogram(aes(y = ..density..),
                  fill = myCameroonColour, 
                  alpha = 0.8, bins = 20) +
@@ -256,12 +260,12 @@ Cameroon_plot <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(rab), fill=ida_
   scale_fill_manual( values = c(myCameroonColour)) + 
   scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
   scale_y_continuous(breaks = seq(0,10,by = 5),expand = c(0, 0)) + 
-  geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$rab)), 
+  geom_vline(xintercept = mean(as.numeric(Humid_tropics_cofoundresses$rab)), 
              linetype="dashed") + theme(legend.position = "none")
-Cameroon_plot
+Humidtropics_plot
 
 # South Africa only:
-SA_plot <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_Country)) + 
+SA_plot <- ggplot(Temperate_cofoundresses, aes(x=as.numeric(rab), fill=ida_Climate)) + 
   geom_histogram(aes(y = ..density..),
                  fill = mySouthAfricaColour, 
                  alpha = 0.8, bins =20) +
@@ -272,7 +276,7 @@ SA_plot <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_Co
   scale_fill_manual( values = c(mySouthAfricaColour)) + 
   scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
   scale_y_continuous(breaks = seq(0,15,by = 5),expand = c(0, 0)) + 
-  geom_vline(xintercept = mean(as.numeric(SouthAfrican_cofoundresses$rab)), 
+  geom_vline(xintercept = mean(as.numeric(Temperate_cofoundresses$rab)), 
              linetype="dashed") + theme(legend.position = "none")
 SA_plot
 
@@ -281,14 +285,14 @@ library(gridExtra)
 grid.arrange(SA_plot,Cameroon_plot)
 
 # Mean relatednesses in each country:
-mean(as.numeric(SouthAfrican_cofoundresses$rab))
-sd(as.numeric(SouthAfrican_cofoundresses$rab))
+mean(as.numeric(Temperate_cofoundresses$rab))
+sd(as.numeric(Temperate_cofoundresses$rab))
 
-mean(as.numeric(Cameroon_cofoundresses$rab))
-sd(as.numeric(Cameroon_cofoundresses$rab))
+mean(as.numeric(Humid_tropics_cofoundresses$rab))
+sd(as.numeric(Humid_tropics_cofoundresses$rab))
 
 # South Africa cofoundresses, showing separate densities for each population:
-SA_plot2 <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_Population)) +
+SA_plot2 <- ggplot(Temperate_cofoundresses, aes(x=as.numeric(rab), fill=ida_Population)) +
   geom_density(alpha = 0.5, adjust = 0.8, lty = "solid") +
   theme_classic() + 
   labs(y= "Density", 
@@ -298,7 +302,7 @@ SA_plot2 <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(rab), fill=ida_P
 SA_plot2
 
 # Cameroonian cofoundresses, showing separate densities for each population:
-Cameroon_plot2 <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(rab),  fill=ida_Population)) +
+Cameroon_plot2 <- ggplot(Humid_tropics_cofoundresses, aes(x=as.numeric(rab),  fill=ida_Population)) +
   geom_density(alpha = 0.5, adjust = 0.4, lty = "solid") +
   theme_classic() + 
   labs(y= "Density", 
@@ -360,7 +364,7 @@ my_plot_KING <- ggplot(Cofoundresses_data) +
 my_plot_KING
 
 # Cameroon only:
-Cameroon_plot_KING <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(KING_multiplied_by_2), fill=ida_Country)) + 
+Cameroon_plot_KING <- ggplot(Humid_tropics_cofoundresses, aes(x=as.numeric(KING_multiplied_by_2), fill=ida_Country)) + 
   geom_histogram(aes(y = ..density..),
                  fill = myCameroonColour, 
                  alpha = 0.8, bins = 20) +
@@ -371,12 +375,12 @@ Cameroon_plot_KING <- ggplot(Cameroon_cofoundresses, aes(x=as.numeric(KING_multi
   scale_fill_manual( values = c(myCameroonColour)) + 
   scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
   scale_y_continuous(breaks = seq(0,10,by = 5),expand = c(0, 0)) + 
-  geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$KING_multiplied_by_2)), 
+  geom_vline(xintercept = mean(as.numeric(Humid_tropics_cofoundresses$KING_multiplied_by_2)), 
              linetype="dashed") + theme(legend.position = "none")
 Cameroon_plot_KING
 
 # South Africa only:
-SA_plot_KING <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(KING_multiplied_by_2), fill=ida_Country)) + 
+SA_plot_KING <- ggplot(Temperate_cofoundresses, aes(x=as.numeric(KING_multiplied_by_2), fill=ida_Country)) + 
   geom_histogram(aes(y = ..density..),
                  fill = mySouthAfricaColour, 
                  alpha = 0.8, bins = 30) +
@@ -387,7 +391,7 @@ SA_plot_KING <- ggplot(SouthAfrican_cofoundresses, aes(x=as.numeric(KING_multipl
   scale_fill_manual( values = c(mySouthAfricaColour)) + 
   scale_x_continuous(limits = c(-0.03,0.9), expand = c(0, 0)) +
   scale_y_continuous(breaks = seq(0,15,by = 5),expand = c(0, 0)) + 
-  geom_vline(xintercept = mean(as.numeric(SouthAfrican_cofoundresses$KING_multiplied_by_2)), 
+  geom_vline(xintercept = mean(as.numeric(Temperate_cofoundresses$KING_multiplied_by_2)), 
              linetype="dashed") + theme(legend.position = "none")
 SA_plot_KING
 
@@ -413,24 +417,24 @@ ggsave(filename = "my_output_panel_KING.svg",
 
 Threshold_for_interpretting_as_full_sisters = 0.6
 
-# Proportion of pairwise relatednesses that are not full-sisters in Cameroon:
-Cameroon_total_full_sister_relatednesses <- dim(subset(Cameroon_cofoundresses, rab > Threshold_for_interpretting_as_full_sisters))[1]
-Cameroon_total_relatednesses <- dim(Cameroon_cofoundresses)[1]
-Cameroon_Percent_of_relatednesses_that_are_not_full_sisters <- (1-(Cameroon_total_full_sister_relatednesses/Cameroon_total_relatednesses))*100
-Cameroon_Percent_of_relatednesses_that_are_not_full_sisters
+# Proportion of pairwise relatednesses that are not full-sisters in humid tropics:
+Humid_tropics_total_full_sister_relatednessesperate_cofoundresses <- dim(subset(Humid_tropics_cofoundresses, rab > Threshold_for_interpretting_as_full_sisters))[1]
+Humid_tropics_total_relatednesses <- dim(Humid_tropics_cofoundresses)[1]
+Humid_tropics_Percent_of_relatednesses_that_are_not_full_sisters <- (1-(Humid_tropics_total_full_sister_relatednessesperate_cofoundresses/Humid_tropics_total_relatednesses))*100
+Humid_tropics_Percent_of_relatednesses_that_are_not_full_sisters
 
 # Proportion of pairwise relatednesses that are not full-sisters in South Africa:
-SA_total_full_sister_relatednesses <- dim(subset(SouthAfrican_cofoundresses, rab > Threshold_for_interpretting_as_full_sisters))[1]
-SA_total_relatednesses <- dim(SouthAfrican_cofoundresses)[1]
+SA_total_full_sister_relatednesses <- dim(subset(Temperate_cofoundresses, rab > Threshold_for_interpretting_as_full_sisters))[1]
+SA_total_relatednesses <- dim(Temperate_cofoundresses)[1]
 SA_Percent_of_relatednesses_that_are_not_full_sisters <- (1-(SA_total_full_sister_relatednesses/SA_total_relatednesses))*100
 SA_Percent_of_relatednesses_that_are_not_full_sisters
 
-Cameroon_total_not_sisters <- Cameroon_total_relatednesses-Cameroon_total_full_sister_relatednesses
+Humid_tropics_total_not_sisters <- Humid_tropics_total_relatednesses-Humid_tropics_total_full_sister_relatednessesperate_cofoundresses
 SA_total_not_sisters <- SA_total_relatednesses-SA_total_full_sister_relatednesses
 
 # Two-proportions Z test:
-prop.test(x = c(Cameroon_total_not_sisters,SA_total_not_sisters), 
-          n = c(Cameroon_total_relatednesses,SA_total_relatednesses), 
+prop.test(x = c(Humid_tropics_total_not_sisters,SA_total_not_sisters), 
+          n = c(Humid_tropics_total_relatednesses,SA_total_relatednesses), 
           p = NULL, alternative = "two.sided", 
           correct = TRUE)
 
@@ -438,7 +442,7 @@ prop.test(x = c(Cameroon_total_not_sisters,SA_total_not_sisters),
 ## 2-sample test for equality of proportions with
 ## continuity correction
 ## 
-## data:  c(Cameroon_total_not_sisters, SA_total_not_sisters) out of c(Cameroon_total_relatednesses, SA_total_relatednesses)
+## data:  c(Humid_tropics_total_not_sisters, SA_total_not_sisters) out of c(Humid_tropics_total_relatednesses, SA_total_relatednesses)
 ## X-squared = 66.038, df = 1, p-value = 4.422e-16
 ## alternative hypothesis: two.sided
 ## 95 percent confidence interval:
@@ -449,10 +453,10 @@ prop.test(x = c(Cameroon_total_not_sisters,SA_total_not_sisters),
 
 # Barplot showing the proportions of cofoundresses pairwise relatednesses that are full sisters, with '***' to denote the significant p-value from the test above:
 SA_total_not_sisters <- SA_total_relatednesses-SA_total_full_sister_relatednesses;
-Cameroon_total_not_sisters <- Cameroon_total_relatednesses-Cameroon_total_full_sister_relatednesses;
+Humid_tropics_total_not_sisters <- Humid_tropics_total_relatednesses-Humid_tropics_total_full_sister_relatednessesperate_cofoundresses;
 df2 <- data.frame(supp=rep(c( "Sisters","xNon-Sisters"), each=2),
                   Country=rep(c("SA", "CA"),2),
-                  Nonsisters=c(SA_total_full_sister_relatednesses,Cameroon_total_full_sister_relatednesses,SA_total_not_sisters, Cameroon_total_not_sisters));
+                  Nonsisters=c(SA_total_full_sister_relatednesses,Humid_tropics_total_full_sister_relatednessesperate_cofoundresses,SA_total_not_sisters, Humid_tropics_total_not_sisters));
 nonsisters_barplot <- ggplot(data=df2, aes(x=Country, y=Nonsisters, fill=supp)) +
   geom_bar(aes(fill = interaction(supp,Country)),color='black',stat="identity") + 
   scale_fill_manual(values=c('white',myCameroonColour,'white',mySouthAfricaColour)) + 
@@ -480,27 +484,27 @@ ggsave(filename = "Nonsisters_barplot.svg",
 Threshold_for_interpretting_as_nonrelatives = 0.1
 
 # Proportion of pairwise relatednesses that are <0.15 in Cameroon:
-Cameroon_total_nonrelatives_relatednesses <- dim(subset(Cameroon_cofoundresses, rab < Threshold_for_interpretting_as_nonrelatives))[1]
-Cameroon_total_relatednesses <- dim(Cameroon_cofoundresses)[1]
-Cameroon_Percent_of_relatednesses_that_are_nonrelatives <- (Cameroon_total_nonrelatives_relatednesses/Cameroon_total_relatednesses)*100
-Cameroon_Percent_of_relatednesses_that_are_nonrelatives
+Humid_tropics_total_nonrelatives_relatednesses <- dim(subset(Humid_tropics_cofoundresses, rab < Threshold_for_interpretting_as_nonrelatives))[1]
+Humid_tropics_total_relatednesses <- dim(Humid_tropics_cofoundresses)[1]
+Humid_tropics_Percent_of_relatednesses_that_are_nonrelatives <- (Humid_tropics_total_nonrelatives_relatednesses/Humid_tropics_total_relatednesses)*100
+Humid_tropics_Percent_of_relatednesses_that_are_nonrelatives
 
 # Proportion of pairwise relatednesses that are <0.15 in Cameroon:
-SA_total_nonrelatives_relatednesses <- dim(subset(SouthAfrican_cofoundresses, rab < Threshold_for_interpretting_as_nonrelatives))[1]
-SA_total_relatednesses <- dim(SouthAfrican_cofoundresses)[1]
+SA_total_nonrelatives_relatednesses <- dim(subset(Temperate_cofoundresses, rab < Threshold_for_interpretting_as_nonrelatives))[1]
+SA_total_relatednesses <- dim(Temperate_cofoundresses)[1]
 SA_Percent_of_relatednesses_that_are_nonrelatives <- (SA_total_nonrelatives_relatednesses/SA_total_relatednesses)*100
 SA_Percent_of_relatednesses_that_are_nonrelatives
 
 # Two-proportions Z test:
-prop.test(x = c(Cameroon_total_nonrelatives_relatednesses,SA_total_nonrelatives_relatednesses), 
-          n = c(Cameroon_total_relatednesses,SA_total_relatednesses), 
+prop.test(x = c(Humid_tropics_total_nonrelatives_relatednesses,SA_total_nonrelatives_relatednesses), 
+          n = c(Humid_tropics_total_relatednesses,SA_total_relatednesses), 
           p = NULL, alternative = "two.sided", 
           correct = TRUE)
 
 ## OUTPUT OF ANALYSIS (27th April 2024):
 ## 2-sample test for equality of proportions with continuity correction
 ## 
-## data:  c(Cameroon_total_nonrelatives_relatednesses, SA_total_nonrelatives_relatednesses) out of c(Cameroon_total_relatednesses, SA_total_relatednesses)
+## data:  c(Humid_tropics_total_nonrelatives_relatednesses, SA_total_nonrelatives_relatednesses) out of c(Humid_tropics_total_relatednesses, SA_total_relatednesses)
 ## X-squared = 17.888, df = 1, p-value = 2.343e-05
 ## alternative hypothesis: two.sided
 ## 95 percent confidence interval:
@@ -619,10 +623,10 @@ Nest_max <- merge(Nest_max, CountryList, by.x = "ida_Tagging_nest_if_foundress",
 # Use that table to calculate the proportion of foundress nests in each country that have at least one
 # pair of full sisters:
 Threshold_for_interpretting_as_full_sisters = 0.6
-Cameroon_total_with_at_least_one_sister_pair <- dim(subset(Nest_max, rab > Threshold_for_interpretting_as_full_sisters & Country == "Cameroon"))[1]
-Cameroon_total_cofoundress_nests <- dim(subset(Nest_max, Country == "Cameroon"))[1]
-Cameroon_Percent_without_at_least_one_sister_pair <- (1-(Cameroon_total_with_at_least_one_sister_pair/Cameroon_total_cofoundress_nests))*100
-Cameroon_Percent_without_at_least_one_sister_pair
+Humid_tropics_total_with_at_least_one_sister_pair <- dim(subset(Nest_max, rab > Threshold_for_interpretting_as_full_sisters & Country == "Cameroon"))[1]
+Humid_tropics_total_cofoundress_nests <- dim(subset(Nest_max, Country == "Cameroon"))[1]
+Humid_tropics_Percent_without_at_least_one_sister_pair <- (1-(Humid_tropics_total_with_at_least_one_sister_pair/Humid_tropics_total_cofoundress_nests))*100
+Humid_tropics_Percent_without_at_least_one_sister_pair
 
 SA_total_with_at_least_one_sister_pair <- dim(subset(Nest_max, rab > Threshold_for_interpretting_as_full_sisters & Country == "SouthAfrica"))[1]
 SA_total_cofoundress_nests <- dim(subset(Nest_max, Country == "SouthAfrica"))[1]
@@ -649,10 +653,10 @@ All$Neighbours[All$SpecificAggregation.x == All$SpecificAggregation.y & All$ida_
 # Focus on neighbour relatednesses:
 NeighbourRelatednesses <- subset(All, Neighbours == 1)
 
-# Focus on neighbour relatednesses in Cameroon:
-Cameroon_NeighbourRelatednesses <- subset(All, Neighbours == 1 & ida_Country == "Cameroon")
-Cameroon_NeighbourRelatednesses$rab <- as.numeric(Cameroon_NeighbourRelatednesses$rab)
-hist(as.numeric(Cameroon_NeighbourRelatednesses$rab))
+# Focus on neighbour relatednesses in humid tropics:
+Humid_tropics_NeighbourRelatednesses <- subset(All, Neighbours == 1 & ida_Climate == "Humid_tropics")
+Humid_tropics_NeighbourRelatednesses$rab <- as.numeric(Humid_tropics_NeighbourRelatednesses$rab)
+hist(as.numeric(Humid_tropics_NeighbourRelatednesses$rab))
 
 # Focus on neighbour relatednesses in South Africa:
 SA_NeighbourRelatednesses <- subset(All, Neighbours == 1 & ida_Country == "SouthAfrica")
@@ -660,7 +664,7 @@ SA_NeighbourRelatednesses$rab <- as.numeric(SA_NeighbourRelatednesses$rab)
 hist(as.numeric(SA_NeighbourRelatednesses$rab))
 
 # Cameroon neighbour relatedness only:
-CA_neighbour_plot <- ggplot(Cameroon_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Country)) + 
+HT_neighbour_plot <- ggplot(Humid_tropics_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Climate)) + 
   geom_histogram(aes(y = ..density..),
                  fill = myCameroonColour, 
                  alpha = 0.8, bins = 60) +
@@ -671,9 +675,9 @@ CA_neighbour_plot <- ggplot(Cameroon_NeighbourRelatednesses, aes(x=as.numeric(ra
   scale_fill_manual( values = c(myCameroonColour)) + 
   scale_x_continuous(limits = c(-0.01,0.9), expand = c(0, 0)) +
   scale_y_continuous(expand = c(0, 0)) + 
-  geom_vline(xintercept = mean(as.numeric(Cameroon_NeighbourRelatednesses$rab)), 
+  geom_vline(xintercept = mean(as.numeric(Humid_tropics_NeighbourRelatednesses$rab)), 
              linetype="dashed") + theme(legend.position = "none")
-CA_neighbour_plot
+HT_neighbour_plot
 
 # South African neighbour relatedness only:
 SA_neighbour_plot <- ggplot(SA_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Country)) + 
@@ -691,6 +695,26 @@ SA_neighbour_plot <- ggplot(SA_NeighbourRelatednesses, aes(x=as.numeric(rab), fi
              linetype="dashed") + theme(legend.position = "none")
 SA_neighbour_plot
 
+# Humid tropical neighbours, showing separate densities for each population:
+HT_neighbours <- ggplot(Humid_tropics_NeighbourRelatednesses, aes(x=as.numeric(rab),  fill=SpecificAggregation.x)) +
+  geom_density(alpha = 1, adjust = 0.4, lty = "solid") +
+  theme_classic() + 
+  labs(y= "Density", 
+       x = "Co-foundress relatedness")  +
+  xlim(0,0.00001) +
+  scale_y_continuous(expand = c(0, 0))
+HT_neighbours
+
+# SA neighbours, showing separate densities for each population:
+SA_neighbours <- ggplot(SA_NeighbourRelatednesses, aes(x=as.numeric(rab),  fill=SpecificAggregation.x)) +
+  geom_density(alpha = 0.5, adjust = 0.4, lty = "solid") +
+  theme_classic() + 
+  labs(y= "Density", 
+       x = "Co-foundress relatedness")  +
+  scale_y_continuous(expand = c(0, 0))
+SA_neighbours
+
+
 #CONTINUEHERE
 # Plot on the panel:
 plot_grid(my_plot, 
@@ -702,7 +726,6 @@ plot_grid(my_plot,
           align = "v",
           nrow = 2, 
           rel_widths  = c(1/15, 1/4, 1/4))
-
 
 # -----------------------------------------------------------------------------
 # COMBINE PLOTS FOR PUBLICATION IN PANEL:
@@ -728,7 +751,7 @@ ggsave(filename = "my_neighbour_panel.svg",
 # ...in South Africa:
 dim(subset(SA_NeighbourRelatednesses, rab > 0.6))[1]/dim(SA_NeighbourRelatednesses)[1]*100
 # ...in Cameroon:
-dim(subset(Cameroon_NeighbourRelatednesses, rab > 0.6))[1]/dim(Cameroon_NeighbourRelatednesses)[1]*100
+dim(subset(Humid_tropics_NeighbourRelatednesses, rab > 0.6))[1]/dim(Humid_tropics_NeighbourRelatednesses)[1]*100
 
 # When I ran this on 28th April 2024, probability that a randomly-chosen neighbour (foundress on a 
 # different nest in the same aggregation) is a full sister is 17.46% in South Africa and 5.95% in Cameroon.
@@ -754,7 +777,7 @@ ggplot(SA_NeighbourRelatednesses, aes(x=as.numeric(rab), fill=ida_Population)) +
 # Following: http://www.sthda.com/english/articles/33-social-network-analysis/135-network-visualization-essentials-in-r/
 
 # List of all nests from the chosen country:
-nestlist <- levels(as.factor(SouthAfrican_cofoundresses$ida_Tagging_nest_if_foundress))
+nestlist <- levels(as.factor(Temperate_cofoundresses$ida_Tagging_nest_if_foundress))
 
 p <- list()
 for (nest in 1:length(nestlist)){
@@ -874,8 +897,8 @@ grid.arrange(grobs = lapply(p, "+", margin))
 # Following: http://www.sthda.com/english/articles/33-social-network-analysis/135-network-visualization-essentials-in-r/
 
 # We only want to plot between-foundress relatednesses in this section (i.e., no post-emergence nests and no brood).
-# Therefore, restrict 'All' to foundresses only:
-All_F <- subset(All,All$`Wasp type.x` == 'F' & All$`Wasp type.y` == 'F' )
+# Therefore, restrict 'All' to foundresses only:
+All_F <- subset(All,All$`Wasp_type.x` == 'F' & All$`Wasp_type.y` == 'F' )
 
 # The script will loop through each of the aggregations, and export the kinship network:
 
@@ -927,7 +950,7 @@ for (aggregation in 1:length(aggregation_list)){
     my_edgelist$V3 <- as.numeric(my_edgelist$V3)
     
     # Remove any edges that represent zero relatedness (using a cut-off of r < 0.01):
-    myCutOff <- 0.1 # Set this is zero if you want to include everything (you can always make edges with a weight of zero transparent later)
+    myCutOff <- 0.01 # 0.01. (Or set this is zero if you want to include everything (you can always make edges with a weight of zero transparent later))
     my_edgelist <- subset(my_edgelist, V3 > myCutOff)
     
     # I think it would be good to have two edge types. One showing relatedness (with width/alpha),
@@ -1006,7 +1029,7 @@ for (aggregation in 1:length(aggregation_list)){
       
       
       # Opening the graphical device
-      pdf(paste("Aggregation_",Aggregation_of_interest,".pdf", sep = ""),
+      pdf(paste("myAggregation_",Aggregation_of_interest,".pdf", sep = ""),
           width = 4, height = 2) # Width and height in inches
       
       # Creating a plot
@@ -1048,13 +1071,13 @@ SA.ExperimentSubordinates <- subset(Subordinates, Country == "SA")
 Cameroon.ExperimentSubordinatesRelatednessPlot <- ggplot(Cameroon.ExperimentSubordinates, aes(x=as.numeric(rab), fill=ida_Country)) + 
   geom_histogram(aes(y = ..density..), alpha = 0.8, bins = 40) + geom_density(alpha = 0.4, adjust = 0.2) + theme_cowplot() + 
   labs(y= "Density", x = "Subordinate's relatedness to dominant") + scale_fill_manual( values = c(myCameroonColour, mySouthAfricaColour)) + scale_x_continuous(limits = c(-0.018,0.9), expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) + geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$rab)), linetype="dashed")
+  scale_y_continuous(expand = c(0, 0)) + geom_vline(xintercept = mean(as.numeric(Humid_tropics_cofoundresses$rab)), linetype="dashed")
 Cameroon.ExperimentSubordinatesRelatednessPlot
 
 SA.ExperimentSubordinatesRelatednessPlot <- ggplot(SA.ExperimentSubordinates, aes(x=as.numeric(rab))) + 
   geom_histogram(aes(y = ..density..), fill="red", alpha = 0.8, bins = 40) + geom_density(alpha = 0.4, adjust = 0.8,fill="red") + theme_cowplot() + 
   labs(y= "Density", x = "Subordinate's relatedness to dominant") + scale_fill_manual( values = c(myCameroonColour, mySouthAfricaColour)) + scale_x_continuous(limits = c(-0.018,0.9), expand = c(0, 0)) +
-  scale_y_continuous(expand = c(0, 0)) + geom_vline(xintercept = mean(as.numeric(Cameroon_cofoundresses$rab)), linetype="dashed")
+  scale_y_continuous(expand = c(0, 0)) + geom_vline(xintercept = mean(as.numeric(Humid_tropics_cofoundresses$rab)), linetype="dashed")
 SA.ExperimentSubordinatesRelatednessPlot
 
 # Relatedness is near-uniformly full-sister in South Africa. However, there is variability in Cameroon. Does it predict likelihood of defection?
@@ -1205,14 +1228,14 @@ Cofoundresses_data <- subset(All, Same_nest == 1)
 Cofoundresses_data$rab <- as.numeric(Cofoundresses_data$rab)
 
 # Focus on the South African cofoundresses only:
-SouthAfrican_cofoundresses <- subset(Cofoundresses_data, ida_Country == "SouthAfrica")
-mean(as.numeric((SouthAfrican_cofoundresses$rab)))
-hist(as.numeric((SouthAfrican_cofoundresses$rab)))
+Temperate_cofoundresses <- subset(Cofoundresses_data, ida_Country == "SouthAfrica")
+mean(as.numeric((Temperate_cofoundresses$rab)))
+hist(as.numeric((Temperate_cofoundresses$rab)))
 
 # Focus on the Cameroonian cofoundresses only:
-Cameroon_cofoundresses <- subset(Cofoundresses_data, ida_Country == "Cameroon")
-mean(as.numeric((Cameroon_cofoundresses$rab)))
-hist(as.numeric((Cameroon_cofoundresses$rab)))
+Humid_tropics_cofoundresses <- subset(Cofoundresses_data, ida_Country == "Cameroon")
+mean(as.numeric((Humid_tropics_cofoundresses$rab)))
+hist(as.numeric((Humid_tropics_cofoundresses$rab)))
 
 # ----------------------------------------------------------------------
 # PLOT BOXPLOT COMPARING SOUTH AFRICA AND CAMEROON:
