@@ -950,7 +950,7 @@ for (aggregation in 1:length(aggregation_list)){
     my_edgelist$V3 <- as.numeric(my_edgelist$V3)
     
     # Remove any edges that represent zero relatedness (using a cut-off of r < 0.01):
-    myCutOff <- 0.01 # 0.01. (Or set this is zero if you want to include everything (you can always make edges with a weight of zero transparent later))
+    myCutOff <- 0.6 # 0.01. (Or set this is zero if you want to include everything (you can always make edges with a weight of zero transparent later))
     my_edgelist <- subset(my_edgelist, V3 > myCutOff)
     
     # I think it would be good to have two edge types. One showing relatedness (with width/alpha),
@@ -969,19 +969,21 @@ for (aggregation in 1:length(aggregation_list)){
     if (nrow(my_edgelist2) > 0){
       
       my_edgelist2$type <-"Wasp cofoundresses"
-      my_edgelist$type <-"Relatedness"
       my_edgelist2$V3 <- 0.7 # Change the value '1' to something else (such as 0.5) to avoid these lines
       # being much thicker than the relatedness lines
-      # For plotting on the graph, state whether you want dashed, dotted, or solid lines:
       my_edgelist2$V4 <- "solid"       # cofoundresses edges
-      my_edgelist$V4 <- "solid"         # relatedness edges
-      # For plotting on the graph, state the colours for each edge type:
       my_edgelist2$V5 <- "black"              # cofoundresses edges
+    }
+    
+    if (nrow(my_edgelist) > 0){
+      my_edgelist$type <-"Sisters (rab>0.6)"
+      my_edgelist$V4 <- "solid"         # relatedness edges
       my_edgelist$V5 <- my_edge_colour         # relatedness edges - set to turquoise for Cameroon and red for South Africa
-      my_edgelist <- rbind(my_edgelist2,my_edgelist)
-      
+    }
+    
       # Convert the edgelist to 'tibble' format too (http://www.sthda.com/english/articles/33-social-network-analysis/135-network-visualization-essentials-in-r/):
-      edges <- as_tibble(my_edgelist)
+      my_edgelist_combined <- rbind(my_edgelist,my_edgelist2)
+      edges <- as_tibble(my_edgelist_combined)
       
       # Use VLOOKUP ('merge') to phrase the edgelist in terms of the node IDs:
       colnames(edges) <- c("WaspA","WaspB","Relatedness", "type","linetype","my_line_colours")
@@ -1018,8 +1020,8 @@ for (aggregation in 1:length(aggregation_list)){
         scale_edge_color_manual(limits = as.factor(edges$my_line_colours), 
                                 values = edges$my_line_colours) +
         geom_node_point(fill = "white", shape = 21, size = 2, color = "black") +
-        scale_edge_alpha(range = c(0,1)) +
-        scale_edge_width(range = c(0.1,0.5)) + 
+        scale_edge_alpha(range = c(1,1)) +
+        scale_edge_width(range = c(0.3,0.3)) + 
         theme_graph() + theme(legend.position = "none")
       
       # layout = 'stress'  is quite good
@@ -1038,7 +1040,7 @@ for (aggregation in 1:length(aggregation_list)){
       # Closing the graphical device
       dev.off() 
       
-    }}}
+    }}
 
 # -----------------------------------------------------------------------------
 # LOOK AT RELATEDNESS IN THE EXPERIMENT WASPS:
