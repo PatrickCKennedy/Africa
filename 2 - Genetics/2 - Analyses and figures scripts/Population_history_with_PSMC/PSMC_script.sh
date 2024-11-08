@@ -68,7 +68,7 @@ wait
         
 cat my_diploid.psmc round-*.psmc > combined.psmc
 psmc_plot.pl -g 1 -u 3.6e-09 combined combined.psmc
-# Make sure you put in the right generation time for the population! i.e. I think g=1 for South Africa but g=0.583 (7 months?) for Cameroon?
+# Make sure you put in the right generation time for the population. e.g.,  g=1 for South Africa but g=0.583 (7 months) for Cameroon.
 
 # ----------------------------------------------
 # So, we have now generated a combined plot for this sample (i.e., the main line plus its 100 bootstraps). However, we would like to be able to merge this with plots for other samples. To do that, we need to prepare it for plotting in R. Run the following (with the right generation times!):
