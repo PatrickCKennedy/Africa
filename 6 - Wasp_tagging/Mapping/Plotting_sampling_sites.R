@@ -413,10 +413,19 @@ FoundressPupae <- subset(FoundressDataNonAmbiguousGroupSize, Categorisation == "
 # ----------------------------------------------------------------------
 # DOES FOUNDRESS GROUP SIZE CORRELATE WITH CLIMATE VARIABLES?
 
-library(raster)
+
 library(sp)
 
-r <- raster::getData("worldclim",var="bio",res=10)
+# Old version using raster function (function now removed):
+library(raster)
+#r <- raster::getData("worldclim",var="bio",res=10)
+
+# New version using geodata function:
+path = file.path( R.home(), "etc/Rprofile.site")
+library(geodata)
+s <- worldclim_global(var="bio", res=10, path = path, version="2.1")
+r <- s
+
 r <- r[[c(1,12,4,7,15)]]
 names(r) <- c("Temp","Prec","Seasonality","AnnualTempRange","RainSeasonality")
 points <- cbind(as.numeric(FoundressDataNonAmbiguousGroupSize$longitude),as.numeric(FoundressDataNonAmbiguousGroupSize$latitude))
@@ -427,19 +436,18 @@ plot(FoundressDataNonAmbiguousGroupSize$Temp,FoundressDataNonAmbiguousGroupSize$
 # Is there a significant effect of temperature on foundress group size?
 ggplot(FoundressDataNonAmbiguousGroupSize, aes(Temp, as.numeric(group_size))) +
   geom_point(data = FoundressDataNonAmbiguousGroupSize,
-             aes(x = Temp,
-                 y = group_size),
+             aes(x = longitude,
+                 y = latitude),
              alpha = 0.5,
              size = 1,
-             colour = "black") +
-  stat_smooth(method = lm)
+             colour = "black")
 
 model <- lm(group_size ~ Temp, data = FoundressDataNonAmbiguousGroupSize)
 model
 summary(model)
 
 # Is there a significant effect of rainfall on foundress group size?
-ggplot(FoundressData, aes(Prec, as.numeric(group_size))) +
+ggplot(FoundressDataNonAmbiguousGroupSize, aes(Prec, as.numeric(group_size))) +
   geom_point() +
   stat_smooth(method = lm)
 
@@ -447,6 +455,29 @@ model <- lm(group_size ~ Prec, data = FoundressDataNonAmbiguousGroupSize)
 model
 summary(model)
 
+# Using a GAMS approach (https://m-clark.github.io/generalized-additive-models/application.html):
+
+  # FirSt, the standard linear regression (but using the GAM function):
+    library(mgcv)
+    mod_lm = gam(as.numeric(pleometrosis) ~ latitude, data = FoundressDataNonAmbiguousGroupSize, family = binomial)
+    summary(mod_lm)
+    # Should give the same result as the lm() function.
+
+  # Now, fitting a GAM model:
+   mod_gam1 = gam(as.numeric(pleometrosis) ~ s(latitude, bs = "cr"), data = FoundressDataNonAmbiguousGroupSize, family = binomial)
+    summary(mod_gam1)
+    plot(mod_gam1)     
+
+  # Plotting the GAM model using the 'visibly' package (https://m-clark.github.io/visibly/):
+  ##devtools::install_github("m-clark/visibly")          
+  library(visibly)
+  plot_gam(mod_gam1, main_var = latitude)                                       
+                                           
+
+
+
+
+                   
 # Is there a significant effect of RainSeasonality on foundress group size?
 ggplot(FoundressDataNonAmbiguousGroupSize, aes(RainSeasonality, as.numeric(group_size))) +
   geom_point() +
