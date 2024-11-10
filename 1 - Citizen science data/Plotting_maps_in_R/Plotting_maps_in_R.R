@@ -75,15 +75,24 @@ ggplot(data = africa) +
   theme(panel.grid.major = element_line(color = gray(.0), 
                                         size = 0), 
         panel.background = element_rect(fill = "white")) +
-  labs(title = "Hello, elephants!")
+  labs(title = "Foundress group size")
 
 # ----------------------------------------------------------------------
 # DOES FOUNDRESS GROUP SIZE CORRELATE WITH CLIMATE VARIABLES?
 
-library(raster)
+
 library(sp)
 
-r <- raster::getData("worldclim",var="bio",res=10)
+# Old version using raster function (function now removed):
+library(raster)
+#r <- raster::getData("worldclim",var="bio",res=10)
+
+# New version using geodata function:
+path = file.path( R.home(), "etc/Rprofile.site")
+library(geodata)
+s <- worldclim_global(var="bio", res=10, path = path, version="2.1")
+r <- s
+
 r <- r[[c(1,12,4,7,15)]]
 names(r) <- c("Temp","Prec","Seasonality","AnnualTempRange","RainSeasonality")
 points <- cbind(as.numeric(FoundressDataNonAmbiguousGroupSize$longitude),as.numeric(FoundressDataNonAmbiguousGroupSize$latitude))
@@ -98,21 +107,60 @@ ggplot(FoundressDataNonAmbiguousGroupSize, aes(Temp, as.numeric(group_size))) +
                  y = latitude),
              alpha = 0.5,
              size = 1,
-             colour = "black") +
-  stat_smooth(method = lm)
+             colour = "black")
 
 model <- lm(group_size ~ Temp, data = FoundressDataNonAmbiguousGroupSize)
 model
 summary(model)
 
 # Is there a significant effect of rainfall on foundress group size?
-ggplot(FoundressData, aes(Prec, as.numeric(group_size))) +
+ggplot(FoundressDataNonAmbiguousGroupSize, aes(Prec, as.numeric(group_size))) +
   geom_point() +
   stat_smooth(method = lm)
 
 model <- lm(group_size ~ Prec, data = FoundressDataNonAmbiguousGroupSize)
 model
 summary(model)
+
+# Using a GAMS approach (https://m-clark.github.io/generalized-additive-models/application.html):
+
+  # FirSt, the standard linear regression (but using the GAM function):
+    library(mgcv)
+    mod_lm = gam(as.numeric(pleometrosis) ~ latitude, data = FoundressDataNonAmbiguousGroupSize, family = binomial)
+    summary(mod_lm)
+    # Should give the same result as the lm() function.
+
+  # Now, fitting a GAM model:
+   mod_gam1 = gam(as.numeric(pleometrosis) ~ s(latitude, bs = "cr"), data = FoundressDataNonAmbiguousGroupSize, family = binomial)
+    summary(mod_gam1)
+    plot(mod_gam1)     
+
+  # Plotting the GAM model using the 'visibly' package (https://m-clark.github.io/visibly/):
+  ##devtools::install_github("m-clark/visibly")          
+  library(visibly)
+  plot_gam(mod_gam1, main_var = latitude)                                       
+                                           
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # Is there a significant effect of RainSeasonality on foundress group size?
 ggplot(FoundressDataNonAmbiguousGroupSize, aes(RainSeasonality, as.numeric(group_size))) +
@@ -153,15 +201,15 @@ WestAfrica <- subset(FoundressDataNonAmbiguousGroupSize, latitude > -10 & longit
 hist(as.numeric(WestAfrica$group_size))
 
 # Add these regional categories as columns to the dataset:
+FoundressDataNonAmbiguousGroupSize$Region <- NA
 FoundressDataNonAmbiguousGroupSize$Region <-  ifelse(FoundressDataNonAmbiguousGroupSize$latitude < -10, "Southern Africa", FoundressDataNonAmbiguousGroupSize$Region)
 FoundressDataNonAmbiguousGroupSize$Region <-  ifelse(FoundressDataNonAmbiguousGroupSize$latitude > -10 & FoundressDataNonAmbiguousGroupSize$longitude > 20, "East Africa", FoundressDataNonAmbiguousGroupSize$Region)
 FoundressDataNonAmbiguousGroupSize$Region <-  ifelse(FoundressDataNonAmbiguousGroupSize$latitude > -10 & FoundressDataNonAmbiguousGroupSize$longitude < 10, "West Africa", FoundressDataNonAmbiguousGroupSize$Region)
 
-model <- glm( as.numeric(pleometrosis) ~ Region, data = FoundressData, family = binomial)
+model <- glm( as.numeric(pleometrosis) ~ Region, data = FoundressDataNonAmbiguousGroupSize, family = binomial)
 summary(model)$coef 
 
-
-ggplot(data=FoundressDataNonAmbiguousGroupSize$Region, aes(x=as.numeric(group_size), fill=Region)) +
+ggplot(data=FoundressDataNonAmbiguousGroupSize, aes(x=as.numeric(group_size), fill=Region)) +
   geom_density(alpha=0.5, bw = 2) +
   xlim(1,10) +
   theme_classic()
@@ -206,9 +254,9 @@ summary(model)$coef
 
 # A more appropriate way is to use proportions in each site:
 
-locationsList <- unique(FoundressData$locationcode)
+locationsList <- unique(FoundressDataNonAmbiguousGroupSize$locationcode)
 
-pleometrosis_only_subset <- subset(FoundressData, pleometrosis==1)
+pleometrosis_only_subset <- subset(FoundressDataNonAmbiguousGroupSize, pleometrosis==1)
 
 # Make table to store proportions pleometrosis:
 SitePleometrosisProportions <- as.data.frame(locationsList)
@@ -226,13 +274,21 @@ for (site in 1:length(locationsList)){
   SitePleometrosisProportions$PleometrosisCount[site] <- number_pleometrosis_at_this_site
   
   # Find total number of foundress nest observations at this site:
-  all_foundress_nests_at_this_site <- sum(FoundressData$locationcode == this_locationcode)
+  all_foundress_nests_at_this_site <- sum(FoundressDataNonAmbiguousGroupSize$locationcode == this_locationcode)
   SitePleometrosisProportions$TotalCount[site] <- all_foundress_nests_at_this_site
   
 }
 
 # Add latitude and longitude (and climate info) using R's version of VLOOKUP:
-info_to_add <- cbind(FoundressData$locationcode,FoundressData$latitude,FoundressData$longitude,FoundressData$type,FoundressData$Temp,FoundressData$Prec,FoundressData$Seasonality,FoundressData$AnnualTempRange,FoundressData$RainSeasonality)
+info_to_add <- cbind(FoundressDataNonAmbiguousGroupSize$locationcode,
+                     FoundressDataNonAmbiguousGroupSize$latitude,
+                     FoundressDataNonAmbiguousGroupSize$longitude,
+                     FoundressDataNonAmbiguousGroupSize$type,
+                     FoundressDataNonAmbiguousGroupSize$Temp,
+                     FoundressDataNonAmbiguousGroupSize$Prec,
+                     FoundressDataNonAmbiguousGroupSize$Seasonality,
+                     FoundressDataNonAmbiguousGroupSize$AnnualTempRange,
+                     FoundressDataNonAmbiguousGroupSize$RainSeasonality)
 colnames(info_to_add) <- c("locationcode","latitude","longitude","type","temp","prec","seasonality","annualtemprange","rainseasonality")
 SitePleometrosisProportions <- merge(SitePleometrosisProportions, info_to_add, by = 'locationcode')
 SitePleometrosisProportions <- distinct(SitePleometrosisProportions)
