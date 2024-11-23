@@ -242,6 +242,16 @@ my_plot <- ggplot(Cofoundresses_data) +
         axis.title.y = element_text(color = "black", size = myfontsize, angle = 90, hjust = .5, vjust = .5, face = "plain"))
 my_plot
 
+# The two climates have unequal variances:
+library(car)
+mylevenetest <- leveneTest(rab ~ ida_Climate, data = Cofoundresses_data)
+mylevenetest
+
+# Since the two groups have unequal variances, we use Welch's t test:
+model1 <- t.test(Humid_tropics_cofoundresses$rab, Temperate_cofoundresses$rab, var.equal = FALSE)
+model1
+report(model1)
+
 # -----------------------------------------------------------------------------
 # DENSITY PLOTS:
 
