@@ -470,7 +470,7 @@ for (burn_in_sessions in 1:10){
         # If reinitialising and rerunning the model from a saved workspace, set the initial values to the last values that the model reached.
         # For simplicity, you can reinitialise the chains using the values reached for chain 1 (and then run for a large number of iterations
         # to re-expand the search space):
-        ##                  load("defection_game_update_backup.RData")  
+        ##                  load("defection_game_5Feb2024_75000its.RData")     # Load the saved image from above. 
         ##                  reinitialisation_inits = jags.m$state()
         ##                           library(rjags)
         ##                           load.module("msm")
@@ -573,8 +573,8 @@ View(my_results)
         # Run JAGS and save the posterior samples:
         samps2 <- coda.samples( jags.m,
                                params2,
-                               thin = 1,
-                               n.iter = 1000 )
+                               thin = 100,
+                               n.iter = 15000 )
 
         # Check for convergence using the Gelman-Rubin diagnostic:
         gelman.diag(samps2) # statistics
