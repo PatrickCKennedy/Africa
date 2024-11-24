@@ -576,10 +576,14 @@ View(my_results)
                                thin = 100,
                                n.iter = 15000 )
 
-        # Check for convergence using the Gelman-Rubin diagnostic:
+        # In case RStudio crashes, save the current update to the workspace:
+      save.image(file="defection_game_update_after_75000_its_and_15000_samps2_its.RData")
+
+      # Check for convergence using the Gelman-Rubin diagnostic:
         gelman.diag(samps2) # statistics
         gelman.plot(samps2) # plot
-                
+      # That throws an error, because it includes variables that are constants (i.e., the 0 columns).
+
         # View the results:
         my_quantiles2 <- summary(samps2)$quantiles
         my_effect_stats2 <- summary(samps2)$statistics
@@ -689,6 +693,7 @@ combined <- rbind(dat1, dat2)
         my_PP_quantiles[i,"lower"] <- quantile(x, .255, type=1)
         my_PP_quantiles[i,"mean"] <- mean(x)
       }
+      library(tidyr)
       my_PP_quantiles <- drop_na(my_PP_quantiles,mean)
     
       # Reorder rows alphabetically so that each country's V1s are next to each other, etc.:
