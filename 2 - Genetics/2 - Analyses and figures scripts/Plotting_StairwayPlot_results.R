@@ -110,7 +110,7 @@ SouthAfrica.final <- read.delim("~/stairway_plot_v2.1.1/Results_downloaded_from_
 
 SouthAfricaStairwayPlot <- ggplot(SouthAfrica.final) + 
   geom_rect(aes(xmin = year, xmax = lead(year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = mySouthAfricaColour, alpha = .2) + 
-  geom_step(aes(x = year, y = Ne_median), color = mySouthAfricaColour, lwd = 1.5) +
+  geom_step(aes(x = year, y = Ne_median), color = mySouthAfricaColour, lwd = 1) +
   scale_x_continuous(trans = scales::pseudo_log_trans(0.001, 10), expand=c(0,0),
                      limits=c(0, 1300000),
                      breaks = c(1000,10000,100000,1000000),
@@ -144,9 +144,9 @@ SouthAfricaStairwayPlot +
 
 SouthAfricaStairwayPlot +
   geom_rect(data = Maroua.final, aes(xmin = year, xmax = lead(year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = "orange", alpha = .2) + 
-  geom_step(data = Maroua.final, aes(x = year, y = Ne_median), color = "orange", lwd = 1.5) +
+  geom_step(data = Maroua.final, aes(x = year, y = Ne_median), color = "orange", lwd = 0.8) +
   geom_rect(data = SE_Cameroon.final, aes(xmin = year, xmax = lead(year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = mySouthernCameroonColour, alpha = .2) + 
-  geom_step(data = SE_Cameroon.final, aes(x = year, y = Ne_median), color = mySouthernCameroonColour, lwd = 1.5) 
+  geom_step(data = SE_Cameroon.final, aes(x = year, y = Ne_median), color = mySouthernCameroonColour, lwd = 0.8) 
 
 # As you can see, the plots are misaligned: the dip at about 150,000 years ago in
 # the SE_Cameroon data is placed earlier in Marou and earlier still in South Africa.
@@ -166,7 +166,12 @@ SouthAfricaStairwayPlot +
   geom_rect(data = Maroua.final, aes(xmin = year, xmax = lead(year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = "orange", alpha = .5) + 
   geom_step(data = Maroua.final, aes(x = year, y = Ne_median), color = "orange", lwd = 1.5) +
   geom_rect(data = SE_Cameroon.final, aes(xmin = (1/0.583)*year, xmax = lead((1/0.583)*year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = mySouthernCameroonColour, alpha = .5) + 
-  geom_step(data = SE_Cameroon.final, aes(x = (1/0.583)*year, y = Ne_median), color = mySouthernCameroonColour, lwd = 1.5) 
+  geom_step(data = SE_Cameroon.final, aes(x = (1/0.583)*year, y = Ne_median), color = mySouthernCameroonColour, lwd = 1.5) +
+  annotate("rect", xmin = 14500, xmax = 23000, ymin = 0, ymax = Inf, fill = "brown", alpha = .2) +
+  geom_vline(xintercept=150000, linetype="dotted") +
+  annotate("rect", xmin = 140000,xmax = 160000, ymin = 7500000,ymax = 10500000, fill = "white", alpha = 1) +
+  annotate("text", x=150000, y= 9000000, label = "Penultimate\nGlacial\nMaximum", size = 3) +
+  annotate("text", x=(14500+23000)/2, y= 1800000, label = "Last Glacial\nAridity Maximum", size = 3)
 
 SouthAfricaStairwayPlot +
   geom_rect(data = Maroua.final, aes(xmin = year, xmax = lead(year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = "orange", alpha = .5) + 
@@ -174,9 +179,28 @@ SouthAfricaStairwayPlot +
   geom_rect(data = SE_Cameroon.final, aes(xmin = (1/0.583)*year, xmax = lead((1/0.583)*year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = mySouthernCameroonColour, alpha = .5) + 
   geom_step(data = SE_Cameroon.final, aes(x = (1/0.583)*year, y = Ne_median), color = mySouthernCameroonColour, lwd = 1.5) 
 
-
 SE_Cameroon.Plot +
   geom_rect(data = SouthAfrica.final, aes(xmin = 0.45*year, xmax = lead(0.45*year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = mySouthAfricaColour, alpha = .2) + 
-  geom_step(data = SouthAfrica.final, aes(x = 0.45*year, y = Ne_median), color = mySouthAfricaColour, lwd = 0.8) 
+  geom_step(data = SouthAfrica.final, aes(x = 0.45*year, y = Ne_median), color = mySouthAfricaColour, lwd = 0.8) +
+  geom_rect(data = Maroua.final, aes(xmin = year, xmax = lead(year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = "orange", alpha = .5) + 
+  geom_step(data = Maroua.final, aes(x = year, y = Ne_median), color = "orange", lwd = 1.5) 
+  
+SE_Cameroon.Plot +
+  geom_rect(data = SouthAfrica.final, aes(xmin = 0.45*year, xmax = lead(0.45*year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = mySouthAfricaColour, alpha = .2) + 
+  geom_step(data = SouthAfrica.final, aes(x = 0.45*year, y = Ne_median), color = mySouthAfricaColour, lwd = 0.8) +
+  geom_rect(data = Maroua.final, aes(xmin = 0.45*year, xmax = lead(0.45*year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = "orange", alpha = .5) + 
+  geom_step(data = Maroua.final, aes(x = 0.45*year, y = Ne_median), color = "orange", lwd = 1.5) 
 
-SE_Cameroon.Plot
+combinedplot_with_hypothetically_aligned_PGP_spike <- SE_Cameroon.Plot +
+    geom_rect(data = SouthAfrica.final, aes(xmin = 0.45*year, xmax = lead(0.45*year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = mySouthAfricaColour, alpha = .1) + 
+    geom_step(data = SouthAfrica.final, aes(x = 0.45*year, y = Ne_median), color = mySouthAfricaColour, lwd = 0.8) +
+    geom_rect(data = Maroua.final, aes(xmin = 0.583*year, xmax = lead(0.583*year), ymin = Ne_2.5., ymax = Ne_97.5.), fill = "orange", alpha = .2) + 
+    geom_step(data = Maroua.final, aes(x = 0.583*year, y = Ne_median), color = "orange", lwd = 0.8) 
+
+# Export as SVG file for publication:
+library(svglite)
+ggsave(filename = "combinedplot_with_hypothetically_aligned_PGP_spike.svg", 
+       plot = combinedplot_with_hypothetically_aligned_PGP_spike, 
+       height = 4)
+# This file is now in the relevant folder, as an SVG file. 
+# Opening it will open Inkscape automatically.
