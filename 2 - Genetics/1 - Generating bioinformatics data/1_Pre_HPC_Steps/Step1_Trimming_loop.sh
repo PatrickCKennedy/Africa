@@ -8,7 +8,7 @@
 myTRIMGALORE="/Users/pk14885/TrimGalore-0.6.6/trim_galore"
 # Trim galore is a wrapper for cutadapt and fastqc, which I have installed already. For some reason, you might have to add the cutadapt location to the PATH:
 export PATH="$HOME/.local/bin:$PATH"
-# This was following this site: https://linuxize.com/post/how-to-add-directory-to-path-in-linux/ Apparently "this change is only temporary and valid only in the current shell session." (Also note: I got the directory address from here: https://cutadapt.readthedocs.io/en/v3.1/installation.html)
+# For adding directory to the path, see: https://linuxize.com/post/how-to-add-directory-to-path-in-linux/ Note: "this change is only temporary and valid only in the current shell session." (Also note: the directory address can be found here: https://cutadapt.readthedocs.io/en/v3.1/installation.html)
 # You can check that it can find cutadapt now by running: cutadapt --version
 
 # -----------------------------------------
