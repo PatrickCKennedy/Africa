@@ -14,9 +14,6 @@ my_xmin <- 1000
 # Navigate to the folder containing the StairwayPlot results:
 setwd("~/stairway_plot_v2.1.1/")
 
-# NOTE: CURRENTLY (30TH APRIL 2024) RERUNNING THE THREE POPULATIONS ON BLUEPEBBLE. ONCE THAT HAS COMPLETED, DOWNLOAD THE RESULTS TO THE LOCAL COMPUTER AND RUN THE
-# FOLLOWING PLOTS (YOU'LL NEED TO CHANGE THE TARGETS OF THE read.delim IMPORT FUNCTIONS TO THE NEW RESULTS FROM BLUEPEBBLE).
-
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 # SOUTH-EAST CAMEROON (THE YAOUNDE POPULATIONS PLUS SOMALOMO):
 # 17 randomly-chosen nonrelatives from Yaounde1, Soa, Messa, and Somalomo
