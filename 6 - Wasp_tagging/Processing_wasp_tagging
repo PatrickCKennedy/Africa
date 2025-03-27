@@ -615,22 +615,6 @@ report(SA.THORAX.dom_sub_size.Welch_t.test)
         SA.THORAX.dominantsubordinatesizeplot
 
 # ----------------------------------------------------------------------
-# ARE LONE FOUNDRESSES BIGGER THAN MULTI-FOUNDRESSES?
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# ----------------------------------------------------------------------
 # COMBINE PLOTS FOR PUBLICATION AS PANEL:
 
 # Generate panel:
