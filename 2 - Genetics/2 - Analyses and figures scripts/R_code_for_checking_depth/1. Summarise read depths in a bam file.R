@@ -18,15 +18,8 @@ for (i in list.files()){
     write(paste0(i, ",", mean(depth), "," proportion_of_reference_covered), out.file, append=TRUE)
 }
 
-
-MESSA_T23_2_CKDL230013286-1A_2235HJLT3_L5.no.overlaps.bam.depth
-depth <- read_tsv("MESSA_T23_2_CKDL230013286-1A_2235HJLT3_L5.no.overlaps.bam.depth", col_names = F)$X1
-
-
-
-
-
 # IF LOOKING AT JUST ONE FILE:
+
 # Set working directory to the current wasp's FolderForAlignments folder:
 setwd("/Volumes/Patricks_LaCie_Genomics_Harddrive/Completed_HPC_alignments/Depth_records/Depth_records")
   # Compute depth stats
@@ -45,7 +38,7 @@ tibble(total_depth = depth, position = 1:length(depth))  %>%
   ggplot(aes(x = position, y = total_depth)) +
   geom_point(size = 0.1)
 
-# That seems to crash RStudio, so you can look at a section of the genome instead:
+# That can crash RStudio, so you can look at a section of the genome instead:
 start=100000
 end=200000
 tibble(total_depth = depth[start:end], position = start:end)  %>%
