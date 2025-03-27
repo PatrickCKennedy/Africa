@@ -59,24 +59,13 @@ mitoz-tools  group_seq_by_gene -r gene_f_list -d '_' -p MitoZ -clean_header
 mkdir Grouped_by_gene
 mv MitoZ* Grouped_by_gene/
 
-
 # ---------------------------------------------------------------------------------
 # DOWNLOAD THE RESULTING FILES TO THE LOCAL COMPUTER, AND RUN MAFFT IN GENEIOUS:
 
 # (1) Download the 'Grouped_by_gene' folder to the local computer (using 'scp').
 
-# (2) Import to Geneious
+# (2) Import to Geneious.
 
-# (3) Use MAFFT plugin in Geneious for multiple alignment
+# (3) Use MAFFT plugin in Geneious for multiple alignment.
 
-# (4) Make bootstrapped tree, and plot consensus
-
-
-
-
-
-
-
-
-
-
+# (4) Make bootstrapped tree, and plot consensus.
