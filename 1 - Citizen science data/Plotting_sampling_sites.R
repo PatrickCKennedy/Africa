@@ -205,12 +205,6 @@ ggplot(data = NotDuringSAwinter) +
            color = 'black') + 
   coord_sf(ylim = c(-40, 35), xlim = c(-15, 60)) + theme_void()
 
-
-
-
-
-
-
 # Colour palette:
 season_colors <- colorRampPalette(c("red","white","yellow", "yellow","white","red"))
 world_map <- map_data('world')
@@ -235,7 +229,6 @@ ggplot(data = iNat_FoundressNestsOnly) +
            linewidth = 0.1,
            color = 'black') + 
   coord_sf(ylim = c(-40, 35), xlim = c(-15, 60)) + theme_void()
-
 
 ggplot(data = iNat_PostEmergenceNestsOnly) +
   geom_point(data = iNat_PostEmergenceNestsOnly, 
