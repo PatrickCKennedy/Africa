@@ -1,11 +1,6 @@
 # PK
 # THE DEFECTION GAME
 
-# AN IDEA: For a sanity check to make sure that we aren't seeing spurious patterns,
-# we could do a 'null' run where we randomise the rows in 'my_data'. If the model is
-# detecting genuine effects, they should vanish when we run the 'null' randomised
-# model, and the predictors' 95% credible intervals should overlap zero. Try it and see?
-
 # ---------------------------------------------------------------------
 # CHOOSE WHETHER OR NOT TO INCLUDE RELATEDNESS:
 
@@ -811,8 +806,6 @@ for (iteration in 1:dim(data_r)[1]){
   High_r_Qmatrix[4,3] <- data_r$`High_r_ratematrix[4,3]`[iteration]
   High_r_Qmatrix[4,4] <- data_r$`High_r_ratematrix[4,4]`[iteration]
   
-  # NOTE: MIGHT NEED TO TAKE INTO ACCOUNT ROUNDING ARTEFACTS THAT MEAN IT DOESN'T QUITE SUM TO ZERO IN EACH ROW OF THE RATEMATRIX
-  
   # Calculate the stationary distributions predicted at this iteration, and enter it into the table:
   Low_r_StationaryDistributionResults[iteration,1:4] <- get_stationary_distribution(Low_r_Qmatrix)
   High_r_StationaryDistributionResults[iteration,1:4] <- get_stationary_distribution(High_r_Qmatrix)
@@ -1370,15 +1363,4 @@ plot_grid(PP_quantiles_plot,egg_plot,
 myExperimentWaspsTable$Is_stage_c_or_d = 0
 myExperimentWaspsTable$Is_stage_c_or_d[myExperimentWaspsTable$OvaryGrade == "c"] = 1
 myExperimentWaspsTable$Is_stage_c_or_d[myExperimentWaspsTable$OvaryGrade == "d"] = 1
-
-
-
-
-
-
-
-
-
-
-
 
