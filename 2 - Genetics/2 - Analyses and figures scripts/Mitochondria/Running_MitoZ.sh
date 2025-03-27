@@ -47,13 +47,13 @@
 # ---------------------------------------------------------------------------------
 # RUNNING MITOZ ON BLUEPEBBLE
 
-# Callum Wright (Bristol ACRC) has installed MitoZ on BluePebble, in the module:
+# In our case, Bristol ACRC has installed MitoZ on BluePebble, in the module:
 # lang/python/miniconda/3.12.2.inc-perl-5.30.0
 
 # Start the correct Miniconda module:
 module add lang/python/miniconda/3.12.2.inc-perl-5.30.0
 
-# Activate the environment installed by Callum Wright:
+# Activate the environment:
 source activate mitozEnv
 
 # Check the installation:
@@ -63,7 +63,7 @@ which circos
 # ---------------------------------------------------------------------------------
 # RUN MITOZ ON BLUEPEBBLE:
 
-# Make sure that we are in the focal wasp's folder:
+# Make sure that you are in the focal wasp's folder:
 cd /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample
 
 # Run 'mitoz' from inside the 'mitozEnz' environment:
@@ -83,11 +83,11 @@ mitoz all \
 
     # - - - - - - - - - - - - NOTE ABOUT HOW TO RUN MITOZ IN SINGULARITY INSTEAD - - - - - - - - - - - - - - 
     # Note: There is an alternative way to run MitoZ, which is as a container within Singularity. 
-    # This can be done on my BluePebble working directory, as I have downloaded the MitoZ
-    # Singularity container to /user/work/pk14885 using:   singularity pull MitoZ_v3.6.sif docker://guanliangmeng/mitoz:3.6
-    # You don't need to use this Singularity option, since Callum Wright has installed it as a general
-    # available programme on BluePebble (above). However, for completeness, here is the command you can use
-    # if you would like to run it through Singularity on BluePebble (it runs fine - 4th March 2024):
+    # This can be done on the HPC working directory, as you will have downloaded the MitoZ
+    # Singularity container to the working directory (here, /user/work/pk14885) using:   singularity pull MitoZ_v3.6.sif docker://guanliangmeng/mitoz:3.6
+    # You don't need to use this Singularity option if it is installed as a general
+    # available programme on HPC (above). However, for completeness, here is the command 
+    # if you would like to run it through Singularity on HPC (checked on BluePebble, 4th March 2024):
     ##module load apps/singularity/1.1.3
     ##singularity run -B/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/:/user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/ /user/work/pk14885/MitoZ_v3.6.sif mitoz all \
                     ##--fq1 /user/work/pk14885/Input_wasps_for_Mitoz/$this_wasp_to_sample/$this_wasp_val_1_FILE \
