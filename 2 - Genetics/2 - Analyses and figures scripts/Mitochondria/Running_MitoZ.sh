@@ -96,7 +96,6 @@ mitoz all \
                     
  # ---------------------------------------------------------------------------------
 
-# The result of this script is the annotated mitochondrial genome for the focal wasp. In the next script, we
-# will collate the outputs from each wasp, and construct a tree.
+# The result of this script is the annotated mitochondrial genome for the focal wasp.
 
 # ---------------------------------------------------------------------------------
