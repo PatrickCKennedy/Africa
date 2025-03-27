@@ -409,10 +409,8 @@ africa_outline_map +
 FoundressNoLarvae <- subset(FoundressDataNonAmbiguousGroupSize, Categorisation == "Nest (foundress, no large larvae)")
 FoundressPupae <- subset(FoundressDataNonAmbiguousGroupSize, Categorisation == "Nest (foundress, containing pupae)")
 
-
 # ----------------------------------------------------------------------
 # DOES FOUNDRESS GROUP SIZE CORRELATE WITH CLIMATE VARIABLES?
-
 
 library(sp)
 
@@ -472,12 +470,7 @@ summary(model)
   ##devtools::install_github("m-clark/visibly")          
   library(visibly)
   plot_gam(mod_gam1, main_var = latitude)                                       
-                                           
-
-
-
-
-                   
+                                                   
 # Is there a significant effect of RainSeasonality on foundress group size?
 ggplot(FoundressDataNonAmbiguousGroupSize, aes(RainSeasonality, as.numeric(group_size))) +
   geom_point() +
