@@ -10,7 +10,7 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-102
+#SBATCH --array=1-3
 # Update the array range to cover the required number of wasps to include in the sample (e.g., the number 
 # of wasps in /user/work/pk14885/MitoZ_NEE_2025/Maroua)
 
@@ -64,7 +64,7 @@ module load apps/mitoz/3.6
 cd /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample
 
 # Run 'mitoz' from inside the 'mitozEnz' environment:
-mitoz all2 \
+mitoz all \
     --fq1 /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_1_FILE \
     --fq2 /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_2_FILE \
     --outprefix $this_wasp_to_sample \
