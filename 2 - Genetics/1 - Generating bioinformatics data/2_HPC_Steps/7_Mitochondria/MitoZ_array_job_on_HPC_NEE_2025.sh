@@ -32,6 +32,7 @@ this_POPULATION_NAME=$'Maroua'
 # (i.e., all wasps in the folder /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME), using:
 ##        cd /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME
 ##        ls -d */ > Wasps_to_target_with_MitoZ.filelist
+##        OR...:     ls -d * > Wasps_to_target_with_MitoZ.filelist
 
 # ---------------------------------------------------------------------------------
 # IDENTIFY THE SPECIFIC WASP TARGETTED FOR THIS INSTANCE OF THE ARRAY SCRIPT:
@@ -63,7 +64,7 @@ module load apps/mitoz/3.6
 cd /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample
 
 # Run 'mitoz' from inside the 'mitozEnz' environment:
-mitoz all \
+mitoz all2 \
     --fq1 /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_1_FILE \
     --fq2 /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_2_FILE \
     --outprefix $this_wasp_to_sample \
@@ -80,11 +81,11 @@ mitoz all \
 # ---------------------------------------------------------------------------------
 # DELETE THE INPUT VAL FILES FOR THIS WASP FROM BLUEPEBBLE:
 
-# IMPORTANT: The wasp's input files (the adaptor-trimmed val files) are stored securely on RDSF, so their upload onto BluePebble is only temporary. We therefore delete the input files now that
+# IMPORTANT: The wasp's input files (the adaptor-trimmed val files) are stored securely on RDSF, so their upload onto BluePebble is only temporary. We can therefore delete the input files now that
 # MitoZ has finished processing this wasp, in order to free space on BluePebble:
 
-rm /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_1_FILE
-rm /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_2_FILE
+## rm /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_1_FILE
+## rm /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_2_FILE
 
 # - - - - - - - - - - - - NOTE ABOUT HOW TO RUN MITOZ IN SINGULARITY INSTEAD - - - - - - - - - - - - - - 
 # Note: There is an alternative way to run MitoZ, which is as a container within Singularity. 
