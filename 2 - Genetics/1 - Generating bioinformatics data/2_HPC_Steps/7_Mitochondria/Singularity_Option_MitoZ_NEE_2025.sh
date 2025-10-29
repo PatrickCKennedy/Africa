@@ -10,7 +10,7 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-3
+#SBATCH --array=1-102
 # Update the array range to cover the required number of wasps to include in the sample (e.g., the number 
 # of wasps in /user/work/pk14885/MitoZ_NEE_2025/Maroua)
 
