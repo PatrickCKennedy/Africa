@@ -74,7 +74,7 @@ singularity run -B/user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_
            --fastq_read_length 150 \
            --data_size_for_mt_assembly 0.3 \
            --assembler spades \
-           --thread_number 1 \
+           --thread_number 4 \
            --memory 30 \
            --requiring_taxa Arthropoda
 
