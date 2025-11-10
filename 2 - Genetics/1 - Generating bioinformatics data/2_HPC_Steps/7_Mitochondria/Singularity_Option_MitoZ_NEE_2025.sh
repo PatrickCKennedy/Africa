@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=MitoZ_Singularity_Option_NEE_2025
 #SBATCH --nodes=1
-#SBATCH --ntasks-per-node=4
-#SBATCH --cpus-per-task=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=4
 #SBATCH --mem=30G
 #SBATCH --time=0-06:00:00
 # "d-hh:mm:ss"
@@ -17,7 +17,7 @@
 # PK, latest update: 10th November 2025
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-# Before running this script, you must do two things:
+# Before running this script, do the following:
 
 # (1) Upload the chosen wasps to BluePebble. For each wasp, have a folder
 # containing two files: the forward and reverse trimmed files (the '_val_1' and '_val_2' files).
@@ -31,6 +31,10 @@ this_POPULATION_NAME=$'Maroua'
 # (i.e., all wasps in the folder /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME), using:
 ##        cd /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME
 ##        ls -d * > Wasps_to_target_with_MitoZ.filelist
+
+# (4) Make sure the array range is set to the right number of wasps in the header (e.g., #SBATCH --array=1-102 above).
+# To find the right number of wasps, use:
+##        wc -l Wasps_to_target_with_MitoZ.filelist
 
 # ---------------------------------------------------------------------------------
 # IDENTIFY THE SPECIFIC WASP TARGETTED FOR THIS INSTANCE OF THE ARRAY SCRIPT:
@@ -74,7 +78,7 @@ singularity run -B/user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_
            --memory 30 \
            --requiring_taxa Arthropoda
 
-# If using the 'megahit' assembler (rather than 'spades'), you should specify the kmers, e.g, --kmers_megahit 59 79 99 \
+# If using the 'megahit' assembler (rather than 'spades'), specify the kmers, e.g, --kmers_megahit 59 79 99 \
 # ---------------------------------------------------------------------------------
 # RUN MITOZ ON BLUEPEBBLE (OPTION 2):
 
@@ -108,6 +112,10 @@ singularity run -B/user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_
 
 ## rm /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_1_FILE
 ## rm /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_val_2_FILE
+
+# Remove the 'clean_data' folder, which contains the raw genome data after MitoZ's initial filtering and cleaning steps:
+        cd /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample
+        rm -r clean_data/
 
  # ---------------------------------------------------------------------------------
 
