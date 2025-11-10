@@ -14,9 +14,8 @@
 # Update the array range to cover the required number of wasps to include in the sample (e.g., the number 
 # of wasps in /user/work/pk14885/MitoZ_NEE_2025/Maroua)
 
-# PK, latest update: 28th October 2025
+# PK, latest update: 10th November 2025
 
-# ARRAY JOB FOR RUNNING 'MITOZ' ON HPC ON THE 108 SAMPLED NONRELATIVES, USING MITOZ AS A UDOCKER CONTAINER
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Before running this script, you must do two things:
 
@@ -69,13 +68,13 @@ singularity run -B/user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_
            --genetic_code 5 \
            --clade Arthropoda \
            --fastq_read_length 150 \
-           --data_size_for_mt_assembly 3,0 \
-           --assembler megahit \
-           --kmers_megahit 59 79 99 \
+           --data_size_for_mt_assembly 0.3 \
+           --assembler spades \
            --thread_number 1 \
-           --memory 50 \
+           --memory 30 \
            --requiring_taxa Arthropoda
 
+# If using the 'megahit' assembler (rather than 'spades'), you should specify the kmers, e.g, --kmers_megahit 59 79 99 \
 # ---------------------------------------------------------------------------------
 # RUN MITOZ ON BLUEPEBBLE (OPTION 2):
 
