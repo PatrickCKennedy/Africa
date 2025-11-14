@@ -52,9 +52,11 @@ while read this_wasp_to_sample; do
         -F animal_mt \
         -R 10 \
         -k 21,45,65,85,105 \
-        --reference /Users/pk14885/Downloads/UCL_Genome_MitoHiFi/final_mitogenome.fasta
+        --seed /Users/pk14885/Downloads/UCL_Genome_MitoHiFi/final_mitogenome.fasta
     
 done < Wasps_to_target_with_GetOrganelle.filelist
+
+# Here, we use the complete mitochondrial genome (generated previously using MitoHiFi as the 'seed' for GetOrganelle.)
 
 # ---------------------------------------------------------------------------------
 
