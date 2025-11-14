@@ -9,10 +9,10 @@ awk '/^>/{print ">" substr(FILENAME,1,length(FILENAME)-6); next} 1' *.fasta > co
 # --------------------------------------------
 # USE COX1 GENE FROM THE MITOCHONDRIAL GENOME ASSEMBLY (WHICH WAS PREVIOUSLY GENERATED USING MitoHiFi IN OUR Wyatt et al. PROJECT):
 
-# Extract the COX1 gene. To do this, we use the online tool 'GenBank Feature Extractor' (https://www.bioinformatics.org/sms2/genbank_feat.html).
+# We have already extracted the COX1 gene from the existing MitoHiFi reference. To do this, we used the online tool 'GenBank Feature Extractor' (https://www.bioinformatics.org/sms2/genbank_feat.html).
 # Citation: Stothard P (2000) The Sequence Manipulation Suite: JavaScript programs for analyzing and formatting protein and DNA sequences. Biotechniques 28:1102-1104.
 
-# We copy-pasted the COX1 gene from the output of 'GenBank Feature Extractor' and saved it as a fasta file ('COX1.fasta') using nano.
+# We copy-pasted the COX1 gene from the output of 'GenBank Feature Extractor' and saved it as a fasta file ('COX1.fasta') using nano (saved withing 'Downloads'). This file is used below.
 
 # --------------------------------------------
 # EXTRACT COX1 FROM EACH WASP:
