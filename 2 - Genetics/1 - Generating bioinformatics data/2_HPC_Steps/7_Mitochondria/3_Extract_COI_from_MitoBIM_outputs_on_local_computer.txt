@@ -24,11 +24,9 @@ blastn -query COX1.fasta -subject /Volumes/Social_evolution_in_animals/MitoBIM_o
 this_POPULATION_NAME=$'Maroua'
 
 # - - - - - - - - - - - - - - - - - - - - - - -
-# Transparency note: The following code snippet for extracting COX1 genes from MitoBIM outputs was developed and improved with advice from Microsoft Copilot.
+# Transparency note: The following code for extracting COX1 genes from MitoBIM outputs was developed and improved iteratively with Microsoft Copilot.
 
 # Below, we filter for hits that have qcovs>90 and pident>90 (using '$4 >= 90 && $5 >= 90'). We also drop any sequences that have more than 10% ambiguous bases (x in the MitoBIM output), using "$amb_ratio > 0.10" (these excluded samples are recorded in the log). We also include a post-extraction validation step, in which we BLAST each of the resulting COX1 sequences against the wasp reference to exclude any potential contaminant samples (i.e., non-wasps).
-#!/bin/bash
-#!/bin/bash
 
 REF="/Users/pk14885/Downloads/COX1.fasta"
 INPUT_DIR="/Volumes/Social_evolution_in_animals/MitoBIM_outputs_from_HPC/Maroua_CollatedKeyOutputs"
@@ -38,7 +36,7 @@ PARTIAL_OUTDIR="cox1_partial"
 DEBUG_DIR="debug_hits"
 LOGFILE="excluded_samples.log"
 SUMMARY="summary_report.txt"
-MINLEN=400  # ✅ Lowered threshold
+MINLEN=400
 TMPDIR="tmp_blast"
 
 mkdir -p "$OUTDIR" "$VALIDATED_OUTDIR" "$PARTIAL_OUTDIR" "$TMPDIR" "$DEBUG_DIR"
@@ -47,6 +45,11 @@ echo -e "Sample\tStatus\tIdentity\tCoverage\tLength" > "$SUMMARY"
 
 echo "Creating BLAST database for reference..."
 makeblastdb -in "$REF" -dbtype nucl -blastdb_version 4 -out "$TMPDIR/ref_db"
+
+validated_count=0
+partial_count=0
+excluded_count=0
+nohit_count=0
 
 for file in "$INPUT_DIR"/*.fasta; do
     sample=$(basename "$file" .fasta)
@@ -106,27 +109,39 @@ for file in "$INPUT_DIR"/*.fasta; do
                 echo "$sample skipped (no validation hit)" >> "$LOGFILE"
                 echo -e "$sample\tNoValidation\t-\t-\t$(wc -c < "$OUTDIR/$sample"_COX1.fasta)" >> "$SUMMARY"
                 rm "$OUTDIR/$sample"_COX1.fasta
+                excluded_count=$((excluded_count+1))
             elif (( $(echo "$identity >= 90" | bc -l) )) && (( $(echo "$coverage >= 90" | bc -l) )); then
                 mv "$OUTDIR/$sample"_COX1.fasta "$VALIDATED_OUTDIR/"
                 echo -e "$sample\tValidated\t$identity\t$coverage\t$(wc -c < "$VALIDATED_OUTDIR/$sample"_COX1.fasta)" >> "$SUMMARY"
-            elif (( $(echo "$identity >= 70" | bc -l) )) && (( $(echo "$coverage >= 50" | bc -l) )); then
+                validated_count=$((validated_count+1))
+            elif (( $(echo "$identity >= 70" | bc -l) )) && (( $(echo "$coverage >= 30" | bc -l) )); then
                 mv "$OUTDIR/$sample"_COX1.fasta "$PARTIAL_OUTDIR/"
                 echo -e "$sample\tPartial\t$identity\t$coverage\t$(wc -c < "$PARTIAL_OUTDIR/$sample"_COX1.fasta)" >> "$SUMMARY"
+                partial_count=$((partial_count+1))
             else
                 echo "$sample skipped (validation too low: identity=$identity coverage=$coverage)" >> "$LOGFILE"
                 rm "$OUTDIR/$sample"_COX1.fasta
+                excluded_count=$((excluded_count+1))
             fi
         fi
     else
         echo "$sample skipped (no COX1 hit)" >> "$LOGFILE"
         echo -e "$sample\tNoHit\t-\t-\t-" >> "$SUMMARY"
+        nohit_count=$((nohit_count+1))
     fi
 done
 
 rm -f tmp_hits.txt
 rm -rf "$TMPDIR"
 
+# Print summary counts
+echo "----------------------------------------"
 echo "Processing complete."
+echo "Validated sequences: $validated_count"
+echo "Partial sequences: $partial_count"
+echo "Excluded (validation too low): $excluded_count"
+echo "No COX1 hit: $nohit_count"
+echo "----------------------------------------"
 echo "Validated COX1 sequences: $VALIDATED_OUTDIR"
 echo "Partial COX1 sequences: $PARTIAL_OUTDIR"
 echo "Debug BLAST hits: $DEBUG_DIR"
