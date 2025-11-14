@@ -36,7 +36,10 @@ for wasp in /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/*; do
     fi
 done
 
-# The output should now be a folder (called 'CollatedKeyOutputsForThisPopulation') containing all the unpadded fasta files for the wasps in this population.
+# Rename the folder to have the population name in the title:
+mv CollatedKeyOutputsForThisPopulation "${this_POPULATION_NAME}_CollatedKeyOutputs"
+
+# The output should now be a folder (called, for instance, 'Maroua_CollatedKeyOutputs') containing all the unpadded fasta files for the wasps in this population.
 
 # --------------
 # ADD THE POPULATION NAME TO THE FILENAMES FOR EACH OF THESE WASPS
@@ -44,13 +47,15 @@ done
 
 # To do so, run the following whilst on HPC:
 
-cd CollatedKeyOutputsForThisPopulation
+cd ${this_POPULATION_NAME}_CollatedKeyOutputs
 for file in *.fasta; do
 mv "$file" "${this_POPULATION_NAME}_$file"
 done
 
 # --------------
 # DOWNLOAD TO LOCAL COMPUTER
+
+# Run the following from the local computer, not HPC.
 
 # Navigate to the folder for collating MitoBIM outputs:
 cd /Volumes/Social_evolution_in_animals/MitoBIM_outputs_from_HPC 
@@ -59,6 +64,6 @@ cd /Volumes/Social_evolution_in_animals/MitoBIM_outputs_from_HPC
 this_POPULATION_NAME=$'Maroua'
 
 # Finally, download CollatedKeyOutputsForThisPopulation to that folder:
-scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/CollatedKeyOutputsForThisPopulation/ /Volumes/Social_evolution_in_animals/MitoBIM_outputs_from_HPC/
+scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/${this_POPULATION_NAME}_CollatedKeyOutputs/ /Volumes/Social_evolution_in_animals/MitoBIM_outputs_from_HPC/
 
 # Do this for each population.
