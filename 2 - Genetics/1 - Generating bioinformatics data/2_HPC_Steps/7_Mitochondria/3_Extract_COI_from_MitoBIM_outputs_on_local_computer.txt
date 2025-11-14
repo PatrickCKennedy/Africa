@@ -1,0 +1,2 @@
+# Once we have collated the results from all the populations of interest (using 2_Collating_MitoBIM_results), we extract the COI gene by running the following on the local machine:
+
