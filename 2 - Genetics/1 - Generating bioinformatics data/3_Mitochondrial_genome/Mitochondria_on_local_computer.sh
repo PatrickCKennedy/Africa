@@ -25,6 +25,9 @@ mkdir /Volumes/Social_evolution_in_animals/GetOrganelle_outputs/$this_POPULATION
 # ---------------------------------------------------------------------------------
 # LOOP THROUGH EACH WASP IN THE TARGET POPULATION:
 
+# Activate GetOrganelle (which should already be installed - here, it was previously installed using Miniconda on the local computer):
+conda activate getorganelle
+
 # Navigate to the population of interest:
 cd /Volumes/Social_evolution_in_animals/Adaptor_trimmed_sequences/Organised_by_population/Northern_Cameroon/$this_POPULATION_NAME
 
