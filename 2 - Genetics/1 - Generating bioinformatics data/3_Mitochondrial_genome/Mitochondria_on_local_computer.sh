@@ -48,7 +48,7 @@ while read this_wasp_to_sample; do
     get_organelle_from_reads.py \
         -1 $this_wasp_val_1_FILE \
         -2 $this_wasp_val_2_FILE \
-        -o ${this_wasp_to_sample}_output \
+        -o /Volumes/Social_evolution_in_animals/GetOrganelle_outputs/$this_POPULATION_NAME/${this_wasp_to_sample}_GetOrganelle_output \
         -F animal_mt \
         -R 10 \
         -k 21,45,65,85,105 \
