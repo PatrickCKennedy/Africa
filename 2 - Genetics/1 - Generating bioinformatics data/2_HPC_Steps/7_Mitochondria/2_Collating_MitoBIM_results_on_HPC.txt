@@ -1,4 +1,4 @@
-# Once you have run the MitoBIM script for your population of interest on HPC, use the following on HPC to collate the final results:
+# Once we have run the MitoBIM script for your population of interest on HPC, we use the following on HPC to collate the final results:
 
 # --------------
 # IDENTIFY THE FINAL RESULTS FOR EACH WASP
