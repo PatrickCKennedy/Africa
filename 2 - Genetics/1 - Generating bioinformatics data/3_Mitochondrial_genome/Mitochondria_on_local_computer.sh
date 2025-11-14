@@ -60,3 +60,7 @@ done < Wasps_to_target_with_GetOrganelle.filelist
 
 # ---------------------------------------------------------------------------------
 
+# Note: to run this file, download to your Downloads folder and use the following on your local computer:
+##  cd Downloads 
+##  chmod +x Mitochondria_on_local_computer.sh
+##  ./Mitochondria_on_local_computer.sh  
