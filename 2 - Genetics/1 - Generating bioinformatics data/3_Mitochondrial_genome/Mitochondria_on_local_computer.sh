@@ -25,11 +25,14 @@ mkdir /Volumes/Social_evolution_in_animals/GetOrganelle_outputs/$this_POPULATION
 # ---------------------------------------------------------------------------------
 # LOOP THROUGH EACH WASP IN THE TARGET POPULATION:
 
+# Navigate to the population of interest:
+cd /Volumes/Social_evolution_in_animals/Adaptor_trimmed_sequences/Organised_by_population/Northern_Cameroon/$this_POPULATION_NAME
+
 # Loop through each wasp in the filelist 'Wasps_to_target_with_GetOrganelle.filelist'
 while read this_wasp_to_sample; do
     echo "Processing $this_wasp_to_sample"
 
-    cd $this_wasp_to_sample
+   cd $this_wasp_to_sample
     
     # Find the names of the two trimmed 'val' .fq.gz files:
         this_wasp_val_1_FILE=$(ls *val_1*)
@@ -44,7 +47,7 @@ while read this_wasp_to_sample; do
         -R 10 \
         -k 21,45,65,85,105 \
         --reference /Users/pk14885/Downloads/UCL_Genome_MitoHiFi/final_mitogenome.fasta
-
+    
 done < Wasps_to_target_with_GetOrganelle.filelist
 
 # ---------------------------------------------------------------------------------
