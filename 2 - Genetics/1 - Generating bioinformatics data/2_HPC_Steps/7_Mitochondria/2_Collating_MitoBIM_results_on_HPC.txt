@@ -1,0 +1,64 @@
+# Once you have run the MitoBIM script for your population of interest on HPC, use the following on HPC to collate the final results:
+
+# --------------
+# IDENTIFY THE FINAL RESULTS FOR EACH WASP
+
+# The final result for each wasp will be in the largest "iteration" folder for that wasp.
+
+# To get a list of these wasps, run the following on HPC directly:
+
+# First, manually enter the name of the population of interest:
+this_POPULATION_NAME=$'Maroua'
+
+# The destination file (where we will collect all the outputs) will be this:
+cd /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME
+mkdir CollatedKeyOutputsForThisPopulation
+
+for wasp in /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/*; do
+    if [ -d "$wasp" ]; then
+    
+        # Identify the largest iteration number for this wasp:
+        latest_iter=$(ls -d "$wasp"/iteration* | sort -V | tail -n 1)
+        
+        # Navigate to the assembly and results folders:
+        assembly_dir=$(find "$latest_iter" -type d -name "*temporary_name_assembly" | head -n 1)
+        results_dir=$(find "$assembly_dir" -type d -name "*temporary_name_d_results" | head -n 1)
+        
+        # Find the unpadded fasta file, which is what we want to download to the local computer:
+        fasta_file=$(find "$results_dir" -type f -name "*unpadded.fasta" | head -n 1)
+        
+        if [ -f "$fasta_file" ]; then
+            
+            # Copy to destination folder with wasp name as prefix
+            cp "$fasta_file" "CollatedKeyOutputsForThisPopulation/$(basename "$wasp")_unpadded.fasta"
+            echo "$fasta_file" >> /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/paths_to_unpadded_fastas.txt
+        fi
+    fi
+done
+
+# The output should now be a folder (called 'CollatedKeyOutputsForThisPopulation') containing all the unpadded fasta files for the wasps in this population.
+
+# --------------
+# ADD THE POPULATION NAME TO THE FILENAMES FOR EACH OF THESE WASPS
+# This is to enable easy annotation of the phylogeny plot later on.
+
+# To do so, run the following whilst on HPC:
+
+cd CollatedKeyOutputsForThisPopulation
+for file in *.fasta; do
+mv "$file" "${this_POPULATION_NAME}_$file"
+done
+
+# --------------
+# DOWNLOAD TO LOCAL COMPUTER
+
+# Navigate to the folder for collating MitoBIM outputs:
+cd /Volumes/Social_evolution_in_animals/MitoBIM_outputs_from_HPC 
+
+# You'll need to manually tell the local computer the population name:
+this_POPULATION_NAME=$'Maroua'
+
+# Finally, download CollatedKeyOutputsForThisPopulation to that folder:
+scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/CollatedKeyOutputsForThisPopulation/ /Volumes/Social_evolution_in_animals/MitoBIM_outputs_from_HPC/
+
+# Do this for each population.
