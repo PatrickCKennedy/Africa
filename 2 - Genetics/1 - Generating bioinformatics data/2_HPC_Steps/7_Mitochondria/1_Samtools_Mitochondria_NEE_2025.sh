@@ -75,10 +75,10 @@ module load seqtk/1.4-rcyr
 
 # Next, we map raw reads from the adaptor-trimmed files for each wasp from low-coverage whole genome
 # sequencing to the reference mitogenome, using bwa mem:
-    bwa mem -t 8 /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta $this_wasp_val_1_FILE $this_wasp_val_2_FILE | samtools view -Sb - > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}.bam
+    bwa mem -t 8 /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta $this_wasp_val_1_FILE $this_wasp_val_2_FILE | samtools view -Sb - > /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}.bam
 
 # Next, sort and index the BAM file:
-    samtools sort /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_to_sample.bam -o /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam
+    samtools sort /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_to_sample.bam -o /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam
     samtools index /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam
 
 # Next, extract the COX1 gene from the reference mitogenome:
@@ -111,16 +111,15 @@ samtools faidx /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULA
 seqtk seq -r /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_raw.fasta \
     > /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta
 
-# Replace the fasta header with the name of the wasp (and its population):
-
-awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"header}1' \
-    /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta > tmp.fasta && mv tmp.fasta /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta
-
 # Calculate depth of coverage over the COX1 gene:
 samtools depth -a -r "${HEADER_NAME}:${COX1_START}-${COX1_END}" /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam \
     | awk -v sample="${this_wasp_to_sample}" '{sum+=$3} END {print sample, "Average coverage:", sum/NR}' \
     >> /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/coverage_summary.txt
     
+# Replace the fasta header with the name of the wasp (and its population):
+awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"header}1' \
+    /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta > tmp.fasta && mv tmp.fasta /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta
+
 # ----------------------------------------------------------
 # FINALLY, RUN THE FOLLOWING MANUALLY AFTER THE SCRIPT ABOVE HAS FINISHED FOR ALL WASPS IN THE POPULATION OF INTEREST:
 
