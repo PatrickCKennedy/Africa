@@ -135,7 +135,7 @@ awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"head
         scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/${this_POPULATION_NAME}_COX1_Results /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools 
 /${this_POPULATION_NAME}_COX1_Results
 
-
+# The population of interest can now be deleted from the mitochondria folder on BluePebble (make sure it is safe on RDSF within adaptor-trimmed sequences).
 
 
 
