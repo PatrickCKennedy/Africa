@@ -82,7 +82,7 @@ module load seqtk/1.4-rcyr
 # Next, extract the COX1 gene from the reference mitogenome:
     COX1_START=3417
     COX1_END=4955
-    HEADER_NAME=$(head -n 1 /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta | sed 's/>//'
+    HEADER_NAME=$(head -n 1 /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta | sed 's/>//')
     samtools faidx /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta $HEADER_NAME:${COX1_START}-${COX1_END} > /user/work/pk14885/UCL_Genome_MitoHiFi/samtools_reference_COX1.fasta
 
 # Because the COX1 gene in the reference mitogenome is on the complementary strand (as noted in the .gb file for the reference mitogenome), we take the reverse complement using seqtk:
