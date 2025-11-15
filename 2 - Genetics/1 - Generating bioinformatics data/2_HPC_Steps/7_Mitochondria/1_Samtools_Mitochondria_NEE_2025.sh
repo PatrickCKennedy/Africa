@@ -67,9 +67,10 @@ module load samtools/1.19.2-737f
 module load bcftools/1.19-openblas-5yp2
 module load seqtk/1.4-rcyr
 
-# We begin by indexing our reference mitogenome, using bwa index:
-    bwa index /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta
-    samtools faidx /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta
+# We begin by indexing our reference mitogenome, using bwa index. We only need to run this once, which
+# we have done, so it is now hashed out:
+    ##bwa index /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta
+    ##samtools faidx /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta
 
 # Next, we map raw reads from the adaptor-trimmed files for each wasp from low-coverage whole genome
 # sequencing to the reference mitogenome, using bwa mem:
