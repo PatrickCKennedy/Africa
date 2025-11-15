@@ -10,7 +10,7 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-11
+#SBATCH --array=1-67
 # Update the array range to cover the required number of wasps to include in the sample (e.g., the number 
 # of wasps in /user/work/pk14885/MitoZ_NEE_2025/Maroua)
 
@@ -26,7 +26,7 @@
 
 # (2) Manually enter the name of the folder of interest within MitoZ_NEE_2025 here:
 this_CLIMATE_ZONE=$'South_Africa'
-this_POPULATION_NAME=$'PeterRobertsFarm'
+this_POPULATION_NAME=$'Pumphouse'
 
 # (3) Before running the array job, generate a text file containing a list of all the target wasps
 # (i.e., all wasps in the folder /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME), using:
@@ -127,17 +127,19 @@ awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"head
 # Manually run the following on HPC to collate all these files from the different wasps:
 
 # Manually enter the name of the folder of interest within MitoZ_NEE_2025 here, e.g.:
-##        this_POPULATION_NAME=$'Maroua'
+##         this_CLIMATE_ZONE=$'South_Africa'
+##         this_POPULATION_NAME=$'Pumphouse'
 
 # Collate all of these for the population of interest by manually running the following on HPC:
 ##        cd /user/work/pk14885/MitoZ_NEE_2025
 ##        mkdir -p "${this_POPULATION_NAME}_COX1_Results"
-##        find "$this_POPULATION_NAME" -type f -name "*_COX1_output.fasta" -exec mv {} "${this_POPULATION_NAME}_COX1_Results/" \;
+##        find "$this_CLIMATE_ZONE/$this_POPULATION_NAME" -type f -name "*_COX1_output.fasta" -exec mv {} "${this_POPULATION_NAME}_COX1_Results/" \;
 
 # The folder (${this_POPULATION_NAME}_COX1_Results) is now ready to be downloaded to the local computer using scp. 
 # On the local computer, run:
-##        this_POPULATION_NAME=$'Maroua'
-##        scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/${this_POPULATION_NAME}_COX1_Results /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools /${this_POPULATION_NAME}_COX1_Results
+##         this_CLIMATE_ZONE=$'South_Africa'
+##         this_POPULATION_NAME=$'Pumphouse'
+##        scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/${this_POPULATION_NAME}_COX1_Results /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/${this_POPULATION_NAME}_COX1_Results
 
 # The population of interest can now be deleted from the mitochondria folder on BluePebble (make sure it is safe on RDSF within adaptor-trimmed sequences).
 
