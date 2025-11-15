@@ -64,6 +64,8 @@ this_POPULATION_NAME=$'Maroua'
 # Load the modules on HPC:
 module load bwa/0.7.17-hnox
 module load samtools/1.19.2-737f
+module load bcftools/1.19-openblas-5yp2
+module load seqtk/1.4-rcyr
 
 # We begin by indexing our reference mitogenome, using bwa index:
     bwa index /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta
@@ -80,10 +82,19 @@ module load samtools/1.19.2-737f
 # Next, extract the COX1 gene from the reference mitogenome:
     COX1_START=3417
     COX1_END=4955
-    samtools faidx /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta:${COX1_START}-${COX1_END}" > /user/work/pk14885/UCL_Genome_MitoHiFi/samtools_reference_COX1.fasta
+    samtools faidx /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta ${COX1_START}-${COX1_END} > /user/work/pk14885/UCL_Genome_MitoHiFi/samtools_reference_COX1.fasta
+
+# Because the COX1 gene in the reference mitogenome is on the complementary strand (as noted in the .gb file for the reference mitogenome), we take the reverse complement using seqtk:
+        seqtk seq -r /user/work/pk14885/UCL_Genome_MitoHiFi/samtools_reference_COX1.fasta > /user/work/pk14885/UCL_Genome_MitoHiFi/samtools_reference_COX1_reverse_complement.fasta
 
 # Use the mapped reads against the reference to generate a consensus sequence for the current wasp of interest:
-    samtools mpileup -uf /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam | bcftools call -c | vcfutils.pl vcf2fq > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1.fastq
+    samtools mpileup -uf /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam | bcftools call -mv | vcfutils.pl vcf2fq > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fastq
 
 # Convert the output FASTQ to a FASTA file:
-    seqtk seq -a /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1.fastq > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1.fasta
+    seqtk seq -a /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fastq > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fasta
+
+# Extract the COX1 gene from the consensus:
+samtools faidx /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fasta ${COX1_START}-${COX1_END} > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_raw.fasta
+
+# Take the reverse complement:
+seqtk seq -r /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_raw.fasta > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_output.fasta
