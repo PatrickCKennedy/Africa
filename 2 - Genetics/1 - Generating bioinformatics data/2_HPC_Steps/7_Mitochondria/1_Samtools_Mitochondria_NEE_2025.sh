@@ -114,7 +114,7 @@ seqtk seq -r /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATI
 # Calculate depth of coverage over the COX1 gene:
 samtools depth -a -r "${HEADER_NAME}:${COX1_START}-${COX1_END}" /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam \
     | awk -v sample="${this_wasp_to_sample}" '{sum+=$3} END {print sample, "Average coverage:", sum/NR}' \
-    >> /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/coverage_summary.txt
+    >> /user/work/pk14885/MitoZ_NEE_2025/coverage_summary.txt
     
 # Replace the fasta header with the name of the wasp (and its population):
 awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"header}1' \
