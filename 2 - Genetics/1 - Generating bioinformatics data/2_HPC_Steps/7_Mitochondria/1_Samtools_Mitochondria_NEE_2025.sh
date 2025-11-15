@@ -10,7 +10,7 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-102
+#SBATCH --array=1-11
 # Update the array range to cover the required number of wasps to include in the sample (e.g., the number 
 # of wasps in /user/work/pk14885/MitoZ_NEE_2025/Maroua)
 
@@ -25,11 +25,12 @@
 # on BluePebble.
 
 # (2) Manually enter the name of the folder of interest within MitoZ_NEE_2025 here:
-this_POPULATION_NAME=$'Maroua'
+this_CLIMATE_ZONE=$'South_Africa'
+this_POPULATION_NAME=$'PeterRobertsFarm'
 
 # (3) Before running the array job, generate a text file containing a list of all the target wasps
-# (i.e., all wasps in the folder /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME), using:
-##        cd /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME
+# (i.e., all wasps in the folder /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME), using:
+##        cd /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME
 ##        ls -d * > Wasps_to_target_with_MitoZ.filelist
 
 # (4) Make sure the array range is set to the right number of wasps in the header (e.g., #SBATCH --array=1-102 above).
@@ -40,14 +41,14 @@ this_POPULATION_NAME=$'Maroua'
 # IDENTIFY THE SPECIFIC WASP TARGETTED FOR THIS INSTANCE OF THE ARRAY SCRIPT:
 
 # Allocate a specific wasp to this particular entry of the array job:
-        cd /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME
+        cd /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME
         this_wasp_to_sample=$(sed -n ${SLURM_ARRAY_TASK_ID}p Wasps_to_target_with_MitoZ.filelist)
 
 # Print the focal wasp's name to the slurm output file:
         echo $this_wasp_to_sample
 
 # Navigate to the focal wasp's folder (which should contain only its 'val_1' and 'val_2' files):
-        cd /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample
+        cd /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample
 
 # Find the names of the two trimmed 'val' .fq.gz files:
         this_wasp_val_1_FILE=$(ls *val_1*)
@@ -77,8 +78,8 @@ module load seqtk/1.4-rcyr
     bwa mem -t 8 /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta $this_wasp_val_1_FILE $this_wasp_val_2_FILE | samtools view -Sb - > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}.bam
 
 # Next, sort and index the BAM file:
-    samtools sort /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_to_sample.bam -o /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam
-    samtools index /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam
+    samtools sort /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/$this_wasp_to_sample.bam -o /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam
+    samtools index /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam
 
 # Next, extract the COX1 gene from the reference mitogenome:
     COX1_START=3417
@@ -91,24 +92,24 @@ module load seqtk/1.4-rcyr
 
 # Generate consensus sequence using bcftools:
 bcftools mpileup -Ou -f /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta \
-    /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam \
-    | bcftools call -mv -Oz -o /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}.vcf.gz
+    /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_sorted.bam \
+    | bcftools call -mv -Oz -o /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}.vcf.gz
 
 # Index VCF:
-bcftools index /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}.vcf.gz
+bcftools index /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}.vcf.gz
 
 # Create consensus FASTA from VCF:
 cat /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta \
-    | bcftools consensus /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}.vcf.gz \
-    > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fasta
+    | bcftools consensus /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}.vcf.gz \
+    > /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fasta
 
 # Extract COX1 gene from consensus:
-samtools faidx /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fasta $HEADER_NAME:${COX1_START}-${COX1_END} \
-    > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_raw.fasta
+samtools faidx /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fasta $HEADER_NAME:${COX1_START}-${COX1_END} \
+    > /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_raw.fasta
 
 # Reverse complement COX1 gene from consensus:
-seqtk seq -r /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_raw.fasta \
-    > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta
+seqtk seq -r /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_raw.fasta \
+    > /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta
 
 # Replace the fasta header with the name of the wasp (and its population):
 
@@ -121,7 +122,7 @@ awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"head
 # The key file from every wasp is the ${this_wasp_to_sample}_COX1_output.fasta file.
 # Manually run the following on HPC to collate all these files from the different wasps:
 
-# Manually enter the name of the folder of interest within MitoZ_NEE_2025 here:
+# Manually enter the name of the folder of interest within MitoZ_NEE_2025 here, e.g.:
 ##        this_POPULATION_NAME=$'Maroua'
 
 # Collate all of these for the population of interest by manually running the following on HPC:
