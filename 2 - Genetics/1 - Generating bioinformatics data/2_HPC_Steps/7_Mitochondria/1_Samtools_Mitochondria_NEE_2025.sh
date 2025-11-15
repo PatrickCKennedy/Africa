@@ -26,7 +26,7 @@
 
 # (2) Manually enter the name of the folder of interest within MitoZ_NEE_2025 here:
 this_CLIMATE_ZONE=$'South_Africa'
-this_POPULATION_NAME=$'TrudiesFarm'
+this_POPULATION_NAME=$'Cowshed'
 
 # (3) Before running the array job, generate a text file containing a list of all the target wasps
 # (i.e., all wasps in the folder /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME), using:
