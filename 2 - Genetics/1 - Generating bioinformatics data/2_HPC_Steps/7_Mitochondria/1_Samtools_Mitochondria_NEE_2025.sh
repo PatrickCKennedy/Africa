@@ -82,7 +82,8 @@ module load seqtk/1.4-rcyr
 # Next, extract the COX1 gene from the reference mitogenome:
     COX1_START=3417
     COX1_END=4955
-    samtools faidx /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta ${COX1_START}-${COX1_END} > /user/work/pk14885/UCL_Genome_MitoHiFi/samtools_reference_COX1.fasta
+    HEADER_NAME=$(head -n 1 /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta | sed 's/>//'
+    samtools faidx /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta $HEADER_NAME:${COX1_START}-${COX1_END} > /user/work/pk14885/UCL_Genome_MitoHiFi/samtools_reference_COX1.fasta
 
 # Because the COX1 gene in the reference mitogenome is on the complementary strand (as noted in the .gb file for the reference mitogenome), we take the reverse complement using seqtk:
         seqtk seq -r /user/work/pk14885/UCL_Genome_MitoHiFi/samtools_reference_COX1.fasta > /user/work/pk14885/UCL_Genome_MitoHiFi/samtools_reference_COX1_reverse_complement.fasta
@@ -101,7 +102,7 @@ cat /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta \
     > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fasta
 
 # Extract COX1 gene from consensus:
-samtools faidx /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fasta ${COX1_START}-${COX1_END} \
+samtools faidx /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_consensus.fasta $HEADER_NAME:${COX1_START}-${COX1_END} \
     > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_raw.fasta
 
 # Reverse complement COX1 gene from consensus:
