@@ -14,7 +14,7 @@
 # Update the array range to cover the required number of wasps to include in the sample (e.g., the number 
 # of wasps in /user/work/pk14885/MitoZ_NEE_2025/Maroua)
 
-# PK, latest update: 10th November 2025
+# PK, latest update: 15th November 2025
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 # Before running this script, do the following:
