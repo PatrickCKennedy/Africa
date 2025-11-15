@@ -26,7 +26,7 @@
 
 # (2) Manually enter the name of the folder of interest within MitoZ_NEE_2025 here:
 this_CLIMATE_ZONE=$'South_Africa'
-this_POPULATION_NAME=$'Pumphouse'
+this_POPULATION_NAME=$'TrudiesFarm'
 
 # (3) Before running the array job, generate a text file containing a list of all the target wasps
 # (i.e., all wasps in the folder /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME), using:
@@ -46,6 +46,7 @@ this_POPULATION_NAME=$'Pumphouse'
 
 # Print the focal wasp's name to the slurm output file:
         echo $this_wasp_to_sample
+        echo $this_POPULATION_NAME
 
 # Navigate to the focal wasp's folder (which should contain only its 'val_1' and 'val_2' files):
         cd /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample
@@ -142,22 +143,4 @@ awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"head
 ##        scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/${this_POPULATION_NAME}_COX1_Results /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/${this_POPULATION_NAME}_COX1_Results
 
 # The population of interest can now be deleted from the mitochondria folder on BluePebble (make sure it is safe on RDSF within adaptor-trimmed sequences).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
