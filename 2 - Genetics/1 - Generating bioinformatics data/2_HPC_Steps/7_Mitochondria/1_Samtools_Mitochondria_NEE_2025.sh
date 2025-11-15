@@ -137,8 +137,7 @@ awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"head
 # The folder (${this_POPULATION_NAME}_COX1_Results) is now ready to be downloaded to the local computer using scp. 
 # On the local computer, run:
 ##        this_POPULATION_NAME=$'Maroua'
-##        scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/${this_POPULATION_NAME}_COX1_Results /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools 
-/${this_POPULATION_NAME}_COX1_Results
+##        scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/${this_POPULATION_NAME}_COX1_Results /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools /${this_POPULATION_NAME}_COX1_Results
 
 # The population of interest can now be deleted from the mitochondria folder on BluePebble (make sure it is safe on RDSF within adaptor-trimmed sequences).
 
