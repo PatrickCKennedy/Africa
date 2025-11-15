@@ -1,0 +1,20 @@
+# Once the 1_Samtools_Mitochondria... script has run on HPC, and you have completed the manual steps described at the end of the file, you will have downloaded each population's folder of wasps and their COX1 genes.
+
+# Here, we build a simple phylogeny based on the COX1 genes.
+
+# Move all the wasps of interest into a single folder. To make a phylogeny involving all wasps across all populations, move them into one folder.
+
+# Once you have done that, concatenate all the wasps' COX1 sequences into a single FASTA file:
+    cat *_COX1_output.fasta > all_COX1.fasta
+
+# They should still have their individual wasp IDs as the headers in the file.
+
+# The next steps will be run in MEGA, using the GUI:
+# 1. Open MEGA.
+# 2. Import the 'all_COX1.fasta' using File->Open a file/session
+# 3. Choose alignment option.
+# 4. Align by going to Alignment->MUSCLE
+# 5. Save the aligned file (with the suffix .mas)
+# 6. Open the .mas file, and choose the 'Phylogeny' button.
+# 7. Choose phylogeny parameters.
+
