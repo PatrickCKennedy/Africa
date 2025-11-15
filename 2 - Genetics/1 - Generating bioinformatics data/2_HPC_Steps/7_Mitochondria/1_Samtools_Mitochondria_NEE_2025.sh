@@ -107,4 +107,46 @@ samtools faidx /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_was
 
 # Reverse complement COX1 gene from consensus:
 seqtk seq -r /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_raw.fasta \
-    > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_wasp_to_sample}_COX1_output.fasta
+    > /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta
+
+# Replace the fasta header with the name of the wasp (and its population):
+
+awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"header}1' \
+    /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta > tmp.fasta && mv tmp.fasta /user/work/pk14885/MitoZ_NEE_2025/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta
+
+# ----------------------------------------------------------
+# FINALLY, RUN THE FOLLOWING MANUALLY AFTER THE SCRIPT ABOVE HAS FINISHED FOR ALL WASPS IN THE POPULATION OF INTEREST:
+
+# The key file from every wasp is the ${this_wasp_to_sample}_COX1_output.fasta file.
+# Manually run the following on HPC to collate all these files from the different wasps:
+
+# Manually enter the name of the folder of interest within MitoZ_NEE_2025 here:
+##        this_POPULATION_NAME=$'Maroua'
+
+# Collate all of these for the population of interest by manually running the following on HPC:
+##        cd /user/work/pk14885/MitoZ_NEE_2025
+##        mkdir -p "${this_POPULATION_NAME}_COX1_Results"
+##        find "$this_POPULATION_NAME" -type f -name "*_COX1_output.fasta" -exec mv {} "${this_POPULATION_NAME}_COX1_Results/" \;
+
+# The folder (${this_POPULATION_NAME}_COX1_Results) is now ready to be downloaded to the local computer using scp.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
