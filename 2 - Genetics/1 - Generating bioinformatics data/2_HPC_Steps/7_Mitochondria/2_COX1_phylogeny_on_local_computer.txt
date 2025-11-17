@@ -11,11 +11,18 @@
 # (If the coverage_summary.txt file hasn't yet been downloaded from BluePebble, download it using the following:)
 ## scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/coverage_summary.txt /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools 
 
-# To focus on high-quality data, we will exclude from the phylogeny all wasps that have an average coverage across the COX1 region of less than 10X, using the 'coverage_summary.txt' file.
+# To focus on high-quality data, we will exclude from the phylogeny all wasps that have an average depth of coverage across the COX1 region of less than 10X, using the 'coverage_summary.txt' file.
 
-my_THRESHOLD_COVERAGE=10
-cd /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools
-awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' coverage_summary.txt | xargs -I{} cp {}* /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/1_The_subset_above_10X_coverage_of_COX1/
+# Set the threshold depth of coverage of interest:
+        my_THRESHOLD_COVERAGE=10
+
+# To copy those individuals into a subfolder, use:
+        cd /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools
+        mkdir 1_The_subset_above_threshold_coverage_of_COX1
+        awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' coverage_summary.txt | xargs -I{} cp {}* /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/1_The_subset_above_threshold_coverage_of_COX1/
+
+# To count how many individuals meet this threshold, use:
+        awk '$NF > 10 {count++} END {print count}' coverage_summary.txt
 
 cd /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools
 my_THRESHOLD_COVERAGE=10
