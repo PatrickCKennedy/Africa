@@ -4,6 +4,28 @@
 
 # Move all the wasps of interest into a single folder. To make a phylogeny involving all wasps across all populations, move them into one folder.
 
+# To find the average coverage across the COX1 region across all the samples use the 'coverage_summary.txt' that we
+# generated in the previous script:
+    awk '{sum+=$NF; sumsq+=$NF*$NF; n++} END {mean=sum/n; sd=sqrt(sumsq/n - mean^2); print "Mean:", mean, "SD:", sd}' coverage_summary.txt
+
+# (If the coverage_summary.txt file hasn't yet been downloaded from BluePebble, download it using the following:)
+## scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/coverage_summary.txt /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools 
+
+# To focus on high-quality data, we will exclude from the phylogeny all wasps that have an average coverage across the COX1 region of less than 10X, using the 'coverage_summary.txt' file.
+
+my_THRESHOLD_COVERAGE=10
+cd /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools
+awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' coverage_summary.txt | xargs -I{} cp {}* /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/1_The_subset_above_10X_coverage_of_COX1/
+
+cd /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools
+my_THRESHOLD_COVERAGE=10
+awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' coverage_summary.txt | while read prefix; do
+    cp *"${prefix}"* /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/1_The_subset_above_10X_coverage_of_COX1/
+done
+
+
+
+
 # Once you have done that, concatenate all the wasps' COX1 sequences into a single FASTA file:
     cat *_COX1_output.fasta > all_COX1.fasta
 
