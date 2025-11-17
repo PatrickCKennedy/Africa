@@ -10,7 +10,7 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-67
+#SBATCH --array=1-14
 # Update the array range to cover the required number of wasps to include in the sample (e.g., the number 
 # of wasps in /user/work/pk14885/MitoZ_NEE_2025/Maroua)
 
@@ -25,8 +25,8 @@
 # on BluePebble.
 
 # (2) Manually enter the name of the folder of interest within MitoZ_NEE_2025 here:
-this_CLIMATE_ZONE=$'South_Africa'
-this_POPULATION_NAME=$'Cowshed'
+this_CLIMATE_ZONE=$'Southern_Cameroon'
+this_POPULATION_NAME=$'Douala'
 
 # (3) Before running the array job, generate a text file containing a list of all the target wasps
 # (i.e., all wasps in the folder /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME), using:
@@ -122,19 +122,22 @@ awk -v header="${this_POPULATION_NAME}_${this_wasp_to_sample}" 'NR==1{$0=">"head
     /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta > tmp.fasta && mv tmp.fasta /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample/${this_POPULATION_NAME}_${this_wasp_to_sample}_COX1_output.fasta
 
 # ----------------------------------------------------------
-# FINALLY, RUN THE FOLLOWING MANUALLY AFTER THE SCRIPT ABOVE HAS FINISHED FOR ALL WASPS IN THE POPULATION OF INTEREST:
+# COLLATE THE KEY RESULT:
 
-# The key file from every wasp is the ${this_wasp_to_sample}_COX1_output.fasta file.
-# Manually run the following on HPC to collate all these files from the different wasps:
+# The key output from the code above is the file ending in "_COX1_output.fasta". Here, we move it to the outputs folder for
+# the population of interest.
 
-# Manually enter the name of the folder of interest within MitoZ_NEE_2025 here, e.g.:
-##         this_CLIMATE_ZONE=$'South_Africa'
-##         this_POPULATION_NAME=$'Pumphouse'
+# Make a folder for this population's outputs if it doesn't already exist:
+mkdir /user/work/pk14885/MitoZ_NEE_2025/"${this_POPULATION_NAME}_COX1_Results"
 
-# Collate all of these for the population of interest by manually running the following on HPC:
-##        cd /user/work/pk14885/MitoZ_NEE_2025
-##        mkdir -p "${this_POPULATION_NAME}_COX1_Results"
-##        find "$this_CLIMATE_ZONE/$this_POPULATION_NAME" -type f -name "*_COX1_output.fasta" -exec mv {} "${this_POPULATION_NAME}_COX1_Results/" \;
+# Navigate to the folder containing the outputs for this wasp:
+cd /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME/$this_wasp_to_sample
+
+# Move the key file to the collated outputs folder for the population:
+mv *_COX1_output.fasta /user/work/pk14885/MitoZ_NEE_2025/"${this_POPULATION_NAME}_COX1_Results"/
+
+# ----------------------------------------------------------
+# ONCE THE ARRAY JOB HAS FINISHED RUNNING FOR ALL WASPS IN THIS POPULATION:
 
 # The folder (${this_POPULATION_NAME}_COX1_Results) is now ready to be downloaded to the local computer using scp. 
 # On the local computer, run:
