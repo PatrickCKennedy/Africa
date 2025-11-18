@@ -141,8 +141,8 @@ mv *_COX1_output.fasta /user/work/pk14885/MitoZ_NEE_2025/"${this_POPULATION_NAME
 
 # The folder (${this_POPULATION_NAME}_COX1_Results) is now ready to be downloaded to the local computer using scp. 
 # On the local computer, run:
-##         this_CLIMATE_ZONE=$'South_Africa'
-##         this_POPULATION_NAME=$'Pumphouse'
+##         this_CLIMATE_ZONE=$'Southern_Cameroon'
+##         this_POPULATION_NAME=$'Messa'
 ##        scp -r pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/MitoZ_NEE_2025/${this_POPULATION_NAME}_COX1_Results /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/${this_POPULATION_NAME}_COX1_Results
 
 # The population of interest can now be deleted from the mitochondria folder on BluePebble (make sure it is safe on RDSF within adaptor-trimmed sequences).
