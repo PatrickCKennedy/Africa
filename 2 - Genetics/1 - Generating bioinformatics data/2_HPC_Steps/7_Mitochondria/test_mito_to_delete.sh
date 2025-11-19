@@ -4,6 +4,7 @@
 ##conda create -n mitoz_env bwa samtools bcftools seqtk parallel -c bioconda
 
 # Activate the conda environment above:
+conda init
 conda activate mitoz_env
 
 # ================================
