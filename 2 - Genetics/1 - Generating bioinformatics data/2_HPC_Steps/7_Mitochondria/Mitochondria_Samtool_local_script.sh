@@ -36,6 +36,10 @@ mkdir -p /Users/pk14885/Downloads/COX1_local_outputs/$CLIMATE_ZONE/$POPULATION_N
 cd /Volumes/Social_evolution_in_animals/Adaptor_trimmed_sequences/Organised_by_population/$CLIMATE_ZONE/$POPULATION_NAME
 ls -d * > Wasps_to_target_with_MitoZ.filelist
 
+# Make sure the reference mitogenome is indexed:
+bwa index /Users/pk14885/Downloads/UCL_Genome_MitoHiFi/final_mitogenome.fasta
+samtools faidx /Users/pk14885/Downloads/UCL_Genome_MitoHiFi/final_mitogenome.fasta
+
 # ================================
 # STEP 2: Define processing function
 # ================================
