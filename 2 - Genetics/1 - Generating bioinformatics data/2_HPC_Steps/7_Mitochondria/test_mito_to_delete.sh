@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Previously, install required tools using:
+##conda create -n mitoz_env bwa samtools bcftools seqtk parallel -c bioconda
+
+# Activate the conda environment above:
+conda activate mitoz_env
+
 # ================================
 # CONFIGURATION
 # ================================
