@@ -5,7 +5,7 @@
 # ================================
 # Paths
 BASE_DIR="/Volumes/Social_evolution_in_animals/Adaptor_trimmed_sequences/Organised_by_population/Southern_Cameroon/Rest_of_Yaounde1"
-OUTPUT_BASE="/Users/pk14885/Downloads/"
+OUTPUT_BASE="/Users/pk14885/Downloads"
 REFERENCE="/Users/pk14885/Downloads/UCL_Genome_MitoHiFi/final_mitogenome.fasta"
 HEADER_NAME=$(head -n 1 $REFERENCE | sed 's/>//')
 
