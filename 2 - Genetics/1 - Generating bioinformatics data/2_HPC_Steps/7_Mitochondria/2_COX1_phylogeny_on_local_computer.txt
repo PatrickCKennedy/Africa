@@ -30,8 +30,9 @@ awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' coverage_summary.txt | w
     cp *"${prefix}"* /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/1_The_subset_above_10X_coverage_of_COX1/
 done
 
-
-
+# To find the average coverage among wasps retained after excluding all wasps below the threshold:
+            awk -v threshold="$my_THRESHOLD_COVERAGE" -F'Average coverage:' '{if ($2 >= threshold) print $0}' coverage_summary.txt > coverage_filtered.txt
+            awk '{sum+=$NF; sumsq+=$NF*$NF; n++} END {mean=sum/n; sd=sqrt(sumsq/n - mean^2); print "Mean:", mean, "SD:", sd}' coverage_filtered.txt
 
 # Once you have done that, concatenate all the wasps' COX1 sequences into a single FASTA file:
     cat *_COX1_output.fasta > all_COX1.fasta
