@@ -3,9 +3,13 @@
 # Previously, install required tools using:
 ##conda create -n mitoz_env bwa samtools bcftools seqtk parallel -c bioconda
 
-# Activate the conda environment above:
+# Activate the conda environment above first before running this file.
 ##conda init bash
 ##conda activate mitoz_env
+
+# Then run the current file using:
+##chmod +x Mitochondria_Samtool_local_script.sh
+##./Mitochondria_Samtool_local_script.sh
 
 # ================================
 # CONFIGURATION
