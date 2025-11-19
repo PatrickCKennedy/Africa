@@ -2,7 +2,10 @@
 
 # Here, we build a simple phylogeny based on the COX1 genes.
 
-# Move all the wasps of interest into a single folder. To make a phylogeny involving all wasps across all populations, move them into one folder.
+# Move all the wasps of interest into a single folder. To make a phylogeny involving all wasps across all populations, move them manually into one folder.
+
+# Navigate to that folder:
+cd /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools 
 
 # To find the average coverage across the COX1 region across all the samples use the 'coverage_summary.txt' that we
 # generated in the previous script:
@@ -17,18 +20,15 @@
         my_THRESHOLD_COVERAGE=20
 
 # To copy those individuals into a subfolder, use:
-        cd /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools
-        mkdir 1_The_subset_above_threshold_coverage_of_COX1
-        awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' coverage_summary.txt | xargs -I{} cp {}* /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/1_The_subset_above_threshold_coverage_of_COX1/
+            cd /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools
+            my_THRESHOLD_COVERAGE=20
+            mkdir 1_The_subset_above_threshold_coverage_of_COX1
+            awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' coverage_summary.txt | while read prefix; do
+                cp *"${prefix}"* /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/1_The_subset_above_threshold_coverage_of_COX1/
+            done
 
 # To count how many individuals meet this threshold, use:
         awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {count++} END {print count}' coverage_summary.txt
-
-cd /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools
-my_THRESHOLD_COVERAGE=10
-awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' coverage_summary.txt | while read prefix; do
-    cp *"${prefix}"* /Volumes/Social_evolution_in_animals/COX1_genes_extracted_with_Samtools/1_The_subset_above_10X_coverage_of_COX1/
-done
 
 # To find the average coverage among wasps retained after excluding all wasps below the threshold:
             awk -v threshold="$my_THRESHOLD_COVERAGE" -F'Average coverage:' '{if ($2 >= threshold) print $0}' coverage_summary.txt > coverage_filtered.txt
