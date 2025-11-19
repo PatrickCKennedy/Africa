@@ -10,7 +10,7 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 #SBATCH --output=slurm-%x.%j.out
-#SBATCH --array=1-117
+#SBATCH --array=1-259
 # Update the array range to cover the required number of wasps to include in the sample (e.g., the number 
 # of wasps in /user/work/pk14885/MitoZ_NEE_2025/Maroua)
 
@@ -26,7 +26,7 @@
 
 # (2) Manually enter the name of the folder of interest within MitoZ_NEE_2025 here:
 this_CLIMATE_ZONE=$'Southern_Cameroon'
-this_POPULATION_NAME=$'Somalomo'
+this_POPULATION_NAME=$'Yaounde1'
 
 # (3) Before running the array job, generate a text file containing a list of all the target wasps
 # (i.e., all wasps in the folder /user/work/pk14885/MitoZ_NEE_2025/$this_CLIMATE_ZONE/$this_POPULATION_NAME), using:
