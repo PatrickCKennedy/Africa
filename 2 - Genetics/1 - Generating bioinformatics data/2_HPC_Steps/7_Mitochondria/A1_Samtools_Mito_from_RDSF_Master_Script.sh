@@ -1,6 +1,6 @@
 #!/bin/bash
 # A1_Samtools_Mito_from_RDSF_Master_Script.sh
-# This script should be submitted on the login node, because the compute nodes cannot access RDSF.
+# This low-demand script should be run on the login node, because the compute nodes cannot access RDSF.
 # This is a master script that imports the wasps in batches from RDSF, and then submits these batches to the
 # compute node as array jobs using the separate submission script. This is an efficient way of running
 # the jobs, and upload to HPC is much quicker when doing so from RDSF as here than if running from a local
