@@ -54,8 +54,12 @@ fi
 # Extract these mapped reads:
       samtools view -b -F 4 ${population}_${wasp}_mapped.bam > ${population}_${wasp}_mito_only.bam
 
-# Convert the bam file to a FASTQ file:
-      samtools fastq ${population}_${wasp}_mito_only.bam -1 ${population}_${wasp}_mito_filtered_R1.fq.gz -2 ${population}_${wasp}_mito_filtered_R2.fq.gz
+# Convert the bam file to a FASTQ file:             
+      samtools fastq -n -@ 8 \
+           -1 ${population}_${wasp}_mito_filtered_R1.fq.gz \
+           -2 ${population}_${wasp}_mito_filtered_R2.fq.gz \
+           -0 /dev/null -s /dev/null \
+           ${population}_${wasp}_mito_only.bam
 
 # --------------------------------------------------------------------------------
 # RUN MITOZ FOR EACH wasp:
