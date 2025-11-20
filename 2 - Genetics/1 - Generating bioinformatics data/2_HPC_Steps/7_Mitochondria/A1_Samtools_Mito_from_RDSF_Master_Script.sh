@@ -8,7 +8,18 @@
 # the input files from RDSF on the login nodes (this script) so that they are then visible to the
 # sbatch submission script on the compute nodes (next script, 1b).
 
-# To run this script, use:       bash A1_Samtools_Mito_from_RDSF_Master_Script.sh
+# To run this script, you can simply use:       bash A1_Samtools_Mito_from_RDSF_Master_Script.sh
+# However, if you lose the ssh connection to the login node at any stage during the script, the operation
+# will end (broken pipe). To avoid this, you can use 'tmux' to create a persistent session. Run this
+# script using the following once on the login node:
+                        ##   tmux new -s PatrickSession
+                        ##   bash A1_Samtools_Mito_from_RDSF_Master_Script.sh   
+                        ##   tmux kill-session -t PatrickSession
+                # General points on tmux:
+                        # To detach from the session (leaving it running), you can us use:  Ctrl + b, then d (the session then continues as a background activity)
+                        # You can see what sessions are live using:    tmux ls
+                        # To re-enter the session, use:     tmux attach -t PatrickSession
+                        # To end the session when it is all over, use:     tmux kill-session -t PatrickSession
 
 # --------------------------------------------------------------------------------
 # MANUAL STEPS FIRST:
