@@ -1,8 +1,12 @@
 #!/bin/bash
 # 1a_RDSF_to_MitoZ_Master_Script.sh
 # This script should be submitted on the login node, because the compute nodes cannot access RDSF.
-# This is a master script that imports the wasps in batches from RDSF, and then submits them to the
-# compute node using the separate submission script.
+# This is a master script that imports the wasps in batches from RDSF, and then submits these batches to the
+# compute node as array jobs using the separate submission script. This is an efficient way of running
+# the jobs, and upload to HPC is much quicker when doing so from RDSF as here than if running from a local
+# computer over the internet. The reason why we have this master script is that we first need to upload
+# the input files from RDSF on the login nodes (this script) so that they are then visible to the
+# sbatch submission scriopt (next script, 1b).
 
 # To run this script, use:       bash 1a_RDSF_to_MitoZ_Master_Script.sh
 
