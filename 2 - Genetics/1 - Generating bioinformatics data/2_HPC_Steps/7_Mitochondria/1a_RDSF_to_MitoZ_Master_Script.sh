@@ -47,7 +47,7 @@ batch_size=50
 
 # Function to check scratch size and pause if above threshold:
 check_scratch_usage() {
-    THRESHOLD_GB=200  # Adjust as needed.
+    THRESHOLD_GB=100  # Adjust as needed.
     CURRENT_SIZE=$(du -s --block-size=1G "$my_temporary_scratch_directory" | awk '{print $1}')
     if (( CURRENT_SIZE > THRESHOLD_GB )); then
         echo "$(date): [WARNING] Scratch usage ${CURRENT_SIZE}GB exceeds ${THRESHOLD_GB}GB. Pausing..." >> $log
