@@ -6,7 +6,7 @@
 # the jobs, and upload to HPC is much quicker when doing so from RDSF as here than if running from a local
 # computer over the internet. The reason why we have this master script is that we first need to upload
 # the input files from RDSF on the login nodes (this script) so that they are then visible to the
-# sbatch submission scriopt (next script, 1b).
+# sbatch submission script on the compute nodes (next script, 1b).
 
 # To run this script, use:       bash 1a_RDSF_to_MitoZ_Master_Script.sh
 
