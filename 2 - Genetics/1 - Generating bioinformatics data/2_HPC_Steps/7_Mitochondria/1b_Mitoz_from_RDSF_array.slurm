@@ -87,7 +87,6 @@ if [[ $? -eq 0 ]]; then
     echo "$(date): [INFO] MitoZ completed for $climate/$population/$wasp" >> $LOG_FILE
 else
     echo "$(date): [ERROR] MitoZ failed for $climate/$population/$wasp" >> $LOG_FILE
-    exit 1
 fi
 
 # Delete the large input files from the scratch directory:
