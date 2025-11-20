@@ -75,8 +75,9 @@ apptainer run -B "$temporary_scratch_directory_for_this_wasp:$temporary_scratch_
     --genetic_code 5 \
     --clade Arthropoda \
     --fastq_read_length 150 \
-    --data_size_for_mt_assembly 0.3 \
-    --assembler spades \
+    --data_size_for_mt_assembly 1.0 \
+    --assembler megahit \
+    --kmers_megahit 21 33 55 77 99 121 \
     --thread_number 8 \
     --memory 30 \
     --requiring_taxa Arthropoda
@@ -89,9 +90,16 @@ else
     exit 1
 fi
 
-# Stage output to permanent results directory:
-mkdir -p "$results_directory_for_this_wasp"
-cp "$temporary_scratch_directory_for_this_wasp"/* "$results_directory_for_this_wasp/" && echo "$(date): [INFO] Results copied for $climate/$population/$wasp" >> $LOG_FILE
+# Delete the large input files from the scratch directory:
+       cd $temporary_scratch_directory_for_this_wasp
+       rm $val1
+       rm $val2
+       rm ${population}_${wasp}_mito_filtered_R1.fq.gz
+       rm ${population}_${wasp}_mito_filtered_R2.fq.gz
 
-# Clean up scratch by deleting it for this wasp:
-rm -rf "$temporary_scratch_directory_for_this_wasp" && echo "$(date): [INFO] Scratch cleaned for $climate/$population/$wasp" >> $LOG_FILE
+# Stage output to permanent results directory:
+       mkdir -p "$results_directory_for_this_wasp"
+       cp -r "$temporary_scratch_directory_for_this_wasp"/* "$results_directory_for_this_wasp/" && echo "$(date): [INFO] Results copied for $climate/$population/$wasp" >> $LOG_FILE
+
+# Clean up scratch by deleting it entirely for this wasp:
+       rm -rf "$temporary_scratch_directory_for_this_wasp" && echo "$(date): [INFO] Scratch cleaned for $climate/$population/$wasp" >> $LOG_FILE
