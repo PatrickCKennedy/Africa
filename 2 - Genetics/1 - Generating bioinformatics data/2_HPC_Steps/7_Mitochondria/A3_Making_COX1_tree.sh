@@ -51,8 +51,7 @@ find /user/work/pk14885/Samtools_Mito_results -type f -name "*_COX1_output.fasta
             cat *.fasta > concatenated.fasta
 
 # Concatenate it with published Belonogaster sequences from GenBank to provide comparisons:
-            cat concatenated.fasta /user/work/pk14885/1_Other_Belonogaster_COI_sequences_previously_on_Genbank_to_provide_context.fasta
- > concatenated_plus_Belono_Genbanks.fasta
+            cat concatenated.fasta /user/work/pk14885/1_Other_Belonogaster_COI_sequences_previously_on_Genbank_to_provide_context.fasta > concatenated_plus_Belono_Genbanks.fasta
 
 # Concatenate this with the Ropalidia marginata COX1 sequence from GenBank:
             cat concatenated_plus_Belono_Genbanks.fasta /user/work/pk14885/2_Ropalidia_marginata_COX1_Genbank.fasta > COI_all_samples.fasta
