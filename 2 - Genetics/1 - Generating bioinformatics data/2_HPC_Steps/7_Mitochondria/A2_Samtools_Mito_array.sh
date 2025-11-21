@@ -45,16 +45,11 @@ if [[ ! -f "$val1" || ! -f "$val2" ]]; then
 fi
 
 # ---------------------------------------------------------------------------------
-# USE THE COX1 GENE FROM THE REFERENCE MITOCHONDRIAL GENOME:
+# MAP AGAINST THE REFERENCE MITOCHONDRIAL GENOME:
 # We have assembled the reference mitochondrial genome as part of a wider project elsewhere to
 # provide the reference genome for Belonogaster juncea (Wyatt et al.). The mitochondrial genome
 # from that reference is in the file /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta
-# The start and end positions for the COX1 gene are detailed in the GenBank-syle file 'final_mitogenome.gb',
-# and are 3417 to 4955.
 
-# Next, extract the COX1 gene from the reference mitogenome:
-COX1_START=3417
-COX1_END=4955
 header_name=$(head -n 1 /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta | sed 's/>//')
 coverage_threshold=3  # Positions with depth <3 will be masked
 
@@ -81,6 +76,15 @@ cat /user/work/pk14885/UCL_Genome_MitoHiFi/final_mitogenome.fasta \
     | bcftools consensus --mask lowcov.bed ${wasp}.vcf.gz \
     > ${wasp}_consensus_masked.fasta
 
+# -----------------------------------------------------------------------------------
+# EXTRACT THE COX1 REGION:
+# The start and end positions for the COX1 gene are detailed in the GenBank-syle file 'final_mitogenome.gb',
+# and are 3417 to 4955.
+
+# Next, extract the COX1 gene from the reference mitogenome:
+COX1_START=3417
+COX1_END=4955
+
 # Extract COX1 region and reverse complement:
 samtools faidx ${wasp}_consensus_masked.fasta ${header_name}:${COX1_START}-${COX1_END} \
     > ${wasp}_COX1_raw.fasta
@@ -95,6 +99,54 @@ awk -v header="${population}_${wasp}" 'NR==1{$0=">"header}1' \
 samtools depth -a -r "${header_name}:${COX1_START}-${COX1_END}" ${wasp}_sorted.bam \
     | awk -v sample="${wasp}" '{sum+=$3} END {print sample, "Average coverage:", sum/NR}' \
     >> /user/work/pk14885/Samtools_Mito_coverage_summary.txt
+
+# -----------------------------------------------------------------------------------
+# EXTRACT THE cytb REGION:
+# The start and end positions for the cytb gene are detailed in the GenBank-syle file 'final_mitogenome.gb',
+# and are 16417 to 17397.
+
+# Next, extract the cytb gene from the reference mitogenome:
+cytb_START=16417
+cytb_END=17397
+
+# Extract cytb region and reverse complement:
+samtools faidx ${wasp}_consensus_masked.fasta ${header_name}:${cytb_START}-${cytb_END} \
+    > ${wasp}_cytb_raw.fasta
+seqtk seq -r ${wasp}_cytb_raw.fasta \
+    > ${population}_${wasp}_cytb_output.fasta
+
+# Replace header with sample name:
+awk -v header="${population}_${wasp}" 'NR==1{$0=">"header}1' \
+    ${population}_${wasp}_cytb_output.fasta > cytb_tmp.fasta && mv cytb_tmp.fasta ${population}_${wasp}_cytb_output.fasta
+
+# Calculate coverage summary:
+samtools depth -a -r "${header_name}:${cytb_START}-${cytb_END}" ${wasp}_sorted.bam \
+    | awk -v sample="${wasp}" '{sum+=$3} END {print sample, "Average coverage:", sum/NR}' \
+    >> /user/work/pk14885/Samtools_Mito_cytb_coverage_summary.txt
+
+# -----------------------------------------------------------------------------------
+# EXTRACT THE ND5 REGION:
+# The start and end positions for the ND5 gene are detailed in the GenBank-syle file 'final_mitogenome.gb',
+# and are 19948 to 21189.
+
+# Next, extract the ND5 gene from the reference mitogenome:
+ND5_START=19948
+ND5_END=21189
+
+# Extract ND5 region and reverse complement:
+samtools faidx ${wasp}_consensus_masked.fasta ${header_name}:${ND5_START}-${ND5_END} \
+    > ${wasp}_ND5_raw.fasta
+seqtk seq -r ${wasp}_ND5_raw.fasta \
+    > ${population}_${wasp}_ND5_output.fasta
+
+# Replace header with sample name:
+awk -v header="${population}_${wasp}" 'NR==1{$0=">"header}1' \
+    ${population}_${wasp}_ND5_output.fasta > ND5_tmp.fasta && mv ND5_tmp.fasta ${population}_${wasp}_ND5_output.fasta
+
+# Calculate coverage summary:
+samtools depth -a -r "${header_name}:${ND5_START}-${ND5_END}" ${wasp}_sorted.bam \
+    | awk -v sample="${wasp}" '{sum+=$3} END {print sample, "Average coverage:", sum/NR}' \
+    >> /user/work/pk14885/Samtools_Mito_ND5_coverage_summary.txt
 
 # ---------------------------------------------------------------------------------
 # TIDY UP THE SCRATCH DIRECTORY TO SAVE SPACE:
