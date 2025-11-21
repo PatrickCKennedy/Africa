@@ -4,7 +4,7 @@
 #SBATCH --mem=32G
 #SBATCH --time=24:00:00
 #SBATCH --output=COI_Phylogeny.out
-#SBATCH --error=logs/raxml_ng_%j.err
+#SBATCH --error=logs/COI_tree_%j.err
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 
