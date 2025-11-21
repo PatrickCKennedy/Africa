@@ -10,6 +10,10 @@
 module load samtools/1.19.2-737f
 module load seqtk
 
+# The previous script (A2) conducted mapping to the reference mitogenome. It produces a (masked where necessary) mitogenome 
+# for each wasp. From this, it extracted COX1 (and printed average depth over the COX1 locus as a quality control measure). 
+# In this script, we use the mitogenome file for each wasp similarly to extract other loci.
+
 # Here are the start and end positions for the relevant genes from the UCL reference mitogenome ('final_mitogenome.gb').
 cytb_START=16417
 cytb_END=17397
