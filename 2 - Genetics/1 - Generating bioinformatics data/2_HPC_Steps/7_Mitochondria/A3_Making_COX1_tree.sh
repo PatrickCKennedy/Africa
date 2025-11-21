@@ -47,14 +47,14 @@ find /user/work/pk14885/Samtools_Mito_results -type f -name "*_COX1_output.fasta
 # Navigate to the folder of results above the threshold coverage:
             cd COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
 
-# Once you have done that, we concatenate all the wasps' COX1 sequences into a single FASTA file:
+# Concatenate all the wasps' COX1 sequences into a single FASTA file:
             cat *.fasta > concatenated.fasta
 
 # Concatenate it with published Belonogaster sequences from GenBank (saved on RDSF) to provide comparisons:
             cat concatenated.fasta /user/work/pk14885/1_Other_Belonogaster_COI_sequences_previously_on_Genbank_to_provide_context.fasta
  > concatenated_plus_Belono_Genbanks.fasta
 
- # Concatenated this with the Ropalidia marginata COX1 sequence from GenBank (saved on RDSF)
+# Concatenate this with the Ropalidia marginata COX1 sequence from GenBank (saved on RDSF)
             cat concatenated_plus_Belono_Genbanks.fasta /user/work/pk14885/2_Ropalidia_marginata_COX1_Genbank.fasta > COI_all_samples.fasta
              
 # The wasps should all still have their individual wasp IDs as the headers in the file.
