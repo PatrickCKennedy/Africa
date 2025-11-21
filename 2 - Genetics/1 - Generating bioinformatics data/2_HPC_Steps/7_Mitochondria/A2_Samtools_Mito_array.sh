@@ -106,6 +106,8 @@ samtools depth -a -r "${header_name}:${COX1_START}-${COX1_END}" ${wasp}_sorted.b
        rm $val2
        rm ${population}_${wasp}_mito_filtered_R1.fq.gz
        rm ${population}_${wasp}_mito_filtered_R2.fq.gz
+       rm ${wasp}_sorted.bam
+       rm lowcov.bed
 
 # Stage output to permanent results directory:
        mkdir -p "$results_directory_for_this_wasp"
