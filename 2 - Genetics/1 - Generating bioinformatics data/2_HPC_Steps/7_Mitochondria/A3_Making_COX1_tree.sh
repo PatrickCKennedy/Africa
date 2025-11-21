@@ -27,17 +27,17 @@ find /user/work/pk14885/Samtools_Mito_results -type f -name "*_COX1_output.fasta
 # Set the threshold depth of coverage of interest:
             my_THRESHOLD_COVERAGE=20
 
-# To copy those individuals into a new folder called COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X, use:
+# Copy those individuals into a new folder called COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X:
             cd /user/work/pk14885/Samtools_Mito_results
             mkdir COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
             awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt | while read prefix; do
                 cp *"${prefix}"* /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X/
             done
 
-# To count how many individuals meet this threshold, use:
+# Count how many individuals meet this threshold:
             awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {count++} END {print count}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt
 
-# To find the average coverage among wasps retained after excluding all wasps below the threshold:
+# Find the average coverage among wasps retained after excluding all wasps below the threshold:
             awk -v threshold="$my_THRESHOLD_COVERAGE" -F'Average coverage:' '{if ($2 >= threshold) print $0}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt > /user/work/pk14885/Samtools_Mito_coverage_filtered.txt
             awk '{sum+=$NF; sumsq+=$NF*$NF; n++} END {mean=sum/n; sd=sqrt(sumsq/n - mean^2); print "Mean:", mean, "SD:", sd}' /user/work/pk14885/Samtools_Mito_coverage_filtered.txt
 
