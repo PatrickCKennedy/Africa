@@ -28,8 +28,8 @@ find /user/work/pk14885/Samtools_Mito_results -type f -name "*_COX1_output.fasta
             my_THRESHOLD_COVERAGE=20
 
 # Copy those individuals into a new folder called COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X:
-            cd /user/work/pk14885/Samtools_Mito_results
-            mkdir COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
+            cd /user/work/pk14885/Samtools_Mito_results/COX1_Outputs
+            mkdir /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
             awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt | while read prefix; do
                 cp *"${prefix}"* /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X/
             done
@@ -45,7 +45,7 @@ find /user/work/pk14885/Samtools_Mito_results -type f -name "*_COX1_output.fasta
 # COMBINE ALL THE RESULTING SEQUENCES INTO A SINGLE FASTA FILE, TOGETHER WITH GENBANK COMPARISONS:
 
 # Navigate to the folder of results above the threshold coverage:
-            cd COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
+            cd /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
 
 # Concatenate all the wasps' COX1 sequences into a single FASTA file:
             cat *.fasta > concatenated.fasta
