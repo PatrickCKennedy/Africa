@@ -39,6 +39,8 @@ rrnL_END=15196
 BASE_DIR="/user/work/pk14885/Samtools_Mito_results"
 header_name="atg000004l_rc_rotated"
 
+cd /user/work/pk14885/Samtools_Mito_results
+
 for climate_zone in ${BASE_DIR}/*; do
     for population in ${climate_zone}/*; do
         for wasp_dir in ${population}/*; do
