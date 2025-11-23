@@ -144,21 +144,14 @@ done
               > eight_genes_concatenated.fasta
 
 # The lengths of each gene in the alignment are given by:
-
-for gene in COX1 cytb COX2 ND2 ND4 ND5 ATP6 rrnL; do
-    len=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' ${gene}_trimmed.fasta)
-    echo "$gene length: $len"
-done
-
-
-      len_COX1=$(awk 'NR>1 && $0 !~ /^>/ {len+=length($0)} END {print len}' COX1_trimmed.fasta)
-      len_cytb=$(awk 'NR>1 && $0 !~ /^>/ {len+=length($0)} END {print len}' cytb_trimmed.fasta)
-      len_COX2=$(awk 'NR>1 && $0 !~ /^>/ {len+=length($0)} END {print len}' COX2_trimmed.fasta)
-      len_ND2=$(awk 'NR>1 && $0 !~ /^>/ {len+=length($0)} END {print len}' ND2_trimmed.fasta)
-      len_ND4=$(awk 'NR>1 && $0 !~ /^>/ {len+=length($0)} END {print len}' ND4_trimmed.fasta)
-      len_ND5=$(awk 'NR>1 && $0 !~ /^>/ {len+=length($0)} END {print len}' ND5_trimmed.fasta)
-      len_ATP6=$(awk 'NR>1 && $0 !~ /^>/ {len+=length($0)} END {print len}' ATP6_trimmed.fasta)
-      len_rrnL=$(awk 'NR>1 && $0 !~ /^>/ {len+=length($0)} END {print len}' rrnL_trimmed.fasta)
+      len_COX1=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' COX1_trimmed.fasta)
+      len_cytb=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' cytb_trimmed.fasta)
+      len_COX2=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' COX2_trimmed.fasta)
+      len_ND2=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' ND2_trimmed.fasta)
+      len_ND4=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' ND4_trimmed.fasta)
+      len_ND5=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' ND5_trimmed.fasta)
+      len_ATP6=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' ATP6_trimmed.fasta)
+      len_rrnL=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' rrnL_trimmed.fasta)
 
 # Accordingly, the different genes occupy these positions in the 'eight_genes_concatenated.fasta' file: 
       start_cytb=$((len_COX1 + 1))
