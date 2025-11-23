@@ -55,7 +55,7 @@ module load apps/trimal/1.5
                     # COMBINE ALL THE RESULTING SEQUENCES INTO A SINGLE FASTA FILE, TOGETHER WITH GENBANK COX1 COMPARISONS:
                     
                     # Navigate to the folder of results above the threshold coverage:
-                                cd /user/work/pk14885/Samtools_Mito_results/COX1_Outputs
+                                cd /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
                     
                     # Concatenate all the wasps' COX1 sequences into a single FASTA file:
                                 cat *.fasta > COX1_all_samples.fasta
