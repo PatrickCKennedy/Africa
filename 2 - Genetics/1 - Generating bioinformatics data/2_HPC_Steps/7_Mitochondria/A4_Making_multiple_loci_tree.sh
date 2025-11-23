@@ -194,13 +194,31 @@ DNA, rrnL  = ${start_rrnL}-${end_rrnL}
 EOL
 
 # -------------------------------------------------------------
+# REMOVE FROM THE CONCATENATED ALIGNMENTS ANY WASP WITH <50% COVERAGE ACROSS THE 8 LOCI:
+
+# First, identify which wasps have locus coverage of less than 50% of nucleotides (as the number of nucleotides
+# for which we have a read divided by the total number of nucleotide spaces, which includes the gap characters marked '-' or 'n',
+# which are excluded in the gsub with the term [^-N?]):
+          seqkit fx2tab eight_genes_concatenated.fasta | \
+          awk -v total_len=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' eight_genes_concatenated.fasta) \
+          '{
+              seq=$2;
+              nongaps=gsub(/[^-N?]/,"",seq);  # Count all non-gap, non-ambiguous characters
+              coverage=(nongaps/total_len)*100;
+              if (coverage >= 50) print $1
+          }'
+
+# We now cut these wasps out of the file:
+        seqkit grep -f ids_to_keep.txt eight_genes_concatenated.fasta > filtered_alignment.fasta
+
+# -------------------------------------------------------------
 # USE IQ-TREE TO MAKE MAXIMUM LIKELIHOOD COX1 TREE:
 
 # Load the IQ-TREE module on BluePebble:
 module load apps/iqtree/2.4.0
 
 # Use IQ-TREE to generate the phylogeny:
-iqtree2 -s eight_genes_concatenated.fasta -p partitions.txt -m MFP+MERGE -bb 1000 -alrt 1000 -nt AUTO
+iqtree2 -s filtered_alignment.fasta -p partitions.txt -m MFP+MERGE -bb 1000 -alrt 1000 -nt AUTO
 # Here, we use the 'ultrafast' bootstrap mode with 1,000 bootstrap replicates.
 # The syntax '-alrt 1000' runs the SH-aLRT test with 1,000 replicates.
 # '-m MFP' sets IQ-TREE to use ModelFinderPlus. You can see IQ-TREE's chosen
