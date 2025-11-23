@@ -26,7 +26,7 @@ module load apps/trimal/1.5
                     mkdir -p COX1_Outputs
                     find /user/work/pk14885/Samtools_Mito_results -type f -name "*_COX1_output.fasta" -exec cp {} COX1_Outputs/ \;
                     
-                    # To find the average coverage across the COX1 region across all the samples use the 'coverage_summary.txt' that we
+                    # To find the average coverage across the COX1 region across all the samples use the 'Samtools_Mito_coverage_summary.txt' that we
                     # generated in the previous script (A2):
                         awk '{sum+=$NF; sumsq+=$NF*$NF; n++} END {mean=sum/n; sd=sqrt(sumsq/n - mean^2); print "Mean:", mean, "SD:", sd}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt
                     # Note that the average depth values in the coverage summary textfile only apply to COX1.
@@ -37,8 +37,9 @@ module load apps/trimal/1.5
                                 my_THRESHOLD_COVERAGE=20
                     
                     # Copy those individuals into a new folder called COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X:
+                                cd /user/work/pk14885/Samtools_Mito_results
+                                mkdir COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
                                 cd /user/work/pk14885/Samtools_Mito_results/COX1_Outputs
-                                mkdir /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
                                 awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt | while read prefix; do
                                     cp *"${prefix}"* /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X/
                                 done
@@ -92,15 +93,17 @@ for gene in "${my_genes_of_interest[@]}"; do
     echo "Processing gene: $gene"
 
     # Create output folder for all sequences of this gene:
-    mkdir -p "${BASE_DIR}/${gene}_Outputs"
+    cd ${BASE_DIR}
+    mkdir -p "${gene}_Outputs"
     find "${BASE_DIR}" -type f -name "*_${gene}_output.fasta" -exec cp {} "${BASE_DIR}/${gene}_Outputs/" \;
 
     # Create folder for sequences above the depth threshold using average depth over the COX1 locus as the criterion:
-    mkdir -p "${BASE_DIR}/${gene}_Outputs_for_wasps_with_COX1_above_${my_THRESHOLD_COVERAGE}X"
-    cd "${BASE_DIR}/${gene}_Outputs"
+    cd ${BASE_DIR}
+    mkdir -p "${gene}_Outputs_for_wasps_with_COX1_above_${my_THRESHOLD_COVERAGE}X"
 
     # Copy over those sequences for this gene that correspond to wasps that pass the COX1 threshold:
-    awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' "$my_COX1_coverage_file" | while read prefix; do
+    cd "${BASE_DIR}/${gene}_Outputs"
+    awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' /user/work/pk14885/Samtools_Mito_coverage_filtered.txt | while read prefix; do
         cp *"${prefix}"* "${BASE_DIR}/${gene}_Outputs_for_wasps_with_COX1_above_${my_THRESHOLD_COVERAGE}X"
     done
 
@@ -119,7 +122,6 @@ done
 
 # ---------------------------------------------------------------------------------
 # MOVE THE EIGHT _trimmed.fasta FILES TO THE MAIN FOLDER:
-
 
 for gene in COX1 cytb COX2 ND2 ND4 ND5 ATP6 rrnL; do
       mv /user/work/pk14885/Samtools_Mito_results/${gene}_Outputs/${gene}_trimmed.fasta /user/work/pk14885/Samtools_Mito_results
@@ -176,16 +178,16 @@ done
       end_rrnL=$((end_ATP6 + len_rrnL))
 
 # Generate a 'partitions' file, which will allow IQ-TREE to apply different evolutionary models to the eight different loci:
-      cat <<EOL > partitions.txt
-      DNA, COX1 = 1-${len_COX1}
-      DNA, cytb = ${start_cytb}-${end_cytb}
-      DNA, COX2  = ${start_COX2}-${end_COX2}
-      DNA, ND2  = ${start_ND2}-${end_ND2}
-      DNA, ND4  = ${start_ND4}-${end_ND4}
-      DNA, ND5  = ${start_ND5}-${end_ND5}
-      DNA, ATP6  = ${start_ATP6}-${end_ATP6}
-      DNA, rrnL  = ${start_rrnL}-${end_rrnL}
-      EOL
+cat <<EOL > partitions.txt
+DNA, COX1 = 1-${len_COX1}
+DNA, cytb = ${start_cytb}-${end_cytb}
+DNA, COX2  = ${start_COX2}-${end_COX2}
+DNA, ND2  = ${start_ND2}-${end_ND2}
+DNA, ND4  = ${start_ND4}-${end_ND4}
+DNA, ND5  = ${start_ND5}-${end_ND5}
+DNA, ATP6  = ${start_ATP6}-${end_ATP6}
+DNA, rrnL  = ${start_rrnL}-${end_rrnL}
+EOL
 
 # -------------------------------------------------------------
 # USE IQ-TREE TO MAKE MAXIMUM LIKELIHOOD COX1 TREE:
