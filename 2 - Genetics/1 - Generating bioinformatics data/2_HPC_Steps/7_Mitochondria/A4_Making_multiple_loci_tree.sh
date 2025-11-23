@@ -36,14 +36,6 @@ module load apps/trimal/1.5
                     # Set the threshold depth of coverage of interest:
                                 my_THRESHOLD_COVERAGE=20
                     
-                    # Copy those individuals into a new folder called COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X:
-                                cd /user/work/pk14885/Samtools_Mito_results
-                                mkdir COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
-                                cd /user/work/pk14885/Samtools_Mito_results/COX1_Outputs
-                                awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt | while read prefix; do
-                                    cp *"${prefix}"* /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X/
-                                done
-                    
                     # Count how many individuals meet this threshold:
                                 awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {count++} END {print count}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt
                     
@@ -51,6 +43,14 @@ module load apps/trimal/1.5
                                 awk -v threshold="$my_THRESHOLD_COVERAGE" -F'Average coverage:' '{if ($2 >= threshold) print $0}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt > /user/work/pk14885/Samtools_Mito_coverage_filtered.txt
                                 awk '{sum+=$NF; sumsq+=$NF*$NF; n++} END {mean=sum/n; sd=sqrt(sumsq/n - mean^2); print "Mean:", mean, "SD:", sd}' /user/work/pk14885/Samtools_Mito_coverage_filtered.txt
 
+                    # Copy those individuals into a new folder called COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X:
+                                cd /user/work/pk14885/Samtools_Mito_results
+                                mkdir COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
+                                cd /user/work/pk14885/Samtools_Mito_results/COX1_Outputs
+                                awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' /user/work/pk14885/Samtools_Mito_coverage_filtered.txt | while read prefix; do
+                                    cp *"${prefix}_COX1_output.fasta"* /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X/
+                                done
+                    
                     # -------------------------------------------------------------
                     # COMBINE ALL THE RESULTING SEQUENCES INTO A SINGLE FASTA FILE, TOGETHER WITH GENBANK COX1 COMPARISONS:
                     
