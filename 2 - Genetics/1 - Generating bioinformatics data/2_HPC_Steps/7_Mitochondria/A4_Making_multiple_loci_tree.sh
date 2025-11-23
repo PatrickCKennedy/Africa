@@ -48,7 +48,7 @@ module load apps/trimal/1.5
                                 mkdir COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X
                                 cd /user/work/pk14885/Samtools_Mito_results/COX1_Outputs
                                 awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {print $1}' /user/work/pk14885/Samtools_Mito_coverage_filtered.txt | while read prefix; do
-                                    cp *"${prefix}_COX1_output.fasta"* /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X/
+                                    cp *"_${prefix}_COX1_output.fasta"* /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X/
                                 done
                     
                     # -------------------------------------------------------------
@@ -200,16 +200,16 @@ EOL
 # for which we have a read divided by the total number of nucleotide spaces, which includes the gap characters marked '-' or 'n',
 # which are excluded in the gsub with the term [^-N?]):
           seqkit fx2tab eight_genes_concatenated.fasta | \
-          awk -v total_len=$(awk '/^>/ {if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' eight_genes_concatenated.fasta) \
+          awk -v total_len=$(awk '/^>/{if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' eight_genes_concatenated.fasta) \
           '{
               seq=$2;
-              nongaps=gsub(/[^-N?]/,"",seq);  # Count all non-gap, non-ambiguous characters
-              coverage=(nongaps/total_len)*100;
+              realbases=gsub(/[^ATGC]/,"",seq);  # Count only A,T,G,C (exclude -, N, ?)
+              coverage=(realbases/total_len)*100;
               if (coverage >= 50) print $1
-          }'
+          }' > wasps_to_keep.txt
 
 # We now cut these wasps out of the file:
-        seqkit grep -f ids_to_keep.txt eight_genes_concatenated.fasta > filtered_alignment.fasta
+        seqkit grep -f wasps_to_keep.txt eight_genes_concatenated.fasta > filtered_alignment.fasta
 
 # -------------------------------------------------------------
 # USE IQ-TREE TO MAKE MAXIMUM LIKELIHOOD COX1 TREE:
