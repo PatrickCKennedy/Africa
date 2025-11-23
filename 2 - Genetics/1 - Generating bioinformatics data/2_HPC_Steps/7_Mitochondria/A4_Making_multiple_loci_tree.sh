@@ -57,7 +57,7 @@ module load apps/trimal/1.5
                                 cd /user/work/pk14885/Samtools_Mito_results/COX1_Outputs
                     
                     # Concatenate all the wasps' COX1 sequences into a single FASTA file:
-                                cat *.fasta > COI_all_samples.fasta
+                                cat *.fasta > COX1_all_samples.fasta
                   
                     # The wasps should all still have their individual wasp IDs as the headers in the file.
                     
@@ -65,13 +65,13 @@ module load apps/trimal/1.5
                     # ALIGNMENT USING MAFFT:
                     
                     # Use MAFFT to run alignment:
-                    mafft --auto --thread 16 COI_all_samples.fasta > COI_aligned.fasta
+                    mafft --auto --thread 16 COX1_all_samples.fasta > COX1_aligned.fasta
                     
                     # -------------------------------------------------------------
                     # TRIM REGIONS THAT HAVE POOR ALIGNMENTS:
                     
                     # Use TrimAL to trim the output from MAFFT:
-                    trimal -in COI_aligned.fasta -out COI_trimmed.fasta -automated1
+                    trimal -in COX1_aligned.fasta -out COX1_trimmed.fasta -automated1
 
 # ---------------------------------------------------------------------------------
 # NOW COMPLETE THE EXTRACTION AND ALIGNMENT OF THE OTHER SEVEN GENES OF INTEREST:
