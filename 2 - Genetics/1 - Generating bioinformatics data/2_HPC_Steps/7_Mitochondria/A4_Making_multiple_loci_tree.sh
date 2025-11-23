@@ -124,7 +124,7 @@ done
 # MOVE THE EIGHT _trimmed.fasta FILES TO THE MAIN FOLDER:
 
 for gene in COX1 cytb COX2 ND2 ND4 ND5 ATP6 rrnL; do
-      mv /user/work/pk14885/Samtools_Mito_results/${gene}_Outputs/${gene}_trimmed.fasta /user/work/pk14885/Samtools_Mito_results
+      mv /user/work/pk14885/Samtools_Mito_results/${gene}_Outputs_for_wasps_with_COX1_above_${my_THRESHOLD_COVERAGE}X/${gene}_trimmed.fasta /user/work/pk14885/Samtools_Mito_results
 done
 
 # ---------------------------------------------------------------------------------
