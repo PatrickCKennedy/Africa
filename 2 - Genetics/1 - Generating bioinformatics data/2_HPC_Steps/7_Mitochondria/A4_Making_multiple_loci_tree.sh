@@ -14,6 +14,9 @@ module load mafft/7.505-gnbu
 # Load the TrimAL module on BluePebble:
 module load apps/trimal/1.5
 
+# Load the seqkit module on BluePebble:
+module load seqkit/2.8.2-qs27
+
 # ---------------------------------------------------------------------------------
 # COX1 LOCUS:
                     # -------------------------------------------------------------
@@ -138,7 +141,6 @@ done
           cd /user/work/pk14885/Samtools_Mito_results/
 
 # Use seqkit to concatenate the genes:
-              module load seqkit/2.8.2-qs27
               seqkit concat /user/work/pk14885/Samtools_Mito_results/COX1_trimmed.fasta \
               /user/work/pk14885/Samtools_Mito_results/cytb_trimmed.fasta \
               /user/work/pk14885/Samtools_Mito_results/COX2_trimmed.fasta \
@@ -198,15 +200,23 @@ EOL
 
 # First, identify which wasps have locus coverage of less than 50% of nucleotides (as the number of nucleotides
 # for which we have a read divided by the total number of nucleotide spaces, which includes the gap characters marked '-' or 'n',
-# which are excluded in the gsub with the term [^-N?]):
-          seqkit fx2tab eight_genes_concatenated.fasta | \
-          awk -v total_len=$(awk '/^>/{if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' eight_genes_concatenated.fasta) \
-          '{
-              seq=$2;
-              realbases=gsub(/[^ATGC]/,"",seq);  # Count only A,T,G,C (exclude -, N, ?)
-              coverage=(realbases/total_len)*100;
-              if (coverage >= 50) print $1
-          }' > wasps_to_keep.txt
+# which are excluded in the gsub with the term [^-N?]):                      
+        seqkit fx2tab eight_genes_concatenated.fasta | \
+        awk -v IGNORECASE=1 \
+            -v total_len=$(awk '/^>/{if(seq) exit; seq=1; next} seq {len+=length($0)} END {print len}' eight_genes_concatenated.fasta) \
+        '{
+            seq=$2
+            gsub(/[^ATGC]/,"",seq)                # Remove the non-ATGC nucleotides (i.e., '-' and 'n')
+            realbases=length(seq)                 # Count all the valid bases (A, T, C, and G).
+            coverage=(realbases/total_len)*100    # Calculate the coverage.
+        
+            # Print full table of all wasps:
+            printf "%s\t%d\t%d\t%.2f%%\n", $1, realbases, total_len, coverage >> "wasp_coverage_table.txt"
+        
+            # Save the names of wasps with ≥50% coverage:
+            if (coverage >= 50) print $1 >> "wasps_to_keep.txt"
+        }'
+
 
 # We now cut these wasps out of the file:
         seqkit grep -f wasps_to_keep.txt eight_genes_concatenated.fasta > filtered_alignment.fasta
