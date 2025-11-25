@@ -1,0 +1,236 @@
+# The following is R code to run on the local computer, for plotting the bootstrap mitochondrial trees produced by the A4 script.
+
+# Before running it, first download the data from HPC:
+cd ~/Downloads/
+mkdir Mitochondrial_IQTREE_results
+scp "pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Samtools_Mito_results/partitions*" ~/Downloads/Mitochondrial_IQTREE_results/
+
+# ------------------------------------------------------------------------------
+# IMPORT AND PLOT THE MAXIMUM LIKELIHOOD TREE IN R:
+
+install.packages("ape")
+install.packages("phytools")
+install.packages("ggbreak")
+if (!requireNamespace("BiocManager", quietly = TRUE))
+  install.packages("BiocManager")
+BiocManager::install("ggtree")
+
+setwd("~/Downloads/Mitochondrial_IQTREE_results")
+
+# Read tree into R:
+library(ape)
+tree <- read.tree("partitions.txt.treefile")  # IQ-TREE output
+tree_rooted <- root(tree, outgroup = "LouwsFarm_PETIOLATA_WASPS_L13_a", resolve.root = TRUE)
+tree_rooted_and_ladderised <- ladderize(tree_rooted)
+
+# Simple plot:
+plot(tree_rooted_and_ladderised, show.node.label = TRUE)
+
+# ggtree plot:
+library(ggtree)
+library(ggplot2)
+
+# Extract tip labels:
+tips <- tree_rooted_and_ladderised$tip.label
+
+# Make a table containing the population that each wasp comes from (given by the prefix in its name):
+metadata <- data.frame(
+  label = tips,
+  population = sapply(strsplit(tips, "_"), `[`, 1)
+)
+View(metadata)
+
+# Add the climate zone information:
+library(dplyr)
+metadata <- metadata %>%
+  mutate(climate = case_when(
+    population %in% c("AfricanLaboratory", "PeterRobertsFarm", "Vusumuzi", "Cowshed", "LoversRock", "TrudiesFarm", "Pumphouse", "ZebraHouse") ~ "South_Africa",
+    population %in% c("Soa", "Yaounde1", "Somalomo", "Mbouda", "Douala", "Messa", "Population") ~ "Southern_Cameroon",
+    population %in% c("LouwsFarm") ~ "Petiolata_LouwsFarm",
+    population == "Maroua" ~ "Northern_Cameroon",
+    TRUE ~ NA_character_  # For any populations not listed
+  ))
+
+View(metadata)
+
+p <- ggtree(tree_rooted_and_ladderised, layout = "circular", size = 0.05, aes(color = climate)) %<+% metadata +
+  geom_tippoint(aes(color = climate), size = 0.04) +
+  geom_tiplab(size = 0.5, aes(angle = angle)) + xlim(0,0.3)
+p + geom_treescale(x = 0, y = 200, width = 0.01) 
+myColors <- c("#56ddc5","red")
+p <- p + scale_color_manual(values = c(
+  "South_Africa" = "red",
+  "Southern_Cameroon" = "#56ddc5",
+  "Northern_Cameroon" = "orange"
+))
+p <- p + geom_treescale(x = 0, y = 200, width = 0.01) 
+p <- p + theme(legend.position = "none")
+p
+
+p + theme(
+  legend.position = "bottom",
+  legend.direction = "horizontal"
+)
+
+# To identify the node numbers:
+p + geom_text2(aes(label=node), hjust=-0.3)
+
+# To root by node 579:
+rooted_tree <- root(tree, node = NODE579_NUMBER)
+
+
+# Simple tree without branch lengths
+p_no_branch_lengths <- ggtree(tree_rooted_and_ladderised, layout = "circular", branch.length = "none") %<+% metadata +
+  geom_tippoint(aes(color = climate), size = 5) +
+  geom_tiplab(size = 1, aes(fill = climate), align = TRUE, offset = 2.5) +
+  guides(color = "none", fill = "none")
+p_no_branch_lengths
+myColors <- c("#56ddc5","red")
+p_no_branch_lengths <- p_no_branch_lengths + scale_color_manual(values = c(
+  "South_Africa" = "red",
+  "Southern_Cameroon" = "#56ddc5",
+  "Northern_Cameroon" = "orange"
+))
+p_no_branch_lengths
+
+# Rectangular layout:
+ggtree(tree_rooted, layout = "rectangular", size = 0.05, aes(color = climate)) %<+% metadata +
+  geom_tippoint(aes(color = climate), size = 0.04) +
+  geom_tiplab(size = 0.8) + xlim(0,1)
+
+
+# ------------------------------------------------------------------------------
+# IMPORT AND PLOT THE IQ-TREE CONSENSUS TREE FROM THE BOOTSTRAPS
+
+consensus_tree <- read.tree("partitions.txt.contree")
+
+consensus_tree_rooted <- root(consensus_tree, outgroup = "LouwsFarm_PETIOLATA_WASPS_L13_a", resolve.root = TRUE)
+consensus_tree_rooted_and_ladderised <- ladderize(consensus_tree_rooted)
+
+# Extract tip labels:
+tips <- consensus_tree_rooted_and_ladderised$tip.label
+
+# Make a table containing the population that each wasp comes from (given by the prefix in its name):
+metadata_consensus_tree <- data.frame(
+  label = tips,
+  population = sapply(strsplit(tips, "_"), `[`, 1)
+)
+View(metadata_consensus_tree)
+
+# Add the climate zone information:
+library(dplyr)
+metadata_consensus_tree <- metadata_consensus_tree %>%
+  mutate(climate = case_when(
+    population %in% c("AfricanLaboratory", "PeterRobertsFarm", "Vusumuzi", "Cowshed", "LoversRock", "TrudiesFarm", "Pumphouse", "ZebraHouse") ~ "South_Africa",
+    population %in% c("Soa", "Yaounde1", "Somalomo", "Mbouda", "Douala", "Messa") ~ "Southern_Cameroon",
+    population %in% c("LouwsFarm") ~ "Petiolata_LouwsFarm",
+    population == "Maroua" ~ "Northern_Cameroon",
+    TRUE ~ NA_character_  # For any populations not listed
+  ))
+
+View(metadata_consensus_tree)
+
+p <- ggtree(consensus_tree_rooted_and_ladderised, layout = "circular", size = 0.05)  %<+% metadata_consensus_tree +
+  geom_tippoint(aes(color = climate), size = 0.04) +
+  geom_tiplab(size = 0.5, aes(colour = climate), offset = 2.5) + xlim(0,0.3) +
+  geom_text2(aes(subset = !isTip & as.numeric(label) > 70, label = label),
+             hjust = -0.5, size = 1)
+myColors <- c("#56ddc5","red")
+p <- p + scale_color_manual(values = c(
+  "South_Africa" = "red",
+  "Southern_Cameroon" = "#56ddc5",
+  "Northern_Cameroon" = "orange"
+))
+p
+p + geom_treescale(x = 0, y = 200, width = 0.01) 
+
+# ------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Drop the outgroup for plotting:
+tree_no_outgroup <- drop.tip(tree, "AF142549.1")
+
+# Extract tip labels:
+tips <- tree_no_outgroup$tip.label
+
+# Make a table containing the population that each wasp comes from (given by the prefix in its name):
+metadata <- data.frame(
+  label = tips,
+  population = sapply(strsplit(tips, "_"), `[`, 1)
+)
+
+View(metadata)
+
+# Plot without Ropalidia and other Belonogaster species' branch lengths 'collapsed' so that they do not distort the plot:
+
+# Nodes to collapse (you need their node numbers):
+          
+          # List of tip labels
+                      # Find tips without an underscore (these are the Genbank accessions):
+                      tips_no_underscore <- tips[!grepl("_", tips)]
+                      tips_no_underscore
+
+          # Find their positions (tip numbers)
+          nodes_to_collapse <- which(tree$tip.label %in% tips_no_underscore)
+          nodes_to_collapse
+
+p <- ggtree(tree_rooted_and_ladderised, layout = "circular")
+
+# Collapse each node
+for (n in nodes_to_collapse) {
+  p <- p + collapse(node = n)
+}
+
+# Add labels for collapsed clades
+for (n in nodes_to_collapse) {
+  p <- p + geom_cladelabel(node = n, label = paste("Clade", n), offset = 0.5)
+}
+
+print(p)
+
+
+
+
+
+
+
+
+# Find node number for the Ropalidia outgroup tip:
+outgroup_node <- which(tree_rooted$tip.label == "AF142549.1")
+
+# Collapse the Ropalidia outgroup branch:
+p <- ggtree(tree_rooted, layout = "circular") +
+  geom_tiplab(size = 1, aes(angle = angle)) +
+  collapse(node = outgroup_node)
+p
+
+
+p <- ggtree(tree_no_outgroup, layout = "circular") %<+% metadata +
+  geom_tippoint(aes(color = population), size = 2) +
+  theme(legend.position = "right") +
+  ggtitle("Circular Tree Colored by Population")
+p
+
+# Use ggbreak to shrink the long branch of the Ropalidia outgroup in the visualisation:
+
+library(ggbreak)
+p + scale_x_break(c(0.5, 10)) + hexpand(.05)
+p
+
+
+
+
+
+
