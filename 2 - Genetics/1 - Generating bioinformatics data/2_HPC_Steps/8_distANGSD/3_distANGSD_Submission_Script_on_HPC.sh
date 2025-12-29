@@ -8,7 +8,6 @@ set -euo pipefail
 ##              chmod +x 3_distANGSD_Submission_Script_on_HPC.sh
 ##              ./3_distANGSD_Submission_Script_on_HPC.sh
 
-
 # -------------------------------------------------------------------------------------------------
 # PARAMETER SETTINGS:
 
