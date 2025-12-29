@@ -17,7 +17,7 @@ set -euo pipefail
 
 # Decide how many chromosomes (scaffolds) to use. Because using the whole genome is very time-consuming,
 # we can subsample to the largest N chromosomes. To find the sizes of the largest 10 scaffolds, we run:
-awk '{print $1"\t"$2}' B_junceaGenome.FINAL.fasta.fai | sort -k2,2nr | head -n 10
+## awk '{print $1"\t"$2}' B_junceaGenome.FINAL.fasta.fai | sort -k2,2nr | head -n 10
 # ...at the reference genome. This gives the following output:
 ## HiC_scaffold_1   25,458,634
 ## HiC_scaffold_2   14,425,560
