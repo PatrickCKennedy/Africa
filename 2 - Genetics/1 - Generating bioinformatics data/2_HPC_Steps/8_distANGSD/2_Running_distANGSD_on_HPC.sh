@@ -101,7 +101,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                 -mpileup "$FIFO" \
                 -method nuc \
                 -o "$OUTPFX" \
-                -my_choice_of_phylogenetic_model_to_run "$my_choice_of_phylogenetic_model_to_run" \
+                -model "$my_choice_of_phylogenetic_model_to_run" \
                 -is2Dinfer 0 \
                 -isex 0 \
                 -isthreading 1
