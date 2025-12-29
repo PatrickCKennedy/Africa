@@ -124,10 +124,13 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
   outbase="$(basename "$OUTPFX")"
   mpileup_gz="${pair_scratch}/${outbase}.mpileup.txt.gz"
 
+  # Double-check that the coordinates are sorted properly:
+  samtools quickcheck -v "$A" "$B" || echo "BAM issues detected"
+  
   # Produce mpileup and compress (multi-threaded)
   if [[ "$USE_PIGZ" -eq 1 ]]; then
     # ONLY use pigz if distANGSD accepts plain gzip (not bgzip)
-    samtools mpileup "$A_local" "$B_local" \
+    samtools mpileup -B -q 20 -Q 20 "$A_local" "$B_local" \
       | pigz -c -p "${SLURM_CPUS_PER_TASK}" > "$mpileup_gz"
   else
     # Manual recommends bgzip (block-gzip, seekable)
