@@ -90,8 +90,8 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
               mkfifo "$FIFO"
             
               # The "producer" for the FIFO pipe, which sends the data in. First, we
-              # run mpileup in SAMTOOLS, then bgzip to compress the output, and then send it into the FIFO pipe:
-              ( set -o pipefail; samtools mpileup "$A" "$B" | bgzip -c > "$FIFO" ) &  background_process_ID_of_FIFO_producer=$!
+              # run mpileup in SAMTOOLS, then gzip to compress the output, and then send it into the FIFO pipe:
+              ( set -o pipefail; samtools mpileup "$A" "$B" | gzip -c > "$FIFO" ) &  background_process_ID_of_FIFO_producer=$!
 
   # The FIFO pipe "consumer" is distANGSD (i.e., distANGSD reads the output from the FIFO pipe). A FIFO consumer
   # reads the output of the pipe at the same time as the producer feeds it in, which is why a FIFO is not a regular
