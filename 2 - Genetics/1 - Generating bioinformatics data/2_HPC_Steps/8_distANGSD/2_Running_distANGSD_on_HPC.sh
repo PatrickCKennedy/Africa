@@ -77,7 +77,6 @@ echo "Chunk size: ${my_chunk_size_to_run}; CPUs: ${SLURM_CPUS_PER_TASK:-1}; Mem:
 # ------------------------------------------------------------------------------
 # Scratch directory (seekable files, fast I/O)
 temporary_root="${SLURM_TMPDIR:-/tmp}"
-directory_to_work_in
 directory_to_work_in="$(mktemp -d "${temporary_root}/dA.${ID_of_this_task_in_the_array_job}.XXXX")"
 cleanup() { rm -rf "$directory_to_work_in"; }
 trap cleanup EXIT
