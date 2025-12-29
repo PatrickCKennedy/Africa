@@ -134,7 +134,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
       | pigz -c -p "${SLURM_CPUS_PER_TASK}" > "$mpileup_gz"
   else
     # Manual recommends bgzip (block-gzip, seekable)
-    samtools mpileup "$A_local" "$B_local" \
+    samtools mpileup -B -q 20 -Q 20 "$A_local" "$B_local" \
       | bgzip -@ "${SLURM_CPUS_PER_TASK}" > "$mpileup_gz"
   fi
 
