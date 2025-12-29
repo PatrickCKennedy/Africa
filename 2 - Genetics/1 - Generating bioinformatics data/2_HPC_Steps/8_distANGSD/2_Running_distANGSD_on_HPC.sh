@@ -28,7 +28,6 @@ my_path_to_distANGSD_executable_file="/user/work/pk14885/distAngsd/distAngsd"
 ID_of_this_task_in_the_array_job="${SLURM_ARRAY_TASK_ID:?Need --array and SLURM_ARRAY_TASK_ID}"
 starting_pair_in_this_chunk=$(((ID_of_this_task_in_the_array_job - 1) * my_chunk_size_to_run + 1))
 last_pair_in_this_chunk=$(( starting_pair_in_this_chunk + my_chunk_size_to_run - 1 ))
-total_number_of_pairs_across_the_whole_array_job
 total_number_of_pairs_across_the_whole_array_job=$(wc -l < "$my_pair_list")
 
 # ------------------------------------------------------------------------------
