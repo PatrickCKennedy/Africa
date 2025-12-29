@@ -7,18 +7,21 @@
 #SBATCH --error=logs/dA_chunk_%A_%a.out
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
-#SBATCH --array=1-2270   # e.g., for 953 wasps, there are (953-952)/2=453628 pairwise comparisons to run. With 200 runs per chunk, we would need 2269 array tasks.
 
 # This is the array job for running distANGSD. To actually submit it on HPC, use the 3_distANGSD_HPC_Submission_Script, which calls it.
+# Note: normally, we would add the array in the SBATCH details at the top of the script, but in this case the array range is set in the submission script.
 
 # ------------------------------------------------------------------------------
 # Set the script to stop early in a pipeline if there is a problem, rather than waiting until it finishes:
-set -euo pipefail
+            set -euo pipefail
 
-my_pair_list="/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/distangsd_results/pairs.tsv"  # set by submitter
-my_chunk_size_to_run=200                       # Each array task will work through this number of pairs of genomes.
-my_choice_of_phylogenetic_model_to_run="JC"    # Here, we run Jukes-Cantor (JC), but an alternative would be General Time Reversible (GTR)
-my_path_to_distANGSD_executable_file="/user/work/pk14885/distAngsd/distAngsd"                   # binary or full path
+# The following lines inherit the input variable my_pair_list from the submission script, where they are set manually:
+            my_pair_list="${my_pair_list}"                            # The location of the pair list file.                
+            my_chunk_size_to_run="${my_chunk_size_to_run}"            # Each array task will work through this number of pairs of genomes.
+            my_choice_of_phylogenetic_model_to_run="${my_choice_of_phylogenetic_model_to_run}"   # Here, we run Jukes-Cantor (JC), but an alternative would be General Time Reversible (GTR).
+
+# The path to the distANGSD programme installed on my BluePebble working directory:
+            my_path_to_distANGSD_executable_file="/user/work/pk14885/distAngsd/distAngsd"
 
 # ------------------------------------------------------------------------------
 # IDENTIFY THE TASK ID OF THIS PARTICULAR RUN OF THE ARRAY JOB:
