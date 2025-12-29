@@ -94,25 +94,36 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
 
     echo ">> $(date +'%F %T')  ${A##*/} vs ${B##*/}"
 
-    # Direct pipe (samtools mpileup → bgzip → distANGSD):
+    # Use node-local scratch (fast disk):
+    scratch_dir="${TMPDIR:-$directory_to_work_in}"
+    mpileup_gz="${scratch_dir}/${OUTPFX}.mpileup.txt.gz"
+
+    # Produce mpileup and compress with bgzip (multi-threaded):
+    # Note: samtools mpileup is single-threaded; bgzip parallelizes compression.
+    set -euo pipefail
+    samtools mpileup "$A" "$B" \
+      | bgzip -@ "${SLURM_CPUS_PER_TASK:-16}" > "$mpileup_gz"
+
+    # Run distANGSD on the compressed file path:
     set +e
     dist_out="$(
-      samtools mpileup "$A" "$B" \
-      | bgzip -@ "${SLURM_CPUS_PER_TASK:-16}" -c \
-      | "$my_path_to_distANGSD_executable_file" \
-          -mpileup - \
-          -method nuc \
-          -model "$my_choice_of_phylogenetic_model_to_run" \
-          -o "$OUTPFX" \
-          -is2Dinfer 0 \
-          -isex 0 \
-          -isthreading 1
+      "$my_path_to_distANGSD_executable_file" \
+        -mpileup "$mpileup_gz" \
+        -method nuc \
+        -model "$my_choice_of_phylogenetic_model_to_run" \
+        -o "$OUTPFX" \
+        -is2Dinfer 0 \
+        -isex 0 \
+        -isthreading 1
     )"
     STATUS=$?
     set -e
 
     # Extract t-value:
     t_value="$(printf '%s\n' "$dist_out" | awk -F'=' '/Estimated t[[:space:]]*=/{gsub(/[[:space:]]*/, "", $2); print $2}')"
+
+    # Optionally clean up intermediate file to save space:
+    rm -f "$mpileup_gz" || true
 
     # Log result:
     if (( STATUS != 0 )) || [[ -z "$t_value" ]]; then
@@ -123,7 +134,4 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
           "$t_value" "${p_inv_value:-}" >> "$task_results"
         echo "SUCCESSFULLY COMPLETED: ${OUTPFX}  (t=${t_value}${p_inv_value:+, p_inv=${p_inv_value}})"
     fi
-    
 done
-
-
