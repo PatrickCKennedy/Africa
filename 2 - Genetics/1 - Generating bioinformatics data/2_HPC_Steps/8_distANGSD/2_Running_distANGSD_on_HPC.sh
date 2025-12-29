@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #SBATCH --job-name=Chunk_of_distANGSD
 #SBATCH --cpus-per-task=16       # Number of threads
