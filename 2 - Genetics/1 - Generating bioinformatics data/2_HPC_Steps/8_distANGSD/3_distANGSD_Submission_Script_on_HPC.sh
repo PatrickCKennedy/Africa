@@ -4,6 +4,11 @@ set -euo pipefail
 # This is the submission script for running the array job (which is in script 2). You should run this submission script directly
 # on the login node, because it uses sbatch to submit the actual array job to the HPC system.
 
+# To submit this script, run the following two lines on the login node:
+##              chmod +x 3_distANGSD_Submission_Script_on_HPC.sh
+##              ./3_distANGSD_Submission_Script_on_HPC.sh
+
+
 # -------------------------------------------------------------------------------------------------
 # PARAMETER SETTINGS:
 
