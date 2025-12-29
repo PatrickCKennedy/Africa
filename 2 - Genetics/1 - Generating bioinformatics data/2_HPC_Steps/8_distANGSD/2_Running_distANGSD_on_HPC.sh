@@ -37,7 +37,7 @@ module load samtools/1.19.2-737f
 module load htslib/1.19.1-jbbb
 
 # Ensure that the number of threads that we use below in distANGSD lines up with the CPUs allocated to this job by SLURM at the top of the page using cpus-per-task:
-export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK:-1}"
+export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK}"
 
 # Make a folder in which to store the output log files:
 mkdir -p logs
