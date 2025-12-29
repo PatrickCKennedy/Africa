@@ -7,7 +7,9 @@
 #SBATCH --error=logs/dA_chunk_%A_%a.out
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
-#SBATCH --array=1-453628   # e.g., for 953 wasps, there are (953-952)/2=453628 pairwise comparisons to run.
+#SBATCH --array=1-2270   # e.g., for 953 wasps, there are (953-952)/2=453628 pairwise comparisons to run. With 200 runs per chunk, we would need 2269 array tasks.
+
+# This is the array job for running distANGSD. To actually submit it on HPC, use the 3_distANGSD_HPC_Submission_Script, which calls it.
 
 # ------------------------------------------------------------------------------
 # Set the script to stop early in a pipeline if there is a problem, rather than waiting until it finishes:
