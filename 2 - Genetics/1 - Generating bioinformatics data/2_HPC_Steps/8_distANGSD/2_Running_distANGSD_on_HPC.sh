@@ -172,7 +172,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                 printf "%s\n" "${filtered[@]}" \
                   | parallel -j "$jobs" --halt now,fail=1 \
                       --line-buffer --compress --tmpdir "$TMPDIR" \
-                      "samtools mpileup --max-depth 20 -B -q 30 -Q 30 -r {} '$A_bam' '$B_bam' \
+                      "samtools mpileup -d 20 -B -q 30 -Q 30 -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta -r {} '$A_bam' '$B_bam' \
                        | bgzip -@ 1 -l 1 > '${pair_scratch}/{}.mpileup.txt.gz'"
               
                 # Count non-empty per-chromosome outputs
