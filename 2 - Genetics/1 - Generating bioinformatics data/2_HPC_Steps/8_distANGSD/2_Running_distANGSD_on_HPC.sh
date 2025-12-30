@@ -193,7 +193,6 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                 fi
               
                 # Per-pair summary stats from the combined mpileup (single streaming pass)
-                pair_stats
                 pair_stats="$(bgzip -dc "$mpileup_gz" \
                   | awk 'BEGIN{n=0; s1=0; s2=0; max1=0; max2=0}
                          {n++; d1=$4+0; d2=$7+0; s1+=d1; s2+=d2; if(d1>max1)max1=d1; if(d2>max2)max2=d2}
