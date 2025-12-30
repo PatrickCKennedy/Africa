@@ -7,44 +7,28 @@
 #SBATCH --error=logs/dA_chunk_%A_%a.out
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
-# (array range is set by the submission script)
 
-# ------------------------------------------------------------------------------
-# Safety and error handling
 set -euo pipefail
 
-# ------------------------------------------------------------------------------
-# Inherited from submission script via --export
 my_pair_list="${my_pair_list}"                            # TSV: A\tB\tOUTPFX
 my_chunk_size_to_run="${my_chunk_size_to_run}"            # Number of pairs per array task
 my_choice_of_phylogenetic_model_to_run="${my_choice_of_phylogenetic_model_to_run}"   # e.g. JC or GTR
-chromosomes_to_include="${chromosomes_to_include:?Set in submission script via --export=...,chromosomes_to_include=...}"
-
-# distANGSD executable:
+chromosomes_to_include="${chromosomes_to_include:?Set via --export=...,chromosomes_to_include=...}"
 my_path_to_distANGSD_executable_file="/user/work/pk14885/distAngsd/distAngsd"
-
-# ------------------------------------------------------------------------------
-# Array task math
 ID_of_this_task_in_the_array_job="${SLURM_ARRAY_TASK_ID:?Need --array and SLURM_ARRAY_TASK_ID}"
 starting_pair_in_this_chunk=$(((ID_of_this_task_in_the_array_job - 1) * my_chunk_size_to_run + 1))
 last_pair_in_this_chunk=$(( starting_pair_in_this_chunk + my_chunk_size_to_run - 1 ))
 total_number_of_pairs_across_the_whole_array_job=$(wc -l < "$my_pair_list")
-
-# ------------------------------------------------------------------------------
-# Modules (GNU Parallel is available system-wide; no module needed)
 module load samtools/1.19.2-737f
-module load htslib/1.19.1-jbbb     # provides bgzip
+module load htslib/1.19.1-jbbb
+mkdir -p logs results
 
 # Threading for distANGSD (OpenMP)
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK}"
 
-# Basic dirs
-mkdir -p logs results
-
 # Central TSVs (shared by all array tasks) + locks
 DIST_TABLE="results/distances.all.tsv"
 DIST_LOCK="${DIST_TABLE}.lock"
-
 PAIR_SUM_TABLE="results/pair_summaries.all.tsv"
 PAIR_SUM_LOCK="${PAIR_SUM_TABLE}.lock"
 
@@ -63,7 +47,6 @@ PAIR_SUM_LOCK="${PAIR_SUM_TABLE}.lock"
   fi
 } 201>"$PAIR_SUM_LOCK"
 
-# ------------------------------------------------------------------------------
 # Bounds and info
 if (( starting_pair_in_this_chunk > total_number_of_pairs_across_the_whole_array_job )); then
   echo "Nothing to do for task ${ID_of_this_task_in_the_array_job} (start ${starting_pair_in_this_chunk} > total ${total_number_of_pairs_across_the_whole_array_job})"
@@ -74,38 +57,51 @@ fi
 echo "Task ${ID_of_this_task_in_the_array_job}: lines ${starting_pair_in_this_chunk}-${last_pair_in_this_chunk} of ${total_number_of_pairs_across_the_whole_array_job} from $(basename "$my_pair_list")"
 echo "Chunk size: ${my_chunk_size_to_run}; CPUs: ${SLURM_CPUS_PER_TASK:-1}; Mem: ${SLURM_MEM_PER_NODE:-${SLURM_MEM_PER_CPU:-?}}"
 
-# ------------------------------------------------------------------------------
-# Scratch directory (seekable files, fast I/O)
-temporary_root="${SLURM_TMPDIR:-/tmp}"
-directory_to_work_in="$(mktemp -d "${temporary_root}/dA.${ID_of_this_task_in_the_array_job}.XXXX")"
+# --------------------------------------------------------------------------
+# Scratch directory (seekable files, fast I/O) — never fall back to /tmp
+
+SCRATCH="/user/work/pk14885"
+mkdir -p "$SCRATCH/tmp"
+export TMPDIR="$SCRATCH/tmp"           # for tools' temp
+export PARALLEL_TMPDIR="$SCRATCH/tmp"  # explicit for GNU parallel
+
+# Per-task working directory under scratch
+directory_to_work_in="$(mktemp -d "$SCRATCH/dA.${ID_of_this_task_in_the_array_job}.XXXX")"
 cleanup() { rm -rf "$directory_to_work_in"; }
 trap cleanup EXIT
 
-# Subdir for localized BAMs
+# Per-pair subdir for outputs and symlinked BAMs
 scratch_bam_dir="${directory_to_work_in}/bams"
 mkdir -p "$scratch_bam_dir"
 
-# Helper: copy BAM + index to scratch (idempotent)
-localize_bam() {
+# Resolve a BAM path (follows symlink) and verify it
+resolve_bam() {
   local src="$1"
-  local base; base="$(basename "$src")"
-  local dst="${scratch_bam_dir}/${base}"
-
-  # Copy BAM (overwrite to be safe if re-run)
-  cp -f "$src" "$dst"
-
-  # Copy index (handle .bai naming)
-  if [[ -f "${src}.bai" ]]; then
-    cp -f "${src}.bai" "${dst}.bai"
-  elif [[ -f "${src%.bam}.bai" ]]; then
-    cp -f "${src%.bam}.bai" "${dst%.bam}.bai"
-  else
-    echo "WARN: No index found for ${src}" >&2
+  local real
+  real="$(readlink -f -- "$src" 2>/dev/null || echo "$src")"
+  [[ -r "$real" ]] || { echo "ERROR: BAM not readable: $real" >&2; return 1; }
+  if [[ ! -r "${real}.bai" && ! -r "${real%.bam}.bai" ]]; then
+    echo "ERROR: No index (.bai) found for $real" >&2
+    return 1
   fi
-  echo "$dst"
+  echo "$real"
 }
 
-# ------------------------------------------------------------------------------
+# Symlink BAM+BAI into pair scratch (tiny footprint; avoids copying)
+symlink_bam() {
+  local src="$1" d="$2"
+  local real base
+  real="$(resolve_bam "$src")" || return 1
+  base="$(basename "$real")"
+  ln -sf "$real" "$d/$base"
+  if   [[ -r "${real}.bai" ]]; then
+    ln -sf "${real}.bai" "$d/$base.bai"
+  elif [[ -r "${real%.bam}.bai" ]]; then
+    ln -sf "${real%.bam}.bai" "$d/${base%.bam}.bai"
+  fi
+  echo "$d/$base"
+}
+
 # Parse fixed chromosome list from environment (space/newline separated)
 readarray -t fixed_chroms < <(printf '%s\n' "$chromosomes_to_include" | tr ' ' '\n' | sed '/^$/d')
 if (( ${#fixed_chroms[@]} == 0 )); then
@@ -114,170 +110,147 @@ if (( ${#fixed_chroms[@]} == 0 )); then
 fi
 echo "Chromosomes requested (from --export): ${fixed_chroms[*]}"
 
-# ------------------------------------------------------------------------------
 # Main loop
 for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )); do
-  IFS=$'\t' read -r A B OUTPFX < <(sed -n "${line}p" "$my_pair_list")
-
-  # Validate inputs:
-  if [[ -z "${A:-}" || -z "${B:-}" || -z "${OUTPFX:-}" ]]; then
-    echo "WARN: Malformed line ${line}" >&2
-    continue
-  fi
-  if [[ ! -f "$A" || ! -f "$B" ]]; then
-    echo "WARN: Missing BAM(s) at line ${line}: $A or $B" >&2
-    continue
-  fi
-
-  # Check BAM indexes (warn only)
-  [[ -f "${A}.bai" || -f "${A%.bam}.bai" ]] || echo "WARN: Missing index for $A" >&2
-  [[ -f "${B}.bai" || -f "${B%.bam}.bai" ]] || echo "WARN: Missing index for $B" >&2
-
-  echo ">> $(date +'%F %T')  ${A##*/} vs ${B##*/}"
-
-  # Ensure OUTPFX dir exists (final outputs go here)
-  outdir="$(dirname "$OUTPFX")"
-  mkdir -p "$outdir"
-
-  # Localize BAMs to node scratch (speed up I/O)
-  A_local="$(localize_bam "$A")"
-  B_local="$(localize_bam "$B")"
-
-  # Quickcheck localized BAMs (non-fatal warnings)
-  samtools quickcheck -v "$A_local" "$B_local" || echo "WARN: samtools quickcheck reported issues" >&2
-
-  # Per-pair scratch subdir and final combined mpileup filename (seekable)
-  pair_scratch="${directory_to_work_in}/$(basename "$OUTPFX")"
-  mkdir -p "$pair_scratch"
-  outbase="$(basename "$OUTPFX")"
-  mpileup_gz="${pair_scratch}/${outbase}.mpileup.txt.gz"
-
-  
-# --------------------------------------------------------------------------
-# Intersect requested chromosomes with BAM header contigs (avoid mpileup errors)
-# --------------------------------------------------------------------------
-mapfile -t bam_chroms < <(samtools view -H "$A_local" | awk '$1=="@SQ"{for(i=1;i<=NF;i++){if($i~/^SN:/){sub(/^SN:/,"",$i); print $i}}}')
-declare -A present=()
-for c in "${bam_chroms[@]}"; do present["$c"]=1; done
-
-filtered=()
-for c in "${fixed_chroms[@]}"; do
-  if [[ -n "${present[$c]:-}" ]]; then
-    filtered+=( "$c" )
-  else
-    echo "WARN: Requested chromosome '$c' not in BAM header; skipping it." >&2
-  fi
-done
-
-if (( ${#filtered[@]} == 0 )); then
-  echo "ERROR: None of the requested chromosomes are present in BAM header; skipping pair." >&2
-  continue
-fi
-
-# --- NEW: choose a big temp area for GNU parallel (avoid filling /tmp) ---
-# Prefer node-local scratch if Slurm provides it; otherwise use pair_scratch.
-TMPDIR_CHOICE="${SLURM_TMPDIR:-${pair_scratch}/.tmp}"
-mkdir -p "$TMPDIR_CHOICE"
-export TMPDIR="$TMPDIR_CHOICE"
-export PARALLEL_TMPDIR="$TMPDIR_CHOICE"  # optional, explicit for GNU parallel
-
-# Determine parallel jobs (do not exceed number of selected chromosomes)
-jobs="${SLURM_CPUS_PER_TASK}"
-n_chroms="${#filtered[@]}"
-(( jobs > n_chroms )) && jobs="$n_chroms"
-
-echo "Using ${n_chroms} chromosomes: ${filtered[*]}"
-
-# --- CHANGED: make GNU parallel stream + compress buffers and write temp to $TMPDIR ---
-# --line-buffer -> stream lines to stdout (avoid big grouped buffers)
-# --compress    -> shrink any remaining buffer (CPU trade-off, safer for disk)
-# --tmpdir      -> ensure temp files go to node scratch/pair_scratch (not /tmp)
-printf "%s\n" "${filtered[@]}" \
-  | parallel -j "$jobs" --halt now,fail=1 \
-      --line-buffer --compress --tmpdir "$TMPDIR" \
-      "samtools mpileup -B -q 20 -Q 20 -r {} '$A_local' '$B_local' \
-       | bgzip -@ 1 -l 1 > '${pair_scratch}/{}.mpileup.txt.gz'"
-
-# Count non-empty per-chromosome outputs
-n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.mpileup.txt.gz' -size +0c | wc -l | awk '{print $1}')
-
-# Concatenate per-chromosome outputs into one seekable stream
-echo ">> Concatenating per-chromosome mpileups -> ${mpileup_gz}"
-if ! find "$pair_scratch" -maxdepth 1 -name '*.mpileup.txt.gz' -size +0c -print0 | sort -z | xargs -0 cat > "$mpileup_gz"; then
-  echo "ERROR: Failed to build combined mpileup for ${A##*/} vs ${B##*/}; skipping pair." >&2
-  continue
-fi
-
-if [[ ! -s "$mpileup_gz" ]]; then
-  echo "ERROR: Combined mpileup is empty for ${A##*/} vs ${B##*/}; skipping pair." >&2
-  continue
-fi
-
-  # --------------------------------------------------------------------------
-  # Per-pair summary stats from the combined mpileup (single streaming pass)
-  # Columns in mpileup (2-sample): chrom pos ref depthA basesA qualA depthB basesB qualB ...
-  # --------------------------------------------------------------------------
-  pair_stats="$(bgzip -dc "$mpileup_gz" \
-    | awk 'BEGIN{n=0; s1=0; s2=0; max1=0; max2=0}
-           {n++; d1=$4+0; d2=$7+0; s1+=d1; s2+=d2; if(d1>max1)max1=d1; if(d2>max2)max2=d2}
-           END{ if(n>0){ printf "%d\t%.6f\t%.6f\t%d\t%d", n, s1/n, s2/n, max1, max2 } else { print "0\t0\t0\t0\t0" } }')"
-
-  total_sites=$(echo "$pair_stats" | cut -f1)
-  mean_depth_A=$(echo "$pair_stats" | cut -f2)
-  mean_depth_B=$(echo "$pair_stats" | cut -f3)
-  max_depth_A=$(echo "$pair_stats" | cut -f4)
-  max_depth_B=$(echo "$pair_stats" | cut -f5)
-
-  # --------------------------------------------------------------------------
-  # Run distANGSD to get a single pairwise t (explicit and captured)
-  # --------------------------------------------------------------------------
-  echo ">> Running distANGSD: $my_path_to_distANGSD_executable_file -mpileup $mpileup_gz -method nuc -model $my_choice_of_phylogenetic_model_to_run -o $OUTPFX -is2Dinfer 0 -isex 0 -isthreading 1"
-  set +e
-  dist_out="$(
-    "$my_path_to_distANGSD_executable_file" \
-      -mpileup "$mpileup_gz" \
-      -method nuc \
-      -model "$my_choice_of_phylogenetic_model_to_run" \
-      -o "$OUTPFX" \
-      -is2Dinfer 0 \
-      -isex 0 \
-      -isthreading 1 \
-      2>&1
-  )"
-  STATUS=$?
-  set -e
-
-  # Extract t-value from distANGSD stdout/stderr (format: "Estimated t = X")
-  t_value="$(printf '%s\n' "$dist_out" | awk -F'=' '/Estimated t[[:space:]]*=/{gsub(/[[:space:]]*/, "", $2); print $2}')"
-
-  # Clean up intermediates to save space
-  rm -f "${pair_scratch}"/*.mpileup.txt.gz || true
-  rm -f "$mpileup_gz" || true
-
-  # Append summary row (even if distANGSD failed, so you see coverage metrics)
-  {
-    flock 201
-    printf "%s\t%s\t%s\t%s\t%d\t%d\t%d\t%.6f\t%.6f\t%d\t%d\n" \
-      "${A##*/}" "${B##*/}" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" \
-      "$n_chroms" "$n_nonempty" "$total_sites" "$mean_depth_A" "$mean_depth_B" "$max_depth_A" "$max_depth_B" \
-      >> "$PAIR_SUM_TABLE"
-  } 201>"$PAIR_SUM_LOCK"
-
-  # Append to central distances table if successful
-  if (( STATUS != 0 )) || [[ -z "${t_value:-}" ]]; then
-    echo "ERROR: distANGSD failed or t not parsed for ${A##*/} vs ${B##*/} (line ${line})." >&2
-    echo "---- distANGSD stdout/stderr ----"
-    printf '%s\n' "$dist_out" | sed 's/^/    /'
-    echo "---------------------------------"
-    # (Optional) Record NA line in distances; leave commented unless you want placeholders.
-    # { flock 200; printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" "${A##*/}" "${B##*/}" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" "nuc" "NA" "" >> "$DIST_TABLE"; } 200>"$DIST_LOCK"
-  else
-    {
-      flock 200
-      printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
-        "${A##*/}" "${B##*/}" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" "nuc" \
-        "$t_value" "${p_inv_value:-}" >> "$DIST_TABLE"
-    } 200>"$DIST_LOCK"
-    echo "SUCCESSFULLY COMPLETED: ${OUTPFX}  (t=${t_value}${p_inv_value:+, p_inv=${p_inv_value}})"
-  fi
+                IFS=$'\t' read -r A B OUTPFX < <(sed -n "${line}p" "$my_pair_list")
+              
+                # Validate inputs:
+                if [[ -z "${A:-}" || -z "${B:-}" || -z "${OUTPFX:-}" ]]; then
+                  echo "WARN: Malformed line ${line}" >&2
+                  continue
+                fi
+                if [[ ! -f "$A" || ! -f "$B" ]]; then
+                  echo "WARN: Missing BAM(s) at line ${line}: $A or $B" >&2
+                  continue
+                fi
+              
+                echo ">> $(date +'%F %T')  ${A##*/} vs ${B##*/}"
+              
+                # Ensure OUTPFX dir exists (final outputs go here)
+                outdir="$(dirname "$OUTPFX")"
+                mkdir -p "$outdir"
+              
+                # Symlink BAMs to per-pair scratch (no copy); then quickcheck
+                A_bam="$(symlink_bam "$A" "$scratch_bam_dir")" || continue
+                B_bam="$(symlink_bam "$B" "$scratch_bam_dir")" || continue
+                samtools quickcheck -v "$A_bam" "$B_bam" || echo "WARN: samtools quickcheck reported issues" >&2
+              
+                # Intersect requested chromosomes with BAM header contigs (avoid mpileup errors)
+                mapfile -t bam_chroms < <(samtools view -H "$A_bam" \
+                  | awk '$1=="@SQ"{for(i=1;i<=NF;i++){if($i~/^SN:/){sub(/^SN:/,"",$i); print $i}}}')
+                declare -A present=()
+                for c in "${bam_chroms[@]}"; do present["$c"]=1; done
+              
+                filtered=()
+                for c in "${fixed_chroms[@]}"; do
+                  if [[ -n "${present[$c]:-}" ]]; then
+                    filtered+=( "$c" )
+                  else
+                    echo "WARN: Requested chromosome '$c' not in BAM header; skipping it." >&2
+                  fi
+                done
+              
+                if (( ${#filtered[@]} == 0 )); then
+                  echo "ERROR: None of the requested chromosomes are present in BAM header; skipping pair." >&2
+                  continue
+                fi
+              
+                # Per-pair scratch subdir and final combined mpileup filename (seekable)
+                pair_scratch="${directory_to_work_in}/$(basename "$OUTPFX")"
+                mkdir -p "$pair_scratch"
+                outbase="$(basename "$OUTPFX")"
+                mpileup_gz="${pair_scratch}/${outbase}.mpileup.txt.gz"
+              
+                # Determine parallel jobs (do not exceed number of selected chromosomes)
+                jobs="${SLURM_CPUS_PER_TASK}"
+                n_chroms="${#filtered[@]}"
+                (( jobs > n_chroms )) && jobs="$n_chroms"
+              
+                echo "Using ${n_chroms} chromosomes: ${filtered[*]}"
+              
+                # Run per-chromosome mpileup with GNU parallel (streamed + compressed buffers; temp in $TMPDIR)
+                printf "%s\n" "${filtered[@]}" \
+                  | parallel -j "$jobs" --halt now,fail=1 \
+                      --line-buffer --compress --tmpdir "$TMPDIR" \
+                      "samtools mpileup -B -q 20 -Q 20 -r {} '$A_bam' '$B_bam' \
+                       | bgzip -@ 1 -l 1 > '${pair_scratch}/{}.mpileup.txt.gz'"
+              
+                # Count non-empty per-chromosome outputs
+                n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.mpileup.txt.gz' -size +0c | wc -l | awk '{print $1}')
+              
+                # Concatenate per-chromosome outputs into one seekable stream
+                echo ">> Concatenating per-chromosome mpileups -> ${mpileup_gz}"
+                if ! find "$pair_scratch" -maxdepth 1 -name '*.mpileup.txt.gz' -size +0c -print0 \
+                      | sort -z \
+                      | xargs -0 cat > "$mpileup_gz"; then
+                  echo "ERROR: Failed to build combined mpileup for ${A##*/} vs ${B##*/}; skipping pair." >&2
+                  continue
+                fi
+              
+                if [[ ! -s "$mpileup_gz" ]]; then
+                  echo "ERROR: Combined mpileup is empty for ${A##*/} vs ${B##*/}; skipping pair." >&2
+                  continue
+                fi
+              
+                # Per-pair summary stats from the combined mpileup (single streaming pass)
+                pair_stats
+                pair_stats="$(bgzip -dc "$mpileup_gz" \
+                  | awk 'BEGIN{n=0; s1=0; s2=0; max1=0; max2=0}
+                         {n++; d1=$4+0; d2=$7+0; s1+=d1; s2+=d2; if(d1>max1)max1=d1; if(d2>max2)max2=d2}
+                         END{ if(n>0){ printf "%d\t%.6f\t%.6f\t%d\t%d", n, s1/n, s2/n, max1, max2 } else { print "0\t0\t0\t0\t0" } }')"
+                total_sites=$(echo "$pair_stats" | cut -f1)
+                mean_depth_A=$(echo "$pair_stats" | cut -f2)
+                mean_depth_B=$(echo "$pair_stats" | cut -f3)
+                max_depth_A=$(echo "$pair_stats" | cut -f4)
+                max_depth_B=$(echo "$pair_stats" | cut -f5)
+              
+                # Run distANGSD to get a single pairwise t
+                echo ">> Running distANGSD: $my_path_to_distANGSD_executable_file -mpileup $mpileup_gz -method nuc -model $my_choice_of_phylogenetic_model_to_run -o $OUTPFX -is2Dinfer 0 -isex 0 -isthreading 1"
+                set +e
+                dist_out="$(
+                  "$my_path_to_distANGSD_executable_file" \
+                    -mpileup "$mpileup_gz" \
+                    -method nuc \
+                    -model "$my_choice_of_phylogenetic_model_to_run" \
+                    -o "$OUTPFX" \
+                    -is2Dinfer 0 \
+                    -isex 0 \
+                    -isthreading 1 \
+                    2>&1
+                )"
+                STATUS=$?
+                set -e
+                            
+              # Append to summary table (locked)
+              {
+                flock 201
+                printf "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\n" \
+                  "$A" "$B" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" \
+                  "$n_chroms" "$n_nonempty" "$total_sites" \
+                  "$mean_depth_A" "$mean_depth_B" "$max_depth_A" "$max_depth_B" \
+                  >> "$PAIR_SUM_TABLE"
+              } 201>"$PAIR_SUM_LOCK"
+              
+              # Extract t and p_inv from dist_out
+              t_value="$(printf '%s\n' "$dist_out" | awk -F'=' '/Estimated[[:space:]]+t[[:space:]]*=/{gsub(/[[:space:]]*/,"",$2); print $2; exit}')"
+              p_inv_value="$(printf '%s\n' "$dist_out" | awk -F'=' '/p_inv[[:space:]]*=/{gsub(/[[:space:]]*/,"",$2); print $2; exit}')"
+              
+              # Append to distances table or report failure
+              if (( STATUS != 0 )) || [[ -z "${t_value:-}" ]]; then
+                echo "ERROR: distANGSD failed or t not parsed for ${A##*/} vs ${B##*/} (line ${line})." >&2
+                echo "---- distANGSD stdout/stderr ----"
+                printf '%s\n' "$dist_out" | sed 's/^/    /'
+              else
+                {
+                  flock 200
+                  printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+                    "${A##*/}" "${B##*/}" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" "nuc" \
+                    "$t_value" "${p_inv_value:-}" >> "$DIST_TABLE"
+                } 200>"$DIST_LOCK"
+                echo "SUCCESSFULLY COMPLETED: ${OUTPFX}  (t=${t_value}${p_inv_value:+, p_inv=${p_inv_value}})"
+              fi
+             
+              # Clean up intermediates to save space
+              rm -f "${pair_scratch}"/*.mpileup.txt.gz || true
+              rm -f "$mpileup_gz" || true               
 done
