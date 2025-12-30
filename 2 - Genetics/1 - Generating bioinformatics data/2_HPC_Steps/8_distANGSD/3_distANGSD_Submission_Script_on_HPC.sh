@@ -13,7 +13,7 @@ set -euo pipefail
 
 # Set the choices below manually. These will be automatically passed to the array job:
   my_chunk_size_to_run=20                        # Each array task will work through this number of pairs of genomes.
-  my_choice_of_phylogenetic_model_to_run="GTR"    # Here, we can run Jukes-Cantor (JC) or General Time Reversible (GTR).
+  my_choice_of_phylogenetic_model_to_run="JC"    # Here, we run the simpler Jukes-Cantor (JC) model, but an alternative is General Time Reversible (GTR).
 
 # Decide how many chromosomes (scaffolds) to use. Because using the whole genome is very time-consuming,
 # we can subsample to the largest N chromosomes. To find the sizes of the largest 10 scaffolds, we run:
