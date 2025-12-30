@@ -18,7 +18,7 @@
 cd /user/work/pk14885/Wasps/Completed_alignments
 grep -F -f /user/work/pk14885/List_of_wasp_main_samples_with_more_than_3X_raw_sequencing_coverage.txt my_bam_list_fullpaths.txt > subset_paths.txt
 
-# To aid computation, we take 20 random wasps from each population (or all wasps from the population if there are fewer than 10 available) from the 141 wasps:
+# To aid computation, we take N random wasps from each population (or all wasps from the population if there are fewer than 10 available) from the 141 wasps. To take all wasps, just set this to something very high (e.g, 999), which makes it irrelevant:
 
 while read -r f; do
   pop=$(basename "$(dirname "$f")")
@@ -27,12 +27,11 @@ done < subset_paths.txt \
 | sort -k1,1 \
 | awk -F'\t' '{print > ("pop_"$1".lst")}'  # split into one file per population
 for pf in pop_*.lst; do
-  shuf -n 20 "$pf" 2>/dev/null
+  shuf -n 999 "$pf" 2>/dev/null
 done > subsampled_bams.txt
 cut -f2- subsampled_bams.txt > 3X_subsampled_bams_paths_only.txt
 
 # That results in 70 target wasps if you take 10 random wasps from each population.
-# It results in 
 
 # ------------------------------------------------------------------------------
 # MAKING SYMLINK FOLDER:
