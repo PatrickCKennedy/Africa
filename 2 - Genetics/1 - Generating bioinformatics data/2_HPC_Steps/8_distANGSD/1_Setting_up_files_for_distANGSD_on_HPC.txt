@@ -8,27 +8,35 @@
 # -----------------------------------------------------------------------------
 # SUBSAMPLE TO A RANDOM SUBSET
 
-# First, make a text file with the full paths to all of the BAM files, and call it my_bam_list_fullpaths.txt
+# I have made a text file with the full paths to all of the BAM files, and call it my_bam_list_fullpaths.txt
 
-# Once you have done that, run the folllowing.
-# To aid computation, we focus the nuclear genome tree on a randomly-chosen subset of the wasps.
-# We take 10 random wasps from each population (or all wasps from the population if there are fewer than 10 available):
+# I have also made a text file with the names of the 141 BAM files coming from wasp main samples with
+# a raw sequencing depth of at least 3X:
+/user/work/pk14885/List_of_wasp_main_samples_with_more_than_3X_raw_sequencing_coverage.txt
+
+# Extract the paths of the 141 target BAM files: 
+cd /user/work/pk14885/Wasps/Completed_alignments
+grep -F -f /user/work/pk14885/List_of_wasp_main_samples_with_more_than_3X_raw_sequencing_coverage.txt my_bam_list_fullpaths.txt > subset_paths.txt
+
+# To aid computation, we take 10 random wasps from each population (or all wasps from the population if there are fewer than 10 available) from the 141 wasps:
 
 while read -r f; do
   pop=$(basename "$(dirname "$f")")
   printf '%s\t%s\n' "$pop" "$f"
-done < my_bam_list_fullpaths.txt \
+done < subset_paths.txt \
 | sort -k1,1 \
 | awk -F'\t' '{print > ("pop_"$1".lst")}'  # split into one file per population
 for pf in pop_*.lst; do
   shuf -n 10 "$pf" 2>/dev/null
 done > subsampled_bams.txt
-cut -f2- subsampled_bams.txt > subsampled_bams_paths_only.txt
+cut -f2- subsampled_bams.txt > 3X_subsampled_bams_paths_only.txt
+
+# That results in 70 target wasps, in the file 3X_subsampled_bams_paths_only.txt
 
 # ------------------------------------------------------------------------------
 # MAKING SYMLINK FOLDER:
 
-# Before running this script as a job on BluePebble, we make sure all the BAM files (and their
+# Before running this script as a job on BluePebble, we now make sure all the BAM files (and their
 # associated BAI files) are in the same symlink folder, using the following:
 # First, make a symlink folder to point towards the BAM files:
                   # If the folder already exists, remove it and make it anew:
@@ -54,7 +62,7 @@ cut -f2- subsampled_bams.txt > subsampled_bams_paths_only.txt
                       else
                           echo "INFO: No .bai found for $bam" >&2
                       fi
-                  done < subsampled_bams_paths_only.txt
+                  done < 3X_subsampled_bams_paths_only.txt
 
 # -----------------------------------------------------------------------------
 # MAKE A LIST OF ALL THE PAIRS OF GENOMES THAT distANGSD WILL CONSIDER:
