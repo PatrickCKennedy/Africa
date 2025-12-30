@@ -112,7 +112,7 @@ echo "Chromosomes requested (from --export): ${fixed_chroms[*]}"
 
 # Manually set the following, which sets up the masking for shared sites ('intersection'):
 # Keep a site only if BOTH samples have depth >= minimum_depth_per_sample_in_BOTH_samples (and <= maximum_depth_per_sample_in_BOTH_samples if >0).
-minimum_depth_per_sample_in_BOTH_samples="4"    # i.e., only keep this site in the analysis if both samples have at least this number of reads at the site.
+minimum_depth_per_sample_in_BOTH_samples="5"    # i.e., only keep this site in the analysis if both samples have at least this number of reads at the site.
 maximum_depth_per_sample_in_BOTH_samples="20"   # i.e., cut out regions with unusually high depth, which might be repeats.
 
 # Note: the use of the intersection approach dramatically increased the speed which this the analysis could be run, as it
