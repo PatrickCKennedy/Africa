@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=Chunk_of_distANGSD
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=8G
+#SBATCH --mem=5G
 #SBATCH --time=12:00:00
 #SBATCH --output=logs/dA_chunk_%A_%a.out
 #SBATCH --error=logs/dA_chunk_%A_%a.out
