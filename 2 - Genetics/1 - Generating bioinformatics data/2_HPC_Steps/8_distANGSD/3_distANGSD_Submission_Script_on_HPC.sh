@@ -12,7 +12,7 @@ set -euo pipefail
 # PARAMETER SETTINGS:
 
 # Set the choices below manually. These will be automatically passed to the array job:
-  my_chunk_size_to_run=100                       # Each array task will work through this number of pairs of genomes.
+  my_chunk_size_to_run=20                        # Each array task will work through this number of pairs of genomes.
   my_choice_of_phylogenetic_model_to_run="JC"    # Here, we run Jukes-Cantor (JC), but an alternative would be General Time Reversible (GTR)
 
 # Decide how many chromosomes (scaffolds) to use. Because using the whole genome is very time-consuming,
