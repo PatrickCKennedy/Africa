@@ -1,34 +1,60 @@
 # The following file is simply to arrange the files on BluePebble (Bristol's HPC cluster)
 # in a useful way for the next scripts to work on.
 
+# This only needs to be run once.
+
+# I ran the lines above, and then manually removed the additional genomes that are not needed for this paper (e.g., Kenya samples).
+
+# -----------------------------------------------------------------------------
+# SUBSAMPLE TO A RANDOM SUBSET
+
+# First, make a text file with the full paths to all of the BAM files, and call it my_bam_list_fullpaths.txt
+
+# Once you have done that, run the folllowing.
+# To aid computation, we focus the nuclear genome tree on a randomly-chosen subset of the wasps.
+# We take 10 random wasps from each population (or all wasps from the population if there are fewer than 10 available):
+
+while read -r f; do
+  pop=$(basename "$(dirname "$f")")
+  printf '%s\t%s\n' "$pop" "$f"
+done < my_bam_list_fullpaths.txt \
+| sort -k1,1 \
+| awk -F'\t' '{print > ("pop_"$1".lst")}'  # split into one file per population
+for pf in pop_*.lst; do
+  shuf -n 10 "$pf" 2>/dev/null
+done > subsampled_bams.txt
+cut -f2- subsampled_bams.txt > subsampled_bams_paths_only.txt
+
 # ------------------------------------------------------------------------------
 # MAKING SYMLINK FOLDER:
 
 # Before running this script as a job on BluePebble, we make sure all the BAM files (and their
 # associated BAI files) are in the same symlink folder, using the following:
 # First, make a symlink folder to point towards the BAM files:
-      ##            mkdir -p /user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder
-      ##            cd /user/work/pk14885/Wasps/Completed_alignments
-      ##            
-      ##            while IFS= read -r bam; do
-      ##                [ -z "$bam" ] && continue
-      ##                [ ! -f "$bam" ] && { echo "WARN: BAM not found: $bam" >&2; continue; }
-      ##            
-      ##                bam_base="$(basename "$bam")"
-      ##                ln -s -f "$bam" "/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/$bam_base"
-      ##            
-      ##                # Attempt to locate index files
-      ##                idx1="${bam}.bai"          # e.g., /path/sample.bam.bai
-      ##                idx2="${bam%.*}.bai"       # e.g., /path/sample.bai
-      ##            
-      ##                if [ -f "$idx1" ]; then
-      ##                    ln -s -f "$idx1" "/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/${bam_base}.bai"
-      ##                elif [ -f "$idx2" ]; then
-      ##                    ln -s -f "$idx2" "/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/${bam_base%.bam}.bai"
-      ##                else
-      ##                    echo "INFO: No .bai found for $bam" >&2
-      ##                fi
-      ##            done < my_bam_list_fullpaths.txt
+                  # If the folder already exists, remove it and make it anew:
+                  rm -r /user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder
+                  mkdir -p /user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder
+                  cd /user/work/pk14885/Wasps/Completed_alignments
+  
+                  while IFS= read -r bam; do
+                      [ -z "$bam" ] && continue
+                      [ ! -f "$bam" ] && { echo "WARN: BAM not found: $bam" >&2; continue; }
+                  
+                      bam_base="$(basename "$bam")"
+                      ln -s -f "$bam" "/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/$bam_base"
+                  
+                      # Attempt to locate index files
+                      idx1="${bam}.bai"          # e.g., /path/sample.bam.bai
+                      idx2="${bam%.*}.bai"       # e.g., /path/sample.bai
+                  
+                      if [ -f "$idx1" ]; then
+                          ln -s -f "$idx1" "/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/${bam_base}.bai"
+                      elif [ -f "$idx2" ]; then
+                          ln -s -f "$idx2" "/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/${bam_base%.bam}.bai"
+                      else
+                          echo "INFO: No .bai found for $bam" >&2
+                      fi
+                  done < subsampled_bams_paths_only.txt
 
 # -----------------------------------------------------------------------------
 # MAKE A LIST OF ALL THE PAIRS OF GENOMES THAT distANGSD WILL CONSIDER:
