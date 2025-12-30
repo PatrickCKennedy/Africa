@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=Chunk_of_distANGSD
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=10G
+#SBATCH --mem=8G
 #SBATCH --time=12:00:00
 #SBATCH --output=logs/dA_chunk_%A_%a.out
 #SBATCH --error=logs/dA_chunk_%A_%a.out
@@ -172,7 +172,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                 printf "%s\n" "${filtered[@]}" \
                   | parallel -j "$jobs" --halt now,fail=1 \
                       --line-buffer --compress --tmpdir "$TMPDIR" \
-                      "samtools mpileup --max-depth 50 -B -q 20 -Q 20 -r {} '$A_bam' '$B_bam' \
+                      "samtools mpileup --max-depth 50 -B -q 30 -Q 30 -r {} '$A_bam' '$B_bam' \
                        | bgzip -@ 1 -l 1 > '${pair_scratch}/{}.mpileup.txt.gz'"
               
                 # Count non-empty per-chromosome outputs
