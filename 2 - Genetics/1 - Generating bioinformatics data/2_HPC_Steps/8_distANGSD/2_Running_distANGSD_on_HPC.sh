@@ -115,6 +115,9 @@ echo "Chromosomes requested (from --export): ${fixed_chroms[*]}"
 minimum_depth_per_sample_in_BOTH_samples="2"    # i.e., only keep this site in the analysis if both samples have at least 2 reads at the site.
 maximum_depth_per_sample_in_BOTH_samples="20"   # i.e., cut out regions with unusually high depth, which might be repeats.
 
+# Note: the use of the intersection approach dramatically increased the speed which this the analysis could be run, as it
+# cuts out difficult-to-handle sites with very flat genome likelihoods.
+
 # Main loop
 for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )); do
                     IFS=$'\t' read -r A B OUTPFX < <(sed -n "${line}p" "$my_pair_list")
