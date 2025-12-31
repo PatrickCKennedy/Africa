@@ -8,8 +8,8 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 
-# Note: if the array job is stopped or interrupted, you can restart it and it will resume at the right point (see section
-# on this below). If you want to start from scratch, make sure that the output table from the previous run has been
+# Note: if the array job is stopped or interrupted, we can restart it and it will resume at the right point (see section
+# on this below). If we want to start from scratch, make sure that the output table from the previous run has been
 # deleted, as this is used to check whether a pairwise comparison has been run already (skipping it if so).
 
 set -euo pipefail
@@ -122,6 +122,11 @@ maximum_depth_per_sample_in_BOTH_samples="20"   # i.e., cut out regions with unu
 # Note: the use of the intersection approach dramatically increased the speed which this the analysis could be run, as it
 # cuts out difficult-to-handle sites with very flat genome likelihoods.
 
+# To avoid an error from very long commands, symlink the reference genome to a shorter name:
+cd /user/work/pk14885
+[ -e ref.fa ] || ln -s /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta ref.fa
+REF="ref.fa"
+
 # Main loop
 for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )); do
                     IFS=$'\t' read -r A B OUTPFX < <(sed -n "${line}p" "$my_pair_list")
@@ -194,7 +199,6 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     echo "Using ${n_chroms} chromosomes: ${filtered[*]}"
                     echo "Intersection mask thresholds: minimum_depth_per_sample_in_BOTH_samples=${minimum_depth_per_sample_in_BOTH_samples} maximum_depth_per_sample_in_BOTH_samples=${maximum_depth_per_sample_in_BOTH_samples}"
 
-                    REF="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta"
                     # 1) Per-chromosome mpileup
                     printf "%s\n" "${filtered[@]}" \
                       | parallel -j "$jobs" --halt now,fail=1 \
