@@ -8,6 +8,10 @@
 #SBATCH --mail-user=pk14885@bristol.ac.uk
 #SBATCH --account=BISC020282
 
+# Note: if the array job is stopped or interrupted, you can restart it and it will resume at the right point (see section
+# on this below). If you want to start from scratch, make sure that the output table from the previous run has been
+# deleted, as this is used to check whether a pairwise comparison has been run already (skipping it if so).
+
 set -euo pipefail
 
 my_pair_list="${my_pair_list}"                            # TSV: A\tB\tOUTPFX
@@ -137,7 +141,20 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     # Ensure OUTPFX dir exists (final outputs go here)
                     outdir="$(dirname "$OUTPFX")"
                     mkdir -p "$outdir"
-                  
+
+                    # To allow for the array job to be resumed if stopped without losing the outputs of the tasks that have completed, check whether this pair has
+                    # already been run in a previous task (by seeing whether OUTPFX and a t value output appears anywhere in the DIST_TABLE output table), and if so move on to the next one instead:                                   
+                                    t_prev="$(
+                                      awk -v pfx="$OUTPFX" -F'\t' '
+                                        $3==pfx { last=$6 }
+                                        END { if (last!="") print last }
+                                      ' "$DIST_TABLE"
+                                    )"                                   
+                                    if [[ "$t_prev" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+                                      echo "SKIP: ${OUTPFX} already in DIST_TABLE (t=${t_prev})."
+                                      continue
+                                    fi
+
                     # Symlink BAMs to per-pair scratch (no copy); then quickcheck
                     A_bam="$(symlink_bam "$A" "$scratch_bam_dir")" || continue
                     B_bam="$(symlink_bam "$B" "$scratch_bam_dir")" || continue
@@ -164,10 +181,10 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     fi
                   
                     # Per-pair scratch subdir and final combined mpileup filename (seekable)
-                    pair_scratch="${directory_to_work_in}/$(basename "$OUTPFX")"
-                    mkdir -p "$pair_scratch"
+                    pps="${directory_to_work_in}/$(basename "$OUTPFX")"
+                    mkdir -p "$pps"
                     outbase="$(basename "$OUTPFX")"
-                    mpileup_gz="${pair_scratch}/${outbase}.mpileup.txt.gz"   # <-- final filtered combined stream
+                    mpileup_gz="${pps}/${outbase}.mpileup.txt.gz"   # <-- final filtered combined stream
                   
                     # Determine parallel jobs (do not exceed number of selected chromosomes)
                     jobs="${SLURM_CPUS_PER_TASK}"
@@ -176,15 +193,16 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                   
                     echo "Using ${n_chroms} chromosomes: ${filtered[*]}"
                     echo "Intersection mask thresholds: minimum_depth_per_sample_in_BOTH_samples=${minimum_depth_per_sample_in_BOTH_samples} maximum_depth_per_sample_in_BOTH_samples=${maximum_depth_per_sample_in_BOTH_samples}"
-                  
+
+                    REF="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta"
                     # 1) Per-chromosome mpileup
                     printf "%s\n" "${filtered[@]}" \
                       | parallel -j "$jobs" --halt now,fail=1 \
                           --line-buffer --compress --tmpdir "$TMPDIR" \
                           "samtools mpileup -d 20 -B -q 30 -Q 30 \
-                             -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta \
+                             -f '$REF' \
                              -r {} '$A_bam' '$B_bam' \
-                           | bgzip -@ 1 -l 1 > '${pair_scratch}/{}.mpileup.txt.gz'"
+                           | bgzip -@ 1 -l 1 > '${pps}/{}.mpileup.txt.gz'"
                   
                     # 2) APPLY INTERSECTION MASK (shared callable sites per chr)
                     #    Keep only lines where BOTH samples have depth >= MIN_DP
@@ -193,7 +211,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     printf "%s\n" "${filtered[@]}" \
                       | parallel -j "$jobs" --halt now,fail=1 \
                           --line-buffer --tmpdir "$TMPDIR" \
-                          "bgzip -cd '${pair_scratch}/{}.mpileup.txt.gz' \
+                          "bgzip -cd '${pps}/{}.mpileup.txt.gz' \
                            | awk -v minDP='${minimum_depth_per_sample_in_BOTH_samples}' -v maxDP='${maximum_depth_per_sample_in_BOTH_samples}' '
                                BEGIN { useMax = (maxDP > 0) }
                                {
@@ -204,23 +222,23 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                                  }
                                }
                              ' \
-                           | bgzip -@ 1 -l 1 > '${pair_scratch}/{}.mpileup.intersect.txt.gz'"
+                           | bgzip -@ 1 -l 1 > '${pps}/{}.mpileup.intersect.txt.gz'"
                   
                     # Count non-empty per-chromosome *filtered* outputs
-                    n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.mpileup.intersect.txt.gz' -size +0c | wc -l | awk '{print $1}')
+                    n_nonempty=$(find "$pps" -maxdepth 1 -name '*.mpileup.intersect.txt.gz' -size +0c | wc -l | awk '{print $1}')
                   
                     if (( n_nonempty == 0 )); then
                       echo "ERROR: No sites left after intersection filtering for ${A##*/} vs ${B##*/}; skipping pair." >&2
                       # Clean up raw per-chr files
-                      rm -f "${pair_scratch}"/*.mpileup.txt.gz || true
-                      rm -f "${pair_scratch}"/*.mpileup.intersect.txt.gz || true
+                      rm -f "${pps}"/*.mpileup.txt.gz || true
+                      rm -f "${pps}"/*.mpileup.intersect.txt.gz || true
                       continue
                     fi
                   
                     # 3) Concatenate per-chromosome *filtered* outputs into one file
                   
                     echo ">> Concatenating per-chromosome FILTERED mpileups -> ${mpileup_gz}"
-                    if ! find "$pair_scratch" -maxdepth 1 -name '*.mpileup.intersect.txt.gz' -size +0c -print0 \
+                    if ! find "$pps" -maxdepth 1 -name '*.mpileup.intersect.txt.gz' -size +0c -print0 \
                           | sort -z \
                           | xargs -0 cat > "$mpileup_gz"; then
                       echo "ERROR: Failed to build combined filtered mpileup for ${A##*/} vs ${B##*/}; skipping pair." >&2
@@ -292,7 +310,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     fi
                   
                     # Clean up intermediates to save space
-                    rm -f "${pair_scratch}"/*.mpileup.txt.gz || true
-                    rm -f "${pair_scratch}"/*.mpileup.intersect.txt.gz || true
+                    rm -f "${pps}"/*.mpileup.txt.gz || true
+                    rm -f "${pps}"/*.mpileup.intersect.txt.gz || true
                     rm -f "$mpileup_gz" || true
 done
