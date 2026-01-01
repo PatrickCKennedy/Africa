@@ -33,7 +33,7 @@ set -euo pipefail
 # In other words, the HiC_scaffolds are already named in size order. For a genome size of 0.3G, that represents around 42% of the genome.
 
 # Manually choose which chromosomes to include (i.e., everything in the line below will be included):
-chromosomes_to_include="HiC_scaffold_1 HiC_scaffold_2 HiC_scaffold_3 HiC_scaffold_4 HiC_scaffold_5 HiC_scaffold_6 HiC_scaffold_7 HiC_scaffold_8 HiC_scaffold_9 HiC_scaffold_10" 
+chromosomes_to_include="HiC_scaffold_1 HiC_scaffold_2 HiC_scaffold_3 HiC_scaffold_4 HiC_scaffold_5 HiC_scaffold_6 HiC_scaffold_7 HiC_scaffold_8 HiC_scaffold_9 HiC_scaffold_10 HiC_scaffold_11 HiC_scaffold_12 HiC_scaffold_13 HiC_scaffold_14 HiC_scaffold_15 HiC_scaffold_16 HiC_scaffold_17 HiC_scaffold_18 HiC_scaffold_19 HiC_scaffold_20" 
 
 # -------------------------------------------------------------------------------------------------
 # CALCULATE NUMBER OF TASKS TO RUN:
