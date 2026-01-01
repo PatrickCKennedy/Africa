@@ -284,24 +284,26 @@ set +e
 STATUS=${PIPESTATUS[0]}
 set -e
 
-# --- Parse ONLY the run log (stdout/stderr captured by tee) ---
+
+# Parse ONLY the run log (human-readable)
 run_log="${OUTPFX}.run.log"
 
-# Extract robustly: allow ':' or '=', spaces, decimals, scientific notation
+# Extract t (unchanged)
 t_value="$(
   sed -nE 's/.*Estimated[[:space:]]*t[[:space:]]*[:=][[:space:]]*([+-]?[0-9]+([.][0-9]+)?([eE][+-]?[0-9]+)?).*/\1/p' "$run_log" | head -n1
 )"
 
+# Extract p_inv (handle both "p_inv" and "Estimated p")
 p_inv_value="$(
-  sed -nE 's/.*p[_[:space:]]*inv[[:space:]]*[:=][[:space:]]*([+-]?[0-9]+([.][0-9]+)?([eE][+-]?[0-9]+)?).*/\1/p' "$run_log" | head -n1
+  sed -nE '
+    s/.*p[_[:space:]]*inv[[:space:]]*[:=][[:space:]]*([+-]?[0-9]+([.][0-9]+)?([eE][+-]?[0-9]+)?).*/\1/p
+    s/.*Estimated[[:space:]]*p[[:space:]]*[:=][[:space:]]*([+-]?[0-9]+([.][0-9]+)?([eE][+-]?[0-9]+)?).*/\1/p
+  ' "$run_log" | head -n1
 )"
 
+# Keep schema consistent
 p_inv_value="${p_inv_value:-NA}"
-``
 
-
-# Keep schema consistent; record NA if p_inv wasn't printed (e.g., if someone switches back to JC or is2Dinfer=0)
-p_inv_value="${p_inv_value:-NA}"
 
 # Append to distances table or report failure
 if (( STATUS != 0 )) || [[ -z "${t_value:-}" ]]; then
