@@ -275,6 +275,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                         -mpileup "$mpileup_gz" \
                         -method nuc \
                         -model "$my_choice_of_phylogenetic_model_to_run" \
+                        -par 2.0431,0.0821,0.0000,0.0670,0.0000,0.2184,0.2606,0.3265,0.1946 \
                         -o "$OUTPFX" \
                         -is2Dinfer 1 \
                         -isex 0 \
@@ -283,7 +284,10 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     )"
                     STATUS=$?
                     set -e
-                  
+
+                    # Note: if running with the JC model, rather than GTR, take out the 'par' line above.
+                    # The values we have used here are taken directly from Zhao et al. (2022) - see page 5.
+                    
                     # Append to summary table (locked)
                     {
                       flock 201
