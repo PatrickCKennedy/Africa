@@ -56,13 +56,39 @@ p <- ggtree(tree) +
 
 print(p)
 
-        # Root the tree at the common ancestor of B. juncea and B. petiolata (using a wasp from each species):
-        repA <- "L18_c_EKDL230052134-1A_22GGMJLT3_L7.no.overlaps.bam"
-        repB <- "SOA4_2_CKDL230013284-1A_2235HJLT3_L6.no.overlaps.bam"
-        mrca_node <- ggtree::MRCA(tree, c(repA, repB))
-        tree_rooted <- ape::root(tree, node = mrca_node, resolve.root = TRUE)
-        tree_rooted_and_ladderised <- ape::ladderize(tree_rooted)
-
+ # Rooting the tree between B. juncea and B. petiolata:
+ 
+                            # Define the two species clades:
+                            cladeA <- c("L18_c_EKDL230052134-1A_22GGMJLT3_L7.no.overlaps.bam",
+                                        "L9_g_EKDL230052134-1A_22GGMJLT3_L7.no.overlaps.bam")
+                            cladeB <- c("A4_20_3_CKDL230013284-1A_2235HJLT3_L6.no.overlaps.bam",
+                                        "PR1_S1_CKDL220030022-1A_HK7J7DSX5.no.overlaps.bam")
+                            
+                            # Get MRCA nodes
+                            nodeA <- getMRCA(tree, cladeA)
+                            nodeB <- getMRCA(tree, cladeB)
+                            
+                            # Midpoint reroot between these nodes
+                            midpoint_root <- function(tree, nodeA, nodeB) {
+                              path <- nodepath(tree, nodeA, nodeB)
+                              edges <- sapply(seq_along(path[-length(path)]), function(i)
+                                which(apply(tree$edge, 1, function(e) all(e %in% path[i:(i+1)]))))
+                              lengths <- ifelse(is.null(tree$edge.length), rep(1, length(edges)), tree$edge.length[edges])
+                              half <- sum(lengths) / 2
+                              cum <- 0
+                              for (i in seq_along(edges)) {
+                                cum <- cum + lengths[i]
+                                if (cum >= half) {
+                                  child <- tree$edge[edges[i], 2]
+                                  pos <- cum - half
+                                  return(reroot(tree, node = child, position = pos))
+                                }
+                              }
+                            }
+                            
+                            tree_rooted <- midpoint_root(tree, nodeA, nodeB)
+                            tree_rooted_and_ladderised <- ladderize(tree_rooted)
+                        
 # Import the sequencing data (this is available as the sheet "SUPMAT - lcWGS_sequences_table" in the Supplementary Material):
 library(readxl)
 Sequencing_data <- read_excel("Downloads/Sequencing_data.xlsx")
@@ -110,7 +136,7 @@ p
 # Since genetic distances can be inflated at low-coverage, plot the same tree without branch lengths:
 q <- ggtree(tree_rooted_and_ladderised, branch.length = "none", layout = "circular", size = 0.2, aes(color = climate)) %<+% metadata +
     geom_tippoint(aes(color = climate), size = 1) 
-q + geom_treescale(x = 0, y = 200, width = 0.1) 
+q <- q + geom_tree(size = 0.2, aes(color = NULL), color = "grey70")
 myColors <- c("#56ddc5","red")
 q <- q + scale_color_manual(values = c(
     "South_Africa" = "red",
