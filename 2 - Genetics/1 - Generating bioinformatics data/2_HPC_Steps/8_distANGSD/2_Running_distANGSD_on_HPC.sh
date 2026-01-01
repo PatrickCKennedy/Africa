@@ -200,6 +200,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     echo "Intersection mask thresholds: minimum_depth_per_sample_in_BOTH_samples=${minimum_depth_per_sample_in_BOTH_samples} maximum_depth_per_sample_in_BOTH_samples=${maximum_depth_per_sample_in_BOTH_samples}"
 
                     # 1) Per-chromosome mpileup
+                    echo "Starting per-chromosome mpileup."
                     printf "%s\n" "${filtered[@]}" \
                       | parallel -j "$jobs" --halt now,fail=1 \
                           --line-buffer --compress --tmpdir "$TMPDIR" \
@@ -211,7 +212,8 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     # 2) APPLY INTERSECTION MASK (shared callable sites per chr)
                     #    Keep only lines where BOTH samples have depth >= MIN_DP
                     #    (and <= MAX_DP if maximum_depth_per_sample_in_BOTH_samples>0).
-                    
+
+                    echo "Applying intersection mask."
                     printf "%s\n" "${filtered[@]}" \
                       | parallel -j "$jobs" --halt now,fail=1 \
                           --line-buffer --tmpdir "$TMPDIR" \
@@ -229,6 +231,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                            | bgzip -@ 1 -l 1 > '${pps}/{}.mpileup.intersect.txt.gz'"
                   
                     # Count non-empty per-chromosome *filtered* outputs
+                    echo "Counting non-empty filtered outputs per chromosome."
                     n_nonempty=$(find "$pps" -maxdepth 1 -name '*.mpileup.intersect.txt.gz' -size +0c | wc -l | awk '{print $1}')
                   
                     if (( n_nonempty == 0 )); then
@@ -294,6 +297,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                                
 # --- Extract t and p_inv robustly (prefer -o logs; fallback to sanitized stdout/err) ---
 # Sanitize any files written by -o as well (some builds emit CR progress there too)
+echo "Creating a clean log."
 clean_log="$(
   cat "${OUTPFX}"* 2>/dev/null \
   | sed -e 's/\r/\n/g' -e $'s/\033\\[[0-9;]*[A-Za-z]//g' \
@@ -301,6 +305,7 @@ clean_log="$(
 )"
 
 # Sanitize dist_out (captured stdout/stderr) and strip NULs
+echo "Sanitising output."
 clean_out="$(
   printf '%s' "$dist_out" \
   | sed -e 's/\r/\n/g' -e $'s/\033\\[[0-9;]*[A-Za-z]//g' \
@@ -314,6 +319,7 @@ _extract_num='
 '
 
 # Parse t and p_inv (prefer logs, then fallback to clean_out)
+echo "Parsing t value."
 t_value="$(
   printf '%s\n' "$clean_log" \
   | grep -E 'Estimated[[:space:]]*t[[:space:]]*[:=]' \
@@ -325,6 +331,7 @@ t_value="$(
   | awk "$_extract_num"
 )"
 
+echo "Parsing p_inv value."
 p_inv_value="$(
   printf '%s\n' "$clean_log" \
   | grep -E '[[:<:]]p_inv[[:space:]]*[:=]' \
@@ -341,6 +348,7 @@ p_inv_value="$(
                                     p_inv_for_sum="${p_inv_value:-NA}"
                                     
                                     # --- Append to summary table (now INCLUDING t and p_inv as the last two columns) ---
+                                    echo "Appending t and p_inv to summary table."
                                     {
                                       flock 201
                                       printf "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
@@ -351,6 +359,7 @@ p_inv_value="$(
                                     } 201>"$PAIR_SUM_LOCK"
                                     
                                     # --- Append to distances table or report failure (unchanged behavior) ---
+                                    echo "Appending t and p_inv to outputs table."
                                     if (( STATUS != 0 )) || [[ -z "${t_value:-}" ]]; then
                                       echo "ERROR: distANGSD failed or t not parsed for ${A##*/} vs ${B##*/} (line ${line})." >&2
                                       echo "---- distANGSD stdout/stderr (sanitized) ----"
