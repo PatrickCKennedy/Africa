@@ -200,7 +200,6 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     echo "Intersection mask thresholds: minimum_depth_per_sample_in_BOTH_samples=${minimum_depth_per_sample_in_BOTH_samples} maximum_depth_per_sample_in_BOTH_samples=${maximum_depth_per_sample_in_BOTH_samples}"
 
                     # 1) Per-chromosome mpileup
-                    echo "Starting per-chromosome mpileup."
                     printf "%s\n" "${filtered[@]}" \
                       | parallel -j "$jobs" --halt now,fail=1 \
                           --line-buffer --compress --tmpdir "$TMPDIR" \
@@ -212,8 +211,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     # 2) APPLY INTERSECTION MASK (shared callable sites per chr)
                     #    Keep only lines where BOTH samples have depth >= MIN_DP
                     #    (and <= MAX_DP if maximum_depth_per_sample_in_BOTH_samples>0).
-
-                    echo "Applying intersection mask."
+                    
                     printf "%s\n" "${filtered[@]}" \
                       | parallel -j "$jobs" --halt now,fail=1 \
                           --line-buffer --tmpdir "$TMPDIR" \
@@ -231,7 +229,6 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                            | bgzip -@ 1 -l 1 > '${pps}/{}.mpileup.intersect.txt.gz'"
                   
                     # Count non-empty per-chromosome *filtered* outputs
-                    echo "Counting non-empty filtered outputs per chromosome."
                     n_nonempty=$(find "$pps" -maxdepth 1 -name '*.mpileup.intersect.txt.gz' -size +0c | wc -l | awk '{print $1}')
                   
                     if (( n_nonempty == 0 )); then
@@ -269,138 +266,83 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     max_depth_A=$(echo "$pair_stats" | cut -f4)
                     max_depth_B=$(echo "$pair_stats" | cut -f5)
                   
-                    # 5) Run distANGSD on the FILTERED set
-                                 
-                                    # --- Run distANGSD (2D inference: t + p_inv) ---
-                                    echo ">> Running distANGSD: $my_path_to_distANGSD_executable_file -mpileup $mpileup_gz -method nuc -model $my_choice_of_phylogenetic_model_to_run -par 2.0431,0.0821,0.0000,0.0670,0.0000,0.2184,0.2606,0.3265,0.1946 -o $OUTPFX -is2Dinfer 1 -isex 0 -isthreading 1"
-                                    
-                                    set +e
-                                    # Capture and sanitize stdout/stderr to avoid CR/ANSI artifacts that break parsing
-                                    dist_out="$(
-                                      stdbuf -oL -eL "$my_path_to_distANGSD_executable_file" \
-                                        -mpileup "$mpileup_gz" \
-                                        -method nuc \
-                                        -model "$my_choice_of_phylogenetic_model_to_run" \
-                                        -par 2.0431,0.0821,0.000001,0.0670,0.000001,0.2184,0.2606,0.3265,0.1946 \
-                                        -o "/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/distangsd_results/${OUTPFX}.log.txt" \
-                                        -is2Dinfer 1 \
-                                        -isex 0 \
-                                        -outbin 0 \
-                                        -outuchar 0 \
-                                        -isthreading 1 \
-                                      2>&1 | sed -e 's/\r/\n/g' -e $'s/\033\\[[0-9;]*[A-Za-z]//g'
-                                    )"
-                                    STATUS=$?
-                                    set -e
-                                    
-                                    # Note: if running with the JC model, rather than GTR, take out the 'par' line above.
-                                    # The values we have used here are taken directly from Zhao et al. (2022) - see page 5.
-                                    
-                               
+                    
+# 5) Run distANGSD on the FILTERED set
 
-# --- Extract t and p_inv robustly (prefer -o log; fallback to sanitized stdout/err) ---
-
-# Explicit logfile path (MUST match the -o argument used above)
-LOGFILE="/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/distangsd_results/${OUTPFX}.log.txt"
-
-echo "Creating a clean log."
-if [[ -s "$LOGFILE" ]]; then
-  clean_log="$(
-    sed -e 's/\r/\n/g' -e $'s/\033\\[[0-9;]*[A-Za-z]//g' "$LOGFILE" \
-    | tr -d '\000'
-  )"
-else
-  clean_log=""
-fi
-
-# Sanitize dist_out (captured stdout/stderr) and strip NULs
-echo "Sanitising output."
-clean_out="$(
-  printf '%s' "$dist_out" \
-  | sed -e 's/\r/\n/g' -e $'s/\033\\[[0-9;]*[A-Za-z]//g' \
-  | tr -d '\000'
+echo ">> Running distANGSD: $my_path_to_distANGSD_executable_file -mpileup $mpileup_gz -method nuc -model $my_choice_of_phylogenetic_model_to_run -o $OUTPFX -is2Dinfer 1 -isex 0 -isthreading 1 (with GTR -par from Zhao et al. 2022)"
+set +e
+dist_out="$(
+  "$my_path_to_distANGSD_executable_file" \
+    -mpileup "$mpileup_gz" \
+    -method nuc \
+    -model "$my_choice_of_phylogenetic_model_to_run" \
+    -par 2.0431,0.0821,0.0000,0.0670,0.0000,0.2184,0.2606,0.3265,0.1946 \
+    -o "$OUTPFX" \
+    -is2Dinfer 1 \
+    -isex 0 \
+    -isthreading 1 \
+    2>&1
 )"
+STATUS=$?
+set -e
 
-# Function: extract last numeric token on a matched line (handles int/float/scientific)
-_extract_num='
-  BEGIN { num = "^-?[0-9]+(\\.[0-9]+)?([eE][-+]?[0-9]+)?$" }
-  { for (i = NF; i > 0; i--) if ($i ~ num) { print $i; exit } }
-'
+# Note: if running with the JC model, rather than GTR, take out the 'par' line above
+# and be aware p_inv will not be estimated/printed.
 
-# ---- Patterns (portable) ----
-# Lines that contain "Estimated t = ..." or "Estimated t: ..."
-awk_pat_t='/[Ee]stimated[[:space:]]*t[[:space:]]*[:=]/'
+# Append to summary table (locked)
+{
+  flock 201
+  printf "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\n" \
+    "$A" "$B" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" \
+    "$n_chroms" "$n_nonempty" "$total_sites" \
+    "$mean_depth_A" "$mean_depth_B" "$max_depth_A" "$max_depth_B" \
+    >> "$PAIR_SUM_TABLE"
+} 201>"$PAIR_SUM_LOCK"
 
-# Lines that contain "p_inv = ..." or variants like pInv/p-inv/p inv, case-insensitive.
-# Avoid GNU [[:<:]]; use start-of-line or non-word-char as a left boundary.
-awk_pat_pinv='
-  BEGIN { IGNORECASE=1 }
-  /(^|[^[:alnum:]_])p([_-]|[[:space:]]*)inv[[:space:]]*[:=]/ { print; }
-'
-
-# ---- Parse t (prefer log, then fallback to sanitized stdout/err) ----
-echo "Parsing t value."
+# Extract t and p_inv from dist_out (robust to spaces/formatting)
 t_value="$(
-  printf '%s\n' "$clean_log" \
-  | awk "$awk_pat_t" \
-  | awk "$_extract_num"
+  printf '%s\n' "$dist_out" \
+  | awk -F'=' '
+      /Estimated[[:space:]]*t[[:space:]]*=/ {
+        gsub(/[[:space:]]*/, "", $2); print $2; exit
+      }
+    '
 )"
-if [[ -z "$t_value" ]]; then
-  t_value="$(
-    printf '%s\n' "$clean_out" \
-    | awk "$awk_pat_t" \
-    | awk "$_extract_num"
-  )"
-fi
-
-# ---- Parse p_inv (prefer log, then fallback to sanitized stdout/err) ----
-echo "Parsing p_inv value."
 p_inv_value="$(
-  printf '%s\n' "$clean_log" \
-  | awk "$awk_pat_pinv" \
-  | awk "$_extract_num"
+  printf '%s\n' "$dist_out" \
+  | awk -F'=' '
+      /p_inv[[:space:]]*=/ {
+        gsub(/[[:space:]]*/, "", $2); print $2; exit
+      }
+    '
 )"
-if [[ -z "$p_inv_value" ]]; then
-  p_inv_value="$(
-    printf '%s\n' "$clean_out" \
-    | awk "$awk_pat_pinv" \
-    | awk "$_extract_num"
-  )"
+
+# If p_inv wasn't printed (e.g., non-GTR), write NA so the table schema stays consistent
+p_inv_value="${p_inv_value:-NA}"
+
+# Append to distances table or report failure
+if (( STATUS != 0 )) || [[ -z "${t_value:-}" ]]; then
+  echo "ERROR: distANGSD failed or t not parsed for ${A##*/} vs ${B##*/} (line ${line})." >&2
+  echo "---- distANGSD stdout/stderr ----"
+  printf '%s\n' "$dist_out" | sed 's/^/    /'
+else
+  {
+    flock 200
+    printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
+      "${A##*/}" "${B##*/}" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" "nuc" \
+      "$t_value" "$p_inv_value" >> "$DIST_TABLE"
+  } 200>"$DIST_LOCK"
+  # Pretty status message (skip printing p_inv if NA)
+  if [[ "$p_inv_value" == "NA" ]]; then
+    echo "SUCCESSFULLY COMPLETED: ${OUTPFX}  (t=${t_value}, p_inv not estimated for model=${my_choice_of_phylogenetic_model_to_run})"
+  else
+    echo "SUCCESSFULLY COMPLETED: ${OUTPFX}  (t=${t_value}, p_inv=${p_inv_value})"
+  fi
 fi
 
-# ---- Placeholders for summary when parsing fails ----
-t_for_sum="${t_value:-NA}"
-p_inv_for_sum="${p_inv_value:-NA}"
+# Clean up intermediates to save space
+rm -f "${pps}"/*.mpileup.txt.gz || true
+rm -f "${pps}"/*.mpileup.intersect.txt.gz || true
+rm -f "$mpileup_gz" || true
 
-                                    # --- Append to summary table (now INCLUDING t and p_inv as the last two columns) ---
-                                    echo "Appending t and p_inv to summary table."
-                                    {
-                                      flock 201
-                                      printf "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
-                                        "$A" "$B" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" \
-                                        "$n_chroms" "$n_nonempty" "$total_sites" \
-                                        "$mean_depth_A" "$mean_depth_B" "$max_depth_A" "$max_depth_B" \
-                                        "$t_for_sum" "$p_inv_for_sum" >> "$PAIR_SUM_TABLE"
-                                    } 201>"$PAIR_SUM_LOCK"
-                                    
-                                    # --- Append to distances table or report failure (unchanged behavior) ---
-                                    echo "Appending t and p_inv to outputs table."
-                                    if (( STATUS != 0 )) || [[ -z "${t_value:-}" ]]; then
-                                      echo "ERROR: distANGSD failed or t not parsed for ${A##*/} vs ${B##*/} (line ${line})." >&2
-                                      echo "---- distANGSD stdout/stderr (sanitized) ----"
-                                      printf '%s\n' "$clean_out" | sed 's/^/    /'
-                                    else
-                                      {
-                                        flock 200
-                                        printf "%s\t%s\t%s\t%s\t%s\t%s\t%s\n" \
-                                          "${A##*/}" "${B##*/}" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" "nuc" \
-                                          "$t_value" "${p_inv_value:-}" >> "$DIST_TABLE"
-                                      } 200>"$DIST_LOCK"
-                                      echo "SUCCESSFULLY COMPLETED: ${OUTPFX}  (t=${t_value}${p_inv_value:+, p_inv=${p_inv_value}})"
-                                    fi
-                                                      
-                    # Clean up intermediates to save space
-                    rm -f "${pps}"/*.mpileup.txt.gz || true
-                    rm -f "${pps}"/*.mpileup.intersect.txt.gz || true
-                    rm -f "$mpileup_gz" || true
 done
