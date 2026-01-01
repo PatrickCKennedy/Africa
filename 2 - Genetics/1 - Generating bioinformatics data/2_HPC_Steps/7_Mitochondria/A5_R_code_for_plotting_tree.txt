@@ -8,20 +8,53 @@ scp "pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Samtools_Mito_results/
 # ------------------------------------------------------------------------------
 # IMPORT AND PLOT THE MAXIMUM LIKELIHOOD TREE IN R:
 
-install.packages("ape")
-install.packages("phytools")
-install.packages("ggbreak")
-if (!requireNamespace("BiocManager", quietly = TRUE))
-  install.packages("BiocManager")
-BiocManager::install("ggtree")
+##install.packages("ape")
+##install.packages("phytools")
+##install.packages("ggbreak")
+##if (!requireNamespace("BiocManager", quietly = TRUE))
+##  install.packages("BiocManager")
+##BiocManager::install("ggtree")
 
 setwd("~/Downloads/Mitochondrial_IQTREE_results")
 
 # Read tree into R:
 library(ape)
+library(phytools)
 tree <- read.tree("partitions.txt.treefile")  # IQ-TREE output
-tree_rooted <- root(tree, outgroup = "LouwsFarm_PETIOLATA_WASPS_L13_a", resolve.root = TRUE)
-tree_rooted_and_ladderised <- ladderize(tree_rooted)
+##tree_rooted <- root(tree, outgroup = "LouwsFarm_PETIOLATA_WASPS_L13_a", resolve.root = TRUE)
+##tree_rooted_and_ladderised <- ladderize(tree_rooted)
+
+ # Define the two species clades:
+                            cladeA <- c("LouwsFarm_PETIOLATA_WASPS_L13_a",
+                                        "LouwsFarm_PETIOLATA_WASPS_L17_d")
+                            cladeB <- c("Yaounde1_BBV_V_on_A4_32",
+                                        "AfricanLaboratory_AL5_4")
+                            
+                            # Get MRCA nodes
+                            nodeA <- getMRCA(tree, cladeA)
+                            nodeB <- getMRCA(tree, cladeB)
+                            
+                            # Midpoint reroot between these nodes
+                            midpoint_root <- function(tree, nodeA, nodeB) {
+                              path <- nodepath(tree, nodeA, nodeB)
+                              edges <- sapply(seq_along(path[-length(path)]), function(i)
+                                which(apply(tree$edge, 1, function(e) all(e %in% path[i:(i+1)]))))
+                              lengths <- ifelse(is.null(tree$edge.length), rep(1, length(edges)), tree$edge.length[edges])
+                              half <- sum(lengths) / 2
+                              cum <- 0
+                              for (i in seq_along(edges)) {
+                                cum <- cum + lengths[i]
+                                if (cum >= half) {
+                                  child <- tree$edge[edges[i], 2]
+                                  pos <- cum - half
+                                  return(reroot(tree, node = child, position = pos))
+                                }
+                              }
+                            }
+                            
+                            tree_rooted <- midpoint_root(tree, nodeA, nodeB)
+                            tree_rooted_and_ladderised <- ladderize(tree_rooted)
+                        
 
 # Simple plot:
 plot(tree_rooted_and_ladderised, show.node.label = TRUE)
@@ -55,15 +88,15 @@ View(metadata)
 
 p <- ggtree(tree_rooted_and_ladderised, layout = "circular", size = 0.05, aes(color = climate)) %<+% metadata +
   geom_tippoint(aes(color = climate), size = 0.04) +
-  geom_tiplab(size = 0.5, aes(angle = angle)) + xlim(0,0.3)
-p + geom_treescale(x = 0, y = 200, width = 0.01) 
+  ##geom_tiplab(size = 0.5, aes(angle = angle)) 
+  xlim(0,0.3)
+p <- p + geom_treescale(x = max(p$data$x), y = 0.1, width = 0.01)
 myColors <- c("#56ddc5","red")
 p <- p + scale_color_manual(values = c(
   "South_Africa" = "red",
   "Southern_Cameroon" = "#56ddc5",
   "Northern_Cameroon" = "orange"
 ))
-p <- p + geom_treescale(x = 0, y = 200, width = 0.01) 
 p <- p + theme(legend.position = "none")
 p
 
@@ -75,35 +108,10 @@ p + theme(
 # To identify the node numbers:
 p + geom_text2(aes(label=node), hjust=-0.3)
 
-# To root by node 579:
-rooted_tree <- root(tree, node = NODE579_NUMBER)
-
-
-# Simple tree without branch lengths
-p_no_branch_lengths <- ggtree(tree_rooted_and_ladderised, layout = "circular", branch.length = "none") %<+% metadata +
-  geom_tippoint(aes(color = climate), size = 5) +
-  geom_tiplab(size = 1, aes(fill = climate), align = TRUE, offset = 2.5) +
-  guides(color = "none", fill = "none")
-p_no_branch_lengths
-myColors <- c("#56ddc5","red")
-p_no_branch_lengths <- p_no_branch_lengths + scale_color_manual(values = c(
-  "South_Africa" = "red",
-  "Southern_Cameroon" = "#56ddc5",
-  "Northern_Cameroon" = "orange"
-))
-p_no_branch_lengths
-
-# Rectangular layout:
-ggtree(tree_rooted, layout = "rectangular", size = 0.05, aes(color = climate)) %<+% metadata +
-  geom_tippoint(aes(color = climate), size = 0.04) +
-  geom_tiplab(size = 0.8) + xlim(0,1)
-
-
 # ------------------------------------------------------------------------------
 # IMPORT AND PLOT THE IQ-TREE CONSENSUS TREE FROM THE BOOTSTRAPS
 
 consensus_tree <- read.tree("partitions.txt.contree")
-
 consensus_tree_rooted <- root(consensus_tree, outgroup = "LouwsFarm_PETIOLATA_WASPS_L13_a", resolve.root = TRUE)
 consensus_tree_rooted_and_ladderised <- ladderize(consensus_tree_rooted)
 
@@ -131,6 +139,19 @@ metadata_consensus_tree <- metadata_consensus_tree %>%
 View(metadata_consensus_tree)
 
 p <- ggtree(consensus_tree_rooted_and_ladderised, layout = "circular", size = 0.05)  %<+% metadata_consensus_tree +
+  geom_tippoint(aes(color = climate), size = 0.04)
+  geom_tiplab(size = 0.5, aes(colour = climate), offset = 2.5) + xlim(0,0.3)
+myColors <- c("#56ddc5","red")
+p <- p + scale_color_manual(values = c(
+  "South_Africa" = "red",
+  "Southern_Cameroon" = "#56ddc5",
+  "Northern_Cameroon" = "orange"
+))
+p
+p + geom_treescale(x = 0.05, y = 0, width = 0.01) 
+
+# Plot the same tree but rectangular and with bootstrap support values:
+p <- ggtree(consensus_tree_rooted_and_ladderised, layout = "rectangular", size = 0.05)  %<+% metadata_consensus_tree +
   geom_tippoint(aes(color = climate), size = 0.04) +
   geom_tiplab(size = 0.5, aes(colour = climate), offset = 2.5) + xlim(0,0.3) +
   geom_text2(aes(subset = !isTip & as.numeric(label) > 70, label = label),
@@ -142,7 +163,8 @@ p <- p + scale_color_manual(values = c(
   "Northern_Cameroon" = "orange"
 ))
 p
-p + geom_treescale(x = 0, y = 200, width = 0.01) 
+p + geom_treescale(x = 0.05, y = 0, width = 0.01) 
+
 
 # ------------------------------------------------------------------------------
 
