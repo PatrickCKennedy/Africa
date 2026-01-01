@@ -12,6 +12,7 @@ scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/results/distances.all.t
 library(ape)
 library(tidyverse)
 library(ggtree)
+library(phytools)
 
 # Import the tsv file into R:
 df <- read.delim("~/Downloads/distances.all.tsv")
@@ -55,9 +56,12 @@ p <- ggtree(tree) +
 
 print(p)
 
-# Root the tree:
-tree_rooted <- root(tree, outgroup = "L10_e_EKDL230052134-1A_22GGMJLT3_L7.no.overlaps.bam", resolve.root = TRUE)
-tree_rooted_and_ladderised <- ladderize(tree_rooted)
+        # Root the tree at the common ancestor of B. juncea and B. petiolata (using a wasp from each species):
+        repA <- "L18_c_EKDL230052134-1A_22GGMJLT3_L7.no.overlaps.bam"
+        repB <- "SOA4_2_CKDL230013284-1A_2235HJLT3_L6.no.overlaps.bam"
+        mrca_node <- ggtree::MRCA(tree, c(repA, repB))
+        tree_rooted <- ape::root(tree, node = mrca_node, resolve.root = TRUE)
+        tree_rooted_and_ladderised <- ape::ladderize(tree_rooted)
 
 # Import the sequencing data (this is available as the sheet "SUPMAT - lcWGS_sequences_table" in the Supplementary Material):
 library(readxl)
@@ -103,5 +107,25 @@ p
 p <- p + theme(legend.position = "none")
 p
 
+# Since genetic distances can be inflated at low-coverage, plot the same tree without branch lengths:
+q <- ggtree(tree_rooted_and_ladderised, branch.length = "none", layout = "circular", size = 0.2, aes(color = climate)) %<+% metadata +
+    geom_tippoint(aes(color = climate), size = 1) 
+q + geom_treescale(x = 0, y = 200, width = 0.1) 
+myColors <- c("#56ddc5","red")
+q <- q + scale_color_manual(values = c(
+    "South_Africa" = "red",
+    "Southern_Cameroon" = "#56ddc5",
+    "Northern_Cameroon" = "orange"
+))
+q
+q <- q + theme(legend.position = "none")
+q
 
-
+# To add tip labels:
+q + geom_tiplab2(
+    aes(label = label, color = climate),   # color labels by climate if desired
+    size = 2.5,                            # text size
+    offset = 0.3,                          # radial offset from the tips
+    align = TRUE,                          # draw guide lines from tip to label
+    linetype = "dotted"
+)
