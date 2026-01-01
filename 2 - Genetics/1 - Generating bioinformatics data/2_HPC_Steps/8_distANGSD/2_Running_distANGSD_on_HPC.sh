@@ -282,9 +282,11 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                                         -method nuc \
                                         -model "$my_choice_of_phylogenetic_model_to_run" \
                                         -par 2.0431,0.0821,0.000001,0.0670,0.000001,0.2184,0.2606,0.3265,0.1946 \
-                                        -o "$OUTPFX" \
+                                        -o "/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/distangsd_results/${OUTPFX}.log.txt" \
                                         -is2Dinfer 1 \
                                         -isex 0 \
+                                        -outbin 0 \
+                                        -outuchar 0 \
                                         -isthreading 1 \
                                       2>&1 | sed -e 's/\r/\n/g' -e $'s/\033\\[[0-9;]*[A-Za-z]//g'
                                     )"
@@ -295,14 +297,21 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                                     # The values we have used here are taken directly from Zhao et al. (2022) - see page 5.
                                     
                                
-# --- Extract t and p_inv robustly (prefer -o logs; fallback to sanitized stdout/err) ---
-# Sanitize any files written by -o as well (some builds emit CR progress there too)
+
+# --- Extract t and p_inv robustly (prefer -o log; fallback to sanitized stdout/err) ---
+
+# Explicit logfile path (MUST match the -o argument used above)
+LOGFILE="/user/work/pk14885/Wasps/Completed_alignments/all_bams_symlink_folder/distangsd_results/${OUTPFX}.log.txt"
+
 echo "Creating a clean log."
-clean_log="$(
-  cat "${OUTPFX}"* 2>/dev/null \
-  | sed -e 's/\r/\n/g' -e $'s/\033\\[[0-9;]*[A-Za-z]//g' \
-  | tr -d '\000'
-)"
+if [[ -s "$LOGFILE" ]]; then
+  clean_log="$(
+    sed -e 's/\r/\n/g' -e $'s/\033\\[[0-9;]*[A-Za-z]//g' "$LOGFILE" \
+    | tr -d '\000'
+  )"
+else
+  clean_log=""
+fi
 
 # Sanitize dist_out (captured stdout/stderr) and strip NULs
 echo "Sanitising output."
@@ -314,39 +323,55 @@ clean_out="$(
 
 # Function: extract last numeric token on a matched line (handles int/float/scientific)
 _extract_num='
-  BEGIN{num="^-?[0-9]+(\\.[0-9]+)?([eE][-+]?[0-9]+)?$"}
-  { for(i=NF;i>0;i--) if ($i ~ num) { print $i; exit } }
+  BEGIN { num = "^-?[0-9]+(\\.[0-9]+)?([eE][-+]?[0-9]+)?$" }
+  { for (i = NF; i > 0; i--) if ($i ~ num) { print $i; exit } }
 '
 
-# Parse t and p_inv (prefer logs, then fallback to clean_out)
+# ---- Patterns (portable) ----
+# Lines that contain "Estimated t = ..." or "Estimated t: ..."
+awk_pat_t='/[Ee]stimated[[:space:]]*t[[:space:]]*[:=]/'
+
+# Lines that contain "p_inv = ..." or variants like pInv/p-inv/p inv, case-insensitive.
+# Avoid GNU [[:<:]]; use start-of-line or non-word-char as a left boundary.
+awk_pat_pinv='
+  BEGIN { IGNORECASE=1 }
+  /(^|[^[:alnum:]_])p([_-]|[[:space:]]*)inv[[:space:]]*[:=]/ { print; }
+'
+
+# ---- Parse t (prefer log, then fallback to sanitized stdout/err) ----
 echo "Parsing t value."
 t_value="$(
   printf '%s\n' "$clean_log" \
-  | grep -E 'Estimated[[:space:]]*t[[:space:]]*[:=]' \
+  | awk "$awk_pat_t" \
   | awk "$_extract_num"
 )"
-[[ -z "$t_value" ]] && t_value="$(
-  printf '%s\n' "$clean_out" \
-  | grep -E 'Estimated[[:space:]]*t[[:space:]]*[:=]' \
-  | awk "$_extract_num"
-)"
+if [[ -z "$t_value" ]]; then
+  t_value="$(
+    printf '%s\n' "$clean_out" \
+    | awk "$awk_pat_t" \
+    | awk "$_extract_num"
+  )"
+fi
 
+# ---- Parse p_inv (prefer log, then fallback to sanitized stdout/err) ----
 echo "Parsing p_inv value."
 p_inv_value="$(
   printf '%s\n' "$clean_log" \
-  | grep -E '[[:<:]]p_inv[[:space:]]*[:=]' \
+  | awk "$awk_pat_pinv" \
   | awk "$_extract_num"
 )"
-[[ -z "$p_inv_value" ]] && p_inv_value="$(
-  printf '%s\n' "$clean_out" \
-  | grep -E '[[:<:]]p_inv[[:space:]]*[:=]' \
-  | awk "$_extract_num"
-)"
+if [[ -z "$p_inv_value" ]]; then
+  p_inv_value="$(
+    printf '%s\n' "$clean_out" \
+    | awk "$awk_pat_pinv" \
+    | awk "$_extract_num"
+  )"
+fi
 
-                                    # Provide NA placeholders for the summary table if parsing failed
-                                    t_for_sum="${t_value:-NA}"
-                                    p_inv_for_sum="${p_inv_value:-NA}"
-                                    
+# ---- Placeholders for summary when parsing fails ----
+t_for_sum="${t_value:-NA}"
+p_inv_for_sum="${p_inv_value:-NA}"
+
                                     # --- Append to summary table (now INCLUDING t and p_inv as the last two columns) ---
                                     echo "Appending t and p_inv to summary table."
                                     {
