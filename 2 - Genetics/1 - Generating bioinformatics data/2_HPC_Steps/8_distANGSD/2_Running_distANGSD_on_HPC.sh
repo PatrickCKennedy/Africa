@@ -276,7 +276,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                         -method nuc \
                         -model "$my_choice_of_phylogenetic_model_to_run" \
                         -o "$OUTPFX" \
-                        -is2Dinfer 0 \
+                        -is2Dinfer 1 \
                         -isex 0 \
                         -isthreading 1 \
                         2>&1
