@@ -278,7 +278,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                                         -mpileup "$mpileup_gz" \
                                         -method nuc \
                                         -model "$my_choice_of_phylogenetic_model_to_run" \
-                                        -par 2.0431,0.0821,0.0000,0.0670,0.0000,0.2184,0.2606,0.3265,0.1946 \
+                                        -par 2.0431,0.0821,0.000001,0.0670,0.000001,0.2184,0.2606,0.3265,0.1946 \
                                         -o "$OUTPFX" \
                                         -is2Dinfer 1 \
                                         -isex 0 \
