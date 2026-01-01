@@ -275,7 +275,7 @@ set +e
   -mpileup "$mpileup_gz" \
   -method nuc \
   -model "GTR" \
-  -par 2.0431,0.0821,0.0000,0.0670,0.0000,0.2184,0.2606,0.3265,0.1946 \
+  -par 1,1,1,1,1,0.25,0.25,0.25,0.25 \
   -o "$OUTPFX" \
   -is2Dinfer 1 \
   -isex 0 \
@@ -305,7 +305,20 @@ p_inv_value="$(
 p_inv_value="${p_inv_value:-NA}"
 
 
-# Append to distances table or report failure
+# --- Append to summary table (locked) ---
+# Ensure the directories exist (optional but recommended)
+
+         # Append to summary table (locked)
+              {
+                flock 201
+                printf "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\n" \
+                  "$A" "$B" "$OUTPFX" "$my_choice_of_phylogenetic_model_to_run" \
+                  "$n_chroms" "$n_nonempty" "$total_sites" \
+                  "$mean_depth_A" "$mean_depth_B" "$max_depth_A" "$max_depth_B" \
+                  >> "$PAIR_SUM_TABLE"
+              } 201>"$PAIR_SUM_LOCK"
+              
+# --- Append to distances table or report failure ---
 if (( STATUS != 0 )) || [[ -z "${t_value:-}" ]]; then
   echo "ERROR: distANGSD failed or t not parsed for ${A##*/} vs ${B##*/} (line ${line})." >&2
   echo "---- distANGSD log (${log_file}) ----"
