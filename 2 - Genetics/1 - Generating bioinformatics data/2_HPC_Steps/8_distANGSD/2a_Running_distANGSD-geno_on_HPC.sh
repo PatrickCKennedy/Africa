@@ -117,6 +117,14 @@ if (( ${#fixed_chroms[@]} == 0 )); then
 fi
 echo "Chromosomes requested (from --export): ${fixed_chroms[*]}"
 
+# Manually set the following, which sets up the masking for shared sites ('intersection'):
+# Keep a site only if BOTH samples have depth >= minimum_depth_per_sample_in_BOTH_samples (and <= maximum_depth_per_sample_in_BOTH_samples if >0).
+minimum_depth_per_sample_in_BOTH_samples="5"    # i.e., only keep this site in the analysis if both samples have at least this number of reads at the site.
+maximum_depth_per_sample_in_BOTH_samples="20"   # i.e., cut out regions with unusually high depth, which might be repeats.
+
+# Note: the use of the intersection approach dramatically increased the speed which this the analysis could be run, as it
+# cuts out difficult-to-handle sites with very flat genome likelihoods.
+
 # Main loop
 for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )); do
                                          
@@ -155,89 +163,105 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
               echo "Running quickcheck with samtools."
               samtools quickcheck -v "$A_bam" "$B_bam" || echo "WARN: samtools quickcheck reported issues" >&2
               
-              echo "Filter the requested chromosome list to those that are in the BAM file."
-              mapfile -t bam_chroms < <(samtools view -H "$A_bam" \
-                | awk '$1=="@SQ"{for(i=1;i<=NF;i++){if($i~/^SN:/){sub(/^SN:/,"",$i); print $i}}}')
-              declare -A present=()
-              for c in "${bam_chroms[@]}"; do present["$c"]=1; done
+              echo "Filtering the requested chromosome list to those that are in the BAM file."
+                          mapfile -t bam_chroms < <(samtools view -H "$A_bam" \
+                            | awk '$1=="@SQ"{for(i=1;i<=NF;i++){if($i~/^SN:/){sub(/^SN:/,"",$i); print $i}}}')
+                          declare -A present=()
+                          for c in "${bam_chroms[@]}"; do present["$c"]=1; done
+                          
+                          filtered=()
+                          for c in "${fixed_chroms[@]}"; do
+                            if [[ -n "${present[$c]:-}" ]]; then
+                              filtered+=( "$c" )
+                            else
+                              echo "WARN: Requested chromosome '$c' not in BAM header; skipping it." >&2
+                            fi
+                          done
+                          
+                          if (( ${#filtered[@]} == 0 )); then
+                            echo "ERROR: None of the requested chromosomes are present in BAM header; skipping pair." >&2
+                            continue
+                          fi
               
-              filtered=()
-              for c in "${fixed_chroms[@]}"; do
-                if [[ -n "${present[$c]:-}" ]]; then
-                  filtered+=( "$c" )
-                else
-                  echo "WARN: Requested chromosome '$c' not in BAM header; skipping it." >&2
-                fi
-              done
-              
-              if (( ${#filtered[@]} == 0 )); then
-                echo "ERROR: None of the requested chromosomes are present in BAM header; skipping pair." >&2
-                continue
-              fi
-              
-              echo "Make a scratch directory for this pairwise comparison, and prepare the name of the output VCF file that will be created later."
-              pair_scratch="${directory_to_work_in}/$(basename "$OUTPFX")"
-              mkdir -p "$pair_scratch"
-              outbase="$(basename "$OUTPFX")"
-              vcf_gz="${pair_scratch}/${outbase}.vcf.gz"
-              
-              echo "Set up the parallel jobs (for the different chromosomes)."
-              jobs="${SLURM_CPUS_PER_TASK:-1}"
-              n_chroms="${#filtered[@]}"
-              (( jobs < 1 )) && jobs=1
-              (( jobs > n_chroms )) && jobs="$n_chroms"
-              
+              echo "Making a scratch directory for this pairwise comparison, and preparing the name of the output VCF file that will be created later."
+                          pair_scratch="${directory_to_work_in}/$(basename "$OUTPFX")"
+                          mkdir -p "$pair_scratch"
+                          outbase="$(basename "$OUTPFX")"
+                          vcf_gz="${pair_scratch}/${outbase}.vcf.gz"
+                          
+              echo "Setting up the parallel jobs (for the different chromosomes)."
+                          jobs="${SLURM_CPUS_PER_TASK:-1}"
+                          n_chroms="${#filtered[@]}"
+                          (( jobs < 1 )) && jobs=1
+                          (( jobs > n_chroms )) && jobs="$n_chroms"
+                          
               echo "Using ${n_chroms} chromosomes: ${filtered[*]}"
               
               echo "Purging samtools and loading bcftools"
-              module purge
-              module load bcftools
-              : "${TMPDIR:=/tmp}"
-              
-              echo "Build pairwise VCFs for each chromosome (bcftools mpileup | bcftools call | bgzip and index)."
-              # Note: use -I to skip indels at mpileup stage (no need for INFO/INDEL-based filter)
-              printf "%s\n" "${filtered[@]}" \
-                | parallel -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "${TMPDIR}" \
-                    "bcftools mpileup -Ou -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta -q 30 -Q 30 -I -r {} \"${A_bam}\" \"${B_bam}\" \
-                     | bcftools call -mv -Ou \
-                     | bcftools view -Oz -o \"${pair_scratch}/{}.vcf.gz\" \
-                     && bcftools index -f \"${pair_scratch}/{}.vcf.gz\""
+                          module purge
+                          module load bcftools
+                          : "${TMPDIR:=/tmp}"
+
+              echo "Setting up the criteria for intersection."
+                          # Build bcftools intersection filter expression for two samples
+                          minDP="${minimum_depth_per_sample_in_BOTH_samples}"
+                          maxDP="${maximum_depth_per_sample_in_BOTH_samples}"
+                          
+                          # Base: both samples must have DP >= min
+                          dp_filter="FMT/DP[0]>=${minDP} & FMT/DP[1]>=${minDP}"
+                          
+                          # If maxDP > 0, add upper bounds
+                          if [[ "${maxDP}" =~ ^[1-9][0-9]*$ ]]; then
+                            dp_filter="${dp_filter} & FMT/DP[0]<=${maxDP} & FMT/DP[1]<=${maxDP}"
+                          fi
+                          
+                          # Keep only biallelic SNPs
+                          snp_flags="-v snps -m2 -M2"
+
+              echo "Building pairwise VCFs for each chromosome (bcftools mpileup | bcftools call | bgzip and index)."
+                          # Note: use -I to skip indels at mpileup stage (no need for INFO/INDEL-based filter)             
+                          printf "%s\n" "${filtered[@]}" \
+                            | parallel --delay 0.2 -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "${TMPDIR}" \
+                                "bcftools mpileup -Ou -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta -q 30 -Q 30 -I -d 200 -r {} \"${A_bam}\" \"${B_bam}\" \
+                                 | bcftools call -mv -Ou -@ 1 \
+                                 | bcftools view ${snp_flags} -i '${dp_filter}' -Oz -o \"${pair_scratch}/{}.vcf.gz\" \
+                                 && bcftools index -f \"${pair_scratch}/{}.vcf.gz\""
 
               echo "Count up the non-empty per-chromosome outputs."
-              n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c | wc -l | awk '{print $1}')
+                          n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c | wc -l | awk '{print $1}')
               
               echo ">> Concatenating per-chromosome VCFs -> ${vcf_gz}"
-              # Build a null-delimited list and concatenate in one call (avoids xargs chunking)
-              mapfile -d '' -t parts < <(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c -print0 | sort -z)
-              if (( ${#parts[@]} == 0 )); then
-                echo "ERROR: No non-empty per-chromosome VCFs found; skipping pair." >&2
-                continue
-              fi
-              if ! bcftools concat -Oz -o "$vcf_gz" "${parts[@]}"; then
-                echo "ERROR: Failed to build combined VCF for ${A##*/} vs ${B##*/}; skipping pair." >&2
-                continue
-              fi
+                          # Build a null-delimited list and concatenate in one call (avoids xargs chunking)
+                          mapfile -d '' -t parts < <(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c -print0 | sort -z)
+                          if (( ${#parts[@]} == 0 )); then
+                            echo "ERROR: No non-empty per-chromosome VCFs found; skipping pair." >&2
+                            continue
+                          fi
+                          if ! bcftools concat -Oz -o "$vcf_gz" "${parts[@]}"; then
+                            echo "ERROR: Failed to build combined VCF for ${A##*/} vs ${B##*/}; skipping pair." >&2
+                            continue
+                          fi
               
               # Make the combined VCF distANGSD-friendly:
-              # 1) sort by coordinate, 2) index (BGZF .tbi/.csi)
-              vcf_sorted="${pair_scratch}/${outbase}.sorted.vcf.gz"
-              echo ">> Sorting and indexing combined VCF (required for random access by distANGSD)."
-              if ! bcftools sort -Oz -o "$vcf_sorted" "$vcf_gz"; then
-                echo "ERROR: bcftools sort failed for ${vcf_gz}" >&2
-                continue
-              fi
-              if ! bcftools index -f "$vcf_sorted"; then
-                echo "ERROR: bcftools index failed for ${vcf_sorted}" >&2
-                continue
-              fi
-              
-              # Use the sorted + indexed file from here on
-              vcf_gz="$vcf_sorted"
-              
-              if [[ ! -s "$vcf_gz" ]]; then
-                echo "ERROR: Combined VCF is empty for ${A##*/} vs ${B##*/}; skipping pair." >&2
-                continue
-              fi
+                            # 1) sort by coordinate, 2) index (BGZF .tbi/.csi)
+                            vcf_sorted="${pair_scratch}/${outbase}.sorted.vcf.gz"
+                            echo ">> Sorting and indexing combined VCF (required for random access by distANGSD)."
+                            if ! bcftools sort -Oz -o "$vcf_sorted" "$vcf_gz"; then
+                              echo "ERROR: bcftools sort failed for ${vcf_gz}" >&2
+                              continue
+                            fi
+                            if ! bcftools index -f "$vcf_sorted"; then
+                              echo "ERROR: bcftools index failed for ${vcf_sorted}" >&2
+                              continue
+                            fi
+                            
+                            # Use the sorted + indexed file from here on
+                            vcf_gz="$vcf_sorted"
+                            
+                            if [[ ! -s "$vcf_gz" ]]; then
+                              echo "ERROR: Combined VCF is empty for ${A##*/} vs ${B##*/}; skipping pair." >&2
+                              continue
+                            fi
 
                 # --- Pair summary stats from the combined VCF ---
                 # total_sites: number of variant records (after indel removal)                
