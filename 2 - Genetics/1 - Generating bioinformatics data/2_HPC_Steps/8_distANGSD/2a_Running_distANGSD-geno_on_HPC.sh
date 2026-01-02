@@ -125,7 +125,7 @@ maximum_depth_per_sample_in_BOTH_samples="20"   # i.e., cut out regions with unu
 # Note: the use of the intersection approach dramatically increased the speed which this the analysis could be run, as it
 # cuts out difficult-to-handle sites with very flat genome likelihoods.
 
-# Main loop
+echo "Starting main loop through pairwise wasp comparisons."
 for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )); do
                                          
               echo ""
@@ -151,7 +151,8 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
               outdir="$(dirname "$OUTPFX")"
               mkdir -p "$outdir"
               
-              echo "Symlink the BAM files to the scratch directory for this pairwise comparison."
+              echo ""
+              echo "Symlinking the BAM files to the scratch directory for this pairwise comparison."
               A_bam="$(symlink_bam "$A" "$scratch_bam_dir")" || continue
               B_bam="$(symlink_bam "$B" "$scratch_bam_dir")" || continue
               
@@ -200,8 +201,9 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
               echo "Purging samtools and loading bcftools"
                           module purge
                           module load bcftools
-                          module load htslib
-                          : "${TMPDIR:=/tmp}"
+
+              echo "Using a temporary directory."
+              : "${TMPDIR:=/tmp}"
 
               echo "Setting up the criteria for intersection."
                              
@@ -233,7 +235,7 @@ printf "%s\n" "${filtered[@]}" \
 echo "Count up the non-empty per-chromosome outputs."
 n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.bcf' -size +0c | wc -l | awk '{print $1}')
 
-echo ">> Concatenating per-chromosome BCFs -> ${bcf_gz}"
+echo ">> Concatenating per-chromosome BCFs."
 mapfile -d '' -t parts < <(find "$pair_scratch" -maxdepth 1 -name '*.bcf' -size +0c -print0 | sort -z)
 if (( ${#parts[@]} == 0 )); then
   echo "ERROR: No non-empty per-chromosome BCFs found; skipping pair." >&2
@@ -257,36 +259,36 @@ if ! bcftools index -f "$bcf_sorted"; then
   echo "ERROR: bcftools index failed for ${bcf_sorted}" >&2
   continue
 fi
-bcf_gz="$bcf_sorted"   # keep variable name for compatibility; this is BCF (not gz)
+my_sorted_bcf_file="$bcf_sorted"   
 
 # --- Pair summary stats from the combined BCF ---
-echo "Calculating summary statistics from the combined BCF: $bcf_gz"
+echo "Calculating summary statistics from the combined BCF: $my_sorted_bcf_file"
 
 echo "(1) Ensuring that the file and index exist."
-if [[ ! -s "$bcf_gz" ]]; then
-  echo "ERROR: Combined BCF is empty or missing: $bcf_gz" >&2
+if [[ ! -s "$my_sorted_bcf_file" ]]; then
+  echo "ERROR: Combined BCF is empty or missing: $my_sorted_bcf_file" >&2
   continue
 fi
 # Check for either TBI or CSI; BCF typically uses CSI
-if [[ ! -r "${bcf_gz}.tbi" && ! -r "${bcf_gz%.gz}.csi" && ! -r "${bcf_gz}.csi" ]]; then
-  echo "WARN: Index missing for $bcf_gz; creating it now."
-  bcftools index -f "$bcf_gz" || { echo "ERROR: Failed to index $bcf_gz"; continue; }
+if [[ ! -r "${my_sorted_bcf_file}.tbi" && ! -r "${my_sorted_bcf_file%.gz}.csi" && ! -r "${my_sorted_bcf_file}.csi" ]]; then
+  echo "WARN: Index missing for $my_sorted_bcf_file; creating it now."
+  bcftools index -f "$my_sorted_bcf_file" || { echo "ERROR: Failed to index $my_sorted_bcf_file"; continue; }
 fi
 
 echo " (2) Counting records (headerless view)."
-total_sites=$(bcftools view -H "$bcf_gz" | wc -l | awk '{print $1}')
+total_sites=$(bcftools view -H "$my_sorted_bcf_file" | wc -l | awk '{print $1}')
 total_sites=${total_sites:-0}
 
 echo "(3) Verifying sample count (expect exactly two samples)."
-n_samples=$(bcftools query -l "$bcf_gz" | wc -l | awk '{print $1}')
+n_samples=$(bcftools query -l "$my_sorted_bcf_file" | wc -l | awk '{print $1}')
 if (( n_samples != 2 )); then
-  echo "ERROR: Expected exactly 2 samples in $bcf_gz, found $n_samples" >&2
+  echo "ERROR: Expected exactly 2 samples in $my_sorted_bcf_file, found $n_samples" >&2
   continue
 fi
 
 echo "(4) Calculating the mean and max depth per sample."
 if ! read -r mean_depth_A mean_depth_B max_depth_A max_depth_B < <(
-  bcftools query -f '[%DP\t]\n' "$bcf_gz" \
+  bcftools query -f '[%DP\t]\n' "$my_sorted_bcf_file" \
   | awk 'BEGIN{n=0;s1=0;s2=0;m1=0;m2=0}
          {
            d1 = ($1 ~ /^[0-9]+$/) ? $1+0 : 0
@@ -298,17 +300,17 @@ if ! read -r mean_depth_A mean_depth_B max_depth_A max_depth_B < <(
            else   { print "0\t0\t0\t0" }
          }'
 ); then
-  echo "ERROR: Failed to compute per-sample DP stats from $bcf_gz" >&2
+  echo "ERROR: Failed to compute per-sample DP stats from $my_sorted_bcf_file" >&2
   mean_depth_A=0 mean_depth_B=0 max_depth_A=0 max_depth_B=0
 fi
 
 echo "Summary: total_sites=$total_sites  meanDP=($mean_depth_A, $mean_depth_B)  maxDP=($max_depth_A, $max_depth_B)"
 
 echo ""
-echo ">> Running distANGSD (geno): $my_path_to_distANGSD_executable_file -vcf $bcf_gz -method geno -model JC -o $OUTPFX -is2Dinfer 0 -isex 0 -isthreading 1"
+echo ">> Running distANGSD (geno): $my_path_to_distANGSD_executable_file -vcf $my_sorted_bcf_file -method geno -model JC -o $OUTPFX -is2Dinfer 0 -isex 0 -isthreading 1"
 set +e
 "$my_path_to_distANGSD_executable_file" \
-  -vcf "$bcf_gz" \
+  -vcf "$my_sorted_bcf_file" \
   -method geno \
   -model JC \
   -o "$OUTPFX" \
