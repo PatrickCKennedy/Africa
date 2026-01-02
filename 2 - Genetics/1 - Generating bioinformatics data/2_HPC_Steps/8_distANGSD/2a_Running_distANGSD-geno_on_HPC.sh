@@ -1,8 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=Chunk_of_distANGSD
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=4G
-#SBATCH --time=0:30:00
+#SBATCH --mem=20G
+#SBATCH --time=2:00:00
 #SBATCH --output=logs/dA_chunk_%A_%a.out
 #SBATCH --error=logs/dA_chunk_%A_%a.out
 #SBATCH --mail-user=pk14885@bristol.ac.uk
