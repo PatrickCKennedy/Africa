@@ -2,7 +2,7 @@
 #SBATCH --job-name=Chunk_of_distANGSD
 #SBATCH --cpus-per-task=16
 #SBATCH --mem=4G
-#SBATCH --time=2:00:00
+#SBATCH --time=0:30:00
 #SBATCH --output=logs/dA_chunk_%A_%a.out
 #SBATCH --error=logs/dA_chunk_%A_%a.out
 #SBATCH --mail-user=pk14885@bristol.ac.uk
@@ -10,6 +10,7 @@
 
 set -euo pipefail
 
+echo "Setting up variables."
 my_pair_list="${my_pair_list}"                            # TSV: A\tB\tOUTPFX
 my_chunk_size_to_run="${my_chunk_size_to_run}"            # Number of pairs per array task
 my_choice_of_phylogenetic_model_to_run="${my_choice_of_phylogenetic_model_to_run}"   # e.g. JC or GTR
@@ -19,19 +20,25 @@ ID_of_this_task_in_the_array_job="${SLURM_ARRAY_TASK_ID:?Need --array and SLURM_
 starting_pair_in_this_chunk=$(((ID_of_this_task_in_the_array_job - 1) * my_chunk_size_to_run + 1))
 last_pair_in_this_chunk=$(( starting_pair_in_this_chunk + my_chunk_size_to_run - 1 ))
 total_number_of_pairs_across_the_whole_array_job=$(wc -l < "$my_pair_list")
-module load samtools/1.19.2-737f
-module load htslib/1.19.1-jbbb
+
+module purge
+##module load perl/5.38.2-7cykysg
+##module load python/3.11.9-keqsz72
+##module load htslib/1.19.1-jbbb
+
+echo "Making a results folder."
 mkdir -p logs results
 
-# Threading for distANGSD (OpenMP)
+echo "Setting up threading to allow later use of threads in distANGSD."
 export OMP_NUM_THREADS="${SLURM_CPUS_PER_TASK}"
 
-# Central TSVs (shared by all array tasks) + locks
+echo "Setting up TSV files (shared by all array tasks) and their locks."
 DIST_TABLE="results/distances.all.tsv"
 DIST_LOCK="${DIST_TABLE}.lock"
 PAIR_SUM_TABLE="results/pair_summaries.all.tsv"
 PAIR_SUM_LOCK="${PAIR_SUM_TABLE}.lock"
 
+echo "Checking that the headers are entered into the TSV files."
 # Ensure headers exist once
 {
   flock 200
@@ -112,104 +119,173 @@ echo "Chromosomes requested (from --export): ${fixed_chroms[*]}"
 
 # Main loop
 for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )); do
-                           
-                IFS=$'\t' read -r A B OUTPFX < <(sed -n "${line}p" "$my_pair_list")
-                
-                # Validate inputs:
-                if [[ -z "${A:-}" || -z "${B:-}" || -z "${OUTPFX:-}" ]]; then
-                  echo "WARN: Malformed line ${line}" >&2
-                  continue
+                                         
+              echo ""
+              echo "- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - "
+              echo ""
+              echo "Identifying the next pairwise comparison to run (from the list of pairwise comparisons)."
+              echo ""
+              IFS=$'\t' read -r A B OUTPFX < <(sed -n "${line}p" "$my_pair_list")
+              
+              echo "Validating that the inputs are correct."
+              if [[ -z "${A:-}" || -z "${B:-}" || -z "${OUTPFX:-}" ]]; then
+                echo "WARN: Malformed line ${line}" >&2
+                continue
+              fi
+              if [[ ! -f "$A" || ! -f "$B" ]]; then
+                echo "WARN: Missing BAM(s) at line ${line}: $A or $B" >&2
+                continue
+              fi
+              
+              echo ">> $(date +'%F %T')  ${A##*/} vs ${B##*/}"
+              
+              # echo "Creating the output directory (OUTPFX) for this pairwise comparison."
+              outdir="$(dirname "$OUTPFX")"
+              mkdir -p "$outdir"
+              
+              echo "Symlink the BAM files to the scratch directory for this pairwise comparison."
+              A_bam="$(symlink_bam "$A" "$scratch_bam_dir")" || continue
+              B_bam="$(symlink_bam "$B" "$scratch_bam_dir")" || continue
+              
+              echo "Loading samtools."
+              module purge
+              module load samtools
+              # (Samtools is purged later to allow for bcftools, which has conflicting dependency versions on BluePebble.)
+              
+              echo "Running quickcheck with samtools."
+              samtools quickcheck -v "$A_bam" "$B_bam" || echo "WARN: samtools quickcheck reported issues" >&2
+              
+              echo "Filter the requested chromosome list to those that are in the BAM file."
+              mapfile -t bam_chroms < <(samtools view -H "$A_bam" \
+                | awk '$1=="@SQ"{for(i=1;i<=NF;i++){if($i~/^SN:/){sub(/^SN:/,"",$i); print $i}}}')
+              declare -A present=()
+              for c in "${bam_chroms[@]}"; do present["$c"]=1; done
+              
+              filtered=()
+              for c in "${fixed_chroms[@]}"; do
+                if [[ -n "${present[$c]:-}" ]]; then
+                  filtered+=( "$c" )
+                else
+                  echo "WARN: Requested chromosome '$c' not in BAM header; skipping it." >&2
                 fi
-                if [[ ! -f "$A" || ! -f "$B" ]]; then
-                  echo "WARN: Missing BAM(s) at line ${line}: $A or $B" >&2
-                  continue
-                fi
-                
-                echo ">> $(date +'%F %T')  ${A##*/} vs ${B##*/}"
-                
-                # Ensure OUTPFX dir exists (final outputs go here)
-                outdir="$(dirname "$OUTPFX")"
-                mkdir -p "$outdir"
-                
-                # Symlink BAMs to per-pair scratch (no copy); then quickcheck
-                A_bam="$(symlink_bam "$A" "$scratch_bam_dir")" || continue
-                B_bam="$(symlink_bam "$B" "$scratch_bam_dir")" || continue
-                samtools quickcheck -v "$A_bam" "$B_bam" || echo "WARN: samtools quickcheck reported issues" >&2
-                
-                # Intersect requested chromosomes with BAM header contigs (avoid region errors)
-                mapfile -t bam_chroms < <(samtools view -H "$A_bam" \
-                  | awk '$1=="@SQ"{for(i=1;i<=NF;i++){if($i~/^SN:/){sub(/^SN:/,"",$i); print $i}}}')
-                declare -A present=()
-                for c in "${bam_chroms[@]}"; do present["$c"]=1; done
-                
-                filtered=()
-                for c in "${fixed_chroms[@]}"; do
-                  if [[ -n "${present[$c]:-}" ]]; then
-                    filtered+=( "$c" )
-                  else
-                    echo "WARN: Requested chromosome '$c' not in BAM header; skipping it." >&2
-                  fi
-                done
-                
-                if (( ${#filtered[@]} == 0 )); then
-                  echo "ERROR: None of the requested chromosomes are present in BAM header; skipping pair." >&2
-                  continue
-                fi
-                
-                # Per-pair scratch subdir and final combined VCF filename
-                pair_scratch="${directory_to_work_in}/$(basename "$OUTPFX")"
-                mkdir -p "$pair_scratch"
-                outbase="$(basename "$OUTPFX")"
-                vcf_gz="${pair_scratch}/${outbase}.vcf.gz"
-                
-                # Determine parallel jobs (do not exceed number of selected chromosomes)
-                jobs="${SLURM_CPUS_PER_TASK}"
-                n_chroms="${#filtered[@]}"
-                (( jobs > n_chroms )) && jobs="$n_chroms"
-                
-                echo "Using ${n_chroms} chromosomes: ${filtered[*]}"
-                
-                # --- Build per-chromosome pairwise VCFs (following distANGSD-geno prep) ---
-                # bcftools mpileup -Ou | bcftools filter (remove indels) | bgzip and index
-                # MQ/BQ thresholds (-q/-Q) and region (-r) match best-practice filtering.
-                printf "%s\n" "${filtered[@]}" \
-                  | parallel -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "$TMPDIR" \
-                      "bcftools mpileup -Ou -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta -q 30 -Q 30 -r {} '$A_bam' '$B_bam' \
-                       | bcftools filter -Ou -e 'INFO/INDEL!=0' \
-                       | bcftools view -Oz -o '${pair_scratch}/{}.vcf.gz' && bcftools index -f '${pair_scratch}/{}.vcf.gz'"
-                
-                # Count non-empty per-chromosome outputs
-                n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c | wc -l | awk '{print $1}')
-                
-                # Concatenate per-chromosome VCFs into one seekable stream
-                echo ">> Concatenating per-chromosome VCFs -> ${vcf_gz}"
-                if ! find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c -print0 \
-                      | sort -z \
-                      | xargs -0 bcftools concat -Oz -o "$vcf_gz"; then
-                  echo "ERROR: Failed to build combined VCF for ${A##*/} vs ${B##*/}; skipping pair." >&2
-                  continue
-                fi
-                bcftools index -f "$vcf_gz"
-                
-                if [[ ! -s "$vcf_gz" ]]; then
-                  echo "ERROR: Combined VCF is empty for ${A##*/} vs ${B##*/}; skipping pair." >&2
-                  continue
-                fi
-                
+              done
+              
+              if (( ${#filtered[@]} == 0 )); then
+                echo "ERROR: None of the requested chromosomes are present in BAM header; skipping pair." >&2
+                continue
+              fi
+              
+              echo "Make a scratch directory for this pairwise comparison, and prepare the name of the output VCF file that will be created later."
+              pair_scratch="${directory_to_work_in}/$(basename "$OUTPFX")"
+              mkdir -p "$pair_scratch"
+              outbase="$(basename "$OUTPFX")"
+              vcf_gz="${pair_scratch}/${outbase}.vcf.gz"
+              
+              echo "Set up the parallel jobs (for the different chromosomes)."
+              jobs="${SLURM_CPUS_PER_TASK:-1}"
+              n_chroms="${#filtered[@]}"
+              (( jobs < 1 )) && jobs=1
+              (( jobs > n_chroms )) && jobs="$n_chroms"
+              
+              echo "Using ${n_chroms} chromosomes: ${filtered[*]}"
+              
+              echo "Purging samtools and loading bcftools"
+              module purge
+              module load bcftools
+              : "${TMPDIR:=/tmp}"
+              
+              echo "Build pairwise VCFs for each chromosome (bcftools mpileup | bcftools call | bgzip and index)."
+              # Note: use -I to skip indels at mpileup stage (no need for INFO/INDEL-based filter)
+              printf "%s\n" "${filtered[@]}" \
+                | parallel -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "${TMPDIR}" \
+                    "bcftools mpileup -Ou -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta -q 30 -Q 30 -I -r {} \"${A_bam}\" \"${B_bam}\" \
+                     | bcftools call -mv -Ou \
+                     | bcftools view -Oz -o \"${pair_scratch}/{}.vcf.gz\" \
+                     && bcftools index -f \"${pair_scratch}/{}.vcf.gz\""
+
+              echo "Count up the non-empty per-chromosome outputs."
+              n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c | wc -l | awk '{print $1}')
+              
+              echo ">> Concatenating per-chromosome VCFs -> ${vcf_gz}"
+              # Build a null-delimited list and concatenate in one call (avoids xargs chunking)
+              mapfile -d '' -t parts < <(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c -print0 | sort -z)
+              if (( ${#parts[@]} == 0 )); then
+                echo "ERROR: No non-empty per-chromosome VCFs found; skipping pair." >&2
+                continue
+              fi
+              if ! bcftools concat -Oz -o "$vcf_gz" "${parts[@]}"; then
+                echo "ERROR: Failed to build combined VCF for ${A##*/} vs ${B##*/}; skipping pair." >&2
+                continue
+              fi
+              
+              # Make the combined VCF distANGSD-friendly:
+              # 1) sort by coordinate, 2) index (BGZF .tbi/.csi)
+              vcf_sorted="${pair_scratch}/${outbase}.sorted.vcf.gz"
+              echo ">> Sorting and indexing combined VCF (required for random access by distANGSD)."
+              if ! bcftools sort -Oz -o "$vcf_sorted" "$vcf_gz"; then
+                echo "ERROR: bcftools sort failed for ${vcf_gz}" >&2
+                continue
+              fi
+              if ! bcftools index -f "$vcf_sorted"; then
+                echo "ERROR: bcftools index failed for ${vcf_sorted}" >&2
+                continue
+              fi
+              
+              # Use the sorted + indexed file from here on
+              vcf_gz="$vcf_sorted"
+              
+              if [[ ! -s "$vcf_gz" ]]; then
+                echo "ERROR: Combined VCF is empty for ${A##*/} vs ${B##*/}; skipping pair." >&2
+                continue
+              fi
+
                 # --- Pair summary stats from the combined VCF ---
-                # total_sites: number of variant records (after indel removal)
-                total_sites="$(bcftools view -H "$vcf_gz" | wc -l | awk '{print $1}')"
-                
-                # Mean and max per-sample DP (FORMAT/DP) across sites
-                # For exactly two samples in the pairwise VCF, the query prints two columns per line.
-                read -r mean_depth_A mean_depth_B max_depth_A max_depth_B < <(
-                  bcftools query -f '[%DP\t]\n' "$vcf_gz" \
-                  | awk 'BEGIN{n=0;s1=0;s2=0;m1=0;m2=0}
-                         {n++; d1=$1+0; d2=$2+0; s1+=d1; s2+=d2; if(d1>m1)m1=d1; if(d2>m2)m2=d2}
-                         END{ if(n>0){ printf "%.6f\t%.6f\t%d\t%d", s1/n, s2/n, m1, m2 } else { print "0\t0\t0\t0" } }'
-                )
-                
-                # --- Run distANGSD-geno ---
+                # total_sites: number of variant records (after indel removal)                
+                echo "Calculating summary statistics from the combined VCF: $vcf_gz"
+
+                            echo "(1) Ensuring that the file and index exist."
+                            if [[ ! -s "$vcf_gz" ]]; then
+                              echo "ERROR: Combined VCF is empty or missing: $vcf_gz" >&2
+                              continue
+                            fi
+                            if [[ ! -r "${vcf_gz}.tbi" && ! -r "${vcf_gz%.gz}.csi" ]]; then
+                              echo "WARN: Index missing for $vcf_gz; creating it now."
+                              bcftools index -f "$vcf_gz" || { echo "ERROR: Failed to index $vcf_gz"; continue; }
+                            fi
+                            
+                            echo " (2) Counting records (headerless view)."
+                            total_sites=$(bcftools view -H "$vcf_gz" | wc -l | awk '{print $1}')
+                            total_sites=${total_sites:-0}
+                            
+                            echo "(3) Verifying sample count (expect exactly two samples)."
+                            n_samples=$(bcftools query -l "$vcf_gz" | wc -l | awk '{print $1}')
+                            if (( n_samples != 2 )); then
+                              echo "ERROR: Expected exactly 2 samples in $vcf_gz, found $n_samples" >&2
+                              # You can choose to continue with a different aggregator or skip
+                              continue
+                            fi
+
+                            echo "(4) Calculating the mean and max depth per sample."
+                            if ! read -r mean_depth_A mean_depth_B max_depth_A max_depth_B < <(
+                              bcftools query -f '[%DP\t]\n' "$vcf_gz" \
+                              | awk 'BEGIN{n=0;s1=0;s2=0;m1=0;m2=0}
+                                     {
+                                       d1 = ($1 ~ /^[0-9]+$/) ? $1+0 : 0
+                                       d2 = ($2 ~ /^[0-9]+$/) ? $2+0 : 0
+                                       n++; s1+=d1; s2+=d2; if(d1>m1)m1=d1; if(d2>m2)m2=d2
+                                     }
+                                     END{
+                                       if(n>0){ printf "%.6f\t%.6f\t%d\t%d", s1/n, s2/n, m1, m2 }
+                                       else   { print "0\t0\t0\t0" }
+                                     }'
+                            ); then
+                              echo "ERROR: Failed to compute per-sample DP stats from $vcf_gz" >&2
+                              mean_depth_A=0 mean_depth_B=0 max_depth_A=0 max_depth_B=0
+                            fi
+                            
+                            echo "Summary: total_sites=$total_sites  meanDP=($mean_depth_A, $mean_depth_B)  maxDP=($max_depth_A, $max_depth_B)"
+
+                echo ""
                 echo ">> Running distANGSD (geno): $my_path_to_distANGSD_executable_file -vcf $vcf_gz -method geno -model $my_choice_of_phylogenetic_model_to_run -o $OUTPFX -is2Dinfer 1 -isex 0 -isthreading 1"
                 set +e
                 "$my_path_to_distANGSD_executable_file" \
@@ -225,6 +301,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                 set -e
                 
                 # --- Parse robustly from the run log ---
+                echo "Obtaining the output values (t value, and p_inv if running GTR rather than JC model)."
                 run_log="${OUTPFX}.run.log"
                 t_value="$(
                   sed -nE 's/.*Estimated[[:space:]]*t[[:space:]]*[:=][[:space:]]*([+-]?[0-9]+([.][0-9]+)?([eE][+-]?[0-9]+)?).*/\1/p' "$run_log" | head -n1
@@ -237,7 +314,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                 )"
                 p_inv_value="${p_inv_value:-NA}"
                 
-                # --- Append to summary table (locked) ---
+                echo "Adding information to the summary table (total_sites, mean depths, max depths)."
                 {
                   flock 201
                   printf "%s\t%s\t%s\t%s\t%d\t%d\t%s\t%s\t%s\t%s\t%s\n" \
@@ -246,7 +323,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                     "$mean_depth_A" "$mean_depth_B" "$max_depth_A" "$max_depth_B"
                 } >> "$PAIR_SUM_TABLE" 201>"$PAIR_SUM_LOCK"
                 
-                # --- Append to distances table or report failure ---
+                echo "Adding the t value (and p_inv value if running GTR) to the summary output table."
                 if (( STATUS != 0 )) || [[ -z "${t_value:-}" ]]; then
                   echo "ERROR: distANGSD failed or t not parsed for ${A##*/} vs ${B##*/} (line ${line})." >&2
                   echo "---- distANGSD run log ----"
@@ -261,7 +338,7 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                   echo "SUCCESSFULLY COMPLETED: ${OUTPFX}  (t=${t_value}, p_inv=${p_inv_value})"
                 fi
                 
-                # Clean up intermediates to save space
+                echo "Cleaning up intermediate files to save space."
                 rm -f "${pps}"/*.vcf.gz || true
                 rm -f "${pps}"/*.bcf.gz || true
                 rm -f "${pair_scratch}"/*.vcf.gz || true
