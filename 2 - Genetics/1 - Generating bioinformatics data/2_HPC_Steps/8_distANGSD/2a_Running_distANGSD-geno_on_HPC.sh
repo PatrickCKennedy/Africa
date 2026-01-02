@@ -217,111 +217,110 @@ fi
 # Optional: biallelic SNPs only
 snp_flags="-v snps -m2 -M2"
 
- echo "Building pairwise VCFs for each chromosome (bcftools mpileup | bcftools call | bgzip and index)."
-             printf "%s\n" "${filtered[@]}" \
-              | parallel --delay 0.2 -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "${TMPDIR}" \
-                  "bcftools mpileup -Ou -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta -q 30 -Q 30 -I -d 200 -r {} -a FORMAT/AD,FORMAT/DP \"${A_bam}\" \"${B_bam}\" \
-                   | bcftools call -mv -Ou \
-                   | bcftools view ${snp_flags} -i \"${dp_filter}\" -Oz -o \"${pair_scratch}/{}.vcf.gz\" \
-                   && bcftools index -f \"${pair_scratch}/{}.vcf.gz\""
+                      
+echo "Building pairwise BCFs for each chromosome (bcftools mpileup | bcftools filter | bcftools view (custom filters) | bgzip and index)."
+printf "%s\n" "${filtered[@]}" \
+ | parallel --delay 0.2 -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "${TMPDIR}" \
+     "bcftools mpileup -Ou \
+         -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta \
+         -q 30 -Q 30 -I -d 200 -r {} \
+         -a FORMAT/AD,FORMAT/DP \
+         \"${A_bam}\" \"${B_bam}\" \
+      | bcftools filter -Ou -e 'INFO/INDEL!=0' \
+      | bcftools view ${snp_flags} -i \"${dp_filter}\" -Ob -o \"${pair_scratch}/{}.bcf\" \
+      && bgzip -f \"${pair_scratch}/{}.bcf\" \
+      && bcftools index -f \"${pair_scratch}/{}.bcf.gz\""
 
-              echo "Count up the non-empty per-chromosome outputs."
-                          n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c | wc -l | awk '{print $1}')
-              
-              echo ">> Concatenating per-chromosome VCFs -> ${vcf_gz}"
-                          # Build a null-delimited list and concatenate in one call (avoids xargs chunking)
-                          mapfile -d '' -t parts < <(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c -print0 | sort -z)
-                          if (( ${#parts[@]} == 0 )); then
-                            echo "ERROR: No non-empty per-chromosome VCFs found; skipping pair." >&2
-                            continue
-                          fi
-                          if ! bcftools concat -Oz -o "$vcf_gz" "${parts[@]}"; then
-                            echo "ERROR: Failed to build combined VCF for ${A##*/} vs ${B##*/}; skipping pair." >&2
-                            continue
-                          fi
-              
-              # Make the combined VCF distANGSD-friendly:
-                            # 1) sort by coordinate, 2) index (BGZF .tbi/.csi)
-                            vcf_sorted="${pair_scratch}/${outbase}.sorted.vcf.gz"
-                            echo ">> Sorting and indexing combined VCF (required for random access by distANGSD)."
-                            if ! bcftools sort -Oz -o "$vcf_sorted" "$vcf_gz"; then
-                              echo "ERROR: bcftools sort failed for ${vcf_gz}" >&2
-                              continue
-                            fi
-                            if ! bcftools index -f "$vcf_sorted"; then
-                              echo "ERROR: bcftools index failed for ${vcf_sorted}" >&2
-                              continue
-                            fi
-                            
-                            # Use the sorted + indexed file from here on
-                            vcf_gz="$vcf_sorted"
-                            
-                            if [[ ! -s "$vcf_gz" ]]; then
-                              echo "ERROR: Combined VCF is empty for ${A##*/} vs ${B##*/}; skipping pair." >&2
-                              continue
-                            fi
+echo "Count up the non-empty per-chromosome outputs."
+n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.bcf.gz' -size +0c | wc -l | awk '{print $1}')
 
-                # --- Pair summary stats from the combined VCF ---
-                # total_sites: number of variant records (after indel removal)                
-                echo "Calculating summary statistics from the combined VCF: $vcf_gz"
+echo ">> Concatenating per-chromosome BCFs -> ${bcf_gz}"
+mapfile -d '' -t parts < <(find "$pair_scratch" -maxdepth 1 -name '*.bcf.gz' -size +0c -print0 | sort -z)
+if (( ${#parts[@]} == 0 )); then
+  echo "ERROR: No non-empty per-chromosome BCFs found; skipping pair." >&2
+  continue
+fi
+bcf_gz="${pair_scratch}/${outbase}.concat.bcf.gz"
+if ! bcftools concat -Ob -o "$bcf_gz" "${parts[@]}"; then
+  echo "ERROR: Failed to build combined BCF for ${A##*/} vs ${B##*/}; skipping pair." >&2
+  continue
+fi
 
-                            echo "(1) Ensuring that the file and index exist."
-                            if [[ ! -s "$vcf_gz" ]]; then
-                              echo "ERROR: Combined VCF is empty or missing: $vcf_gz" >&2
-                              continue
-                            fi
-                            if [[ ! -r "${vcf_gz}.tbi" && ! -r "${vcf_gz%.gz}.csi" ]]; then
-                              echo "WARN: Index missing for $vcf_gz; creating it now."
-                              bcftools index -f "$vcf_gz" || { echo "ERROR: Failed to index $vcf_gz"; continue; }
-                            fi
-                            
-                            echo " (2) Counting records (headerless view)."
-                            total_sites=$(bcftools view -H "$vcf_gz" | wc -l | awk '{print $1}')
-                            total_sites=${total_sites:-0}
-                            
-                            echo "(3) Verifying sample count (expect exactly two samples)."
-                            n_samples=$(bcftools query -l "$vcf_gz" | wc -l | awk '{print $1}')
-                            if (( n_samples != 2 )); then
-                              echo "ERROR: Expected exactly 2 samples in $vcf_gz, found $n_samples" >&2
-                              # You can choose to continue with a different aggregator or skip
-                              continue
-                            fi
+bcf_sorted="${pair_scratch}/${outbase}.sorted.bcf.gz"
+echo ">> Sorting and indexing combined BCF (required for random access by distAngSD)."
+if ! bcftools sort -Ob -o "$bcf_sorted" "$bcf_gz"; then
+  echo "ERROR: bcftools sort failed for ${bcf_gz}" >&2
+  continue
+fi
+if ! bcftools index -f "$bcf_sorted"; then
+  echo "ERROR: bcftools index failed for ${bcf_sorted}" >&2
+  continue
+fi
+bcf_gz="$bcf_sorted"
 
-                            echo "(4) Calculating the mean and max depth per sample."
-                            if ! read -r mean_depth_A mean_depth_B max_depth_A max_depth_B < <(
-                              bcftools query -f '[%DP\t]\n' "$vcf_gz" \
-                              | awk 'BEGIN{n=0;s1=0;s2=0;m1=0;m2=0}
-                                     {
-                                       d1 = ($1 ~ /^[0-9]+$/) ? $1+0 : 0
-                                       d2 = ($2 ~ /^[0-9]+$/) ? $2+0 : 0
-                                       n++; s1+=d1; s2+=d2; if(d1>m1)m1=d1; if(d2>m2)m2=d2
-                                     }
-                                     END{
-                                       if(n>0){ printf "%.6f\t%.6f\t%d\t%d", s1/n, s2/n, m1, m2 }
-                                       else   { print "0\t0\t0\t0" }
-                                     }'
-                            ); then
-                              echo "ERROR: Failed to compute per-sample DP stats from $vcf_gz" >&2
-                              mean_depth_A=0 mean_depth_B=0 max_depth_A=0 max_depth_B=0
-                            fi
-                            
-                            echo "Summary: total_sites=$total_sites  meanDP=($mean_depth_A, $mean_depth_B)  maxDP=($max_depth_A, $max_depth_B)"
 
-                echo ""
-                echo ">> Running distANGSD (geno): $my_path_to_distANGSD_executable_file -vcf $vcf_gz -method geno -model $my_choice_of_phylogenetic_model_to_run -o $OUTPFX -is2Dinfer 1 -isex 0 -isthreading 1"
-                set +e
-                "$my_path_to_distANGSD_executable_file" \
-                  -vcf "$vcf_gz" \
-                  -method geno \
-                  -model JC \
-                  -o "$OUTPFX" \
-                  -is2Dinfer 0 \
-                  -isex 0 \
-                  -isthreading 1 \
-                  2>&1 | tee "${OUTPFX}.run.log"
-                STATUS=${PIPESTATUS[0]}
-                set -e
-                
+                                
+                                # --- Pair summary stats from the combined BCF ---
+                                # total_sites: number of records (headerless view)
+                                echo "Calculating summary statistics from the combined BCF: $bcf_gz"
+                                
+                                echo "(1) Ensuring that the file and index exist."
+                                if [[ ! -s "$bcf_gz" ]]; then
+                                  echo "ERROR: Combined BCF is empty or missing: $bcf_gz" >&2
+                                  continue
+                                fi
+                                if [[ ! -r "${bcf_gz}.tbi" && ! -r "${bcf_gz%.gz}.csi" && ! -r "${bcf_gz}.csi" ]]; then
+                                  echo "WARN: Index missing for $bcf_gz; creating it now."
+                                  bcftools index -f "$bcf_gz" || { echo "ERROR: Failed to index $bcf_gz"; continue; }
+                                fi
+                                
+                                echo " (2) Counting records (headerless view)."
+                                total_sites=$(bcftools view -H "$bcf_gz" | wc -l | awk '{print $1}')
+                                total_sites=${total_sites:-0}
+                                
+                                echo "(3) Verifying sample count (expect exactly two samples)."
+                                n_samples=$(bcftools query -l "$bcf_gz" | wc -l | awk '{print $1}')
+                                if (( n_samples != 2 )); then
+                                  echo "ERROR: Expected exactly 2 samples in $bcf_gz, found $n_samples" >&2
+                                  continue
+                                fi
+                                
+                                echo "(4) Calculating the mean and max depth per sample."
+                                if ! read -r mean_depth_A mean_depth_B max_depth_A max_depth_B < <(
+                                  bcftools query -f '[%DP\t]\n' "$bcf_gz" \
+                                  | awk 'BEGIN{n=0;s1=0;s2=0;m1=0;m2=0}
+                                         {
+                                           d1 = ($1 ~ /^[0-9]+$/) ? $1+0 : 0
+                                           d2 = ($2 ~ /^[0-9]+$/) ? $2+0 : 0
+                                           n++; s1+=d1; s2+=d2; if(d1>m1)m1=d1; if(d2>m2)m2=d2
+                                         }
+                                         END{
+                                           if(n>0){ printf "%.6f\t%.6f\t%d\t%d", s1/n, s2/n, m1, m2 }
+                                           else   { print "0\t0\t0\t0" }
+                                         }'
+                                ); then
+                                  echo "ERROR: Failed to compute per-sample DP stats from $bcf_gz" >&2
+                                  mean_depth_A=0 mean_depth_B=0 max_depth_A=0 max_depth_B=0
+                                fi
+                                
+                                echo "Summary: total_sites=$total_sites  meanDP=($mean_depth_A, $mean_depth_B)  maxDP=($max_depth_A, $max_depth_B)"
+                                
+                                
+echo ""
+echo ">> Running distANGSD (geno): $my_path_to_distANGSD_executable_file -vcf $bcf_gz -method geno -model JC -o $OUTPFX -is2Dinfer 0 -isex 0 -isthreading 1"
+set +e
+"$my_path_to_distANGSD_executable_file" \
+  -vcf "$bcf_gz" \
+  -method geno \
+  -model JC \
+  -o "$OUTPFX" \
+  -is2Dinfer 0 \
+  -isex 0 \
+  -isthreading 1 \
+  2>&1 | tee "${OUTPFX}.run.log"
+STATUS=${PIPESTATUS[0]}
+set -e
+
                 # --- Parse robustly from the run log ---
                 echo "Obtaining the output values (t value, and p_inv if running GTR rather than JC model)."
                 run_log="${OUTPFX}.run.log"
