@@ -361,8 +361,6 @@ snp_flags="-v snps -m2 -M2"
                 fi
                 
                 echo "Cleaning up intermediate files to save space."
-                rm -f "${pps}"/*.vcf.gz || true
-                rm -f "${pps}"/*.bcf.gz || true
-                rm -f "${pair_scratch}"/*.vcf.gz || true
+                rm -f "${pair_scratch}/${outbase}.vcf.gz" || true
 
 done
