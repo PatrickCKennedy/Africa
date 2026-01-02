@@ -42,17 +42,7 @@ HiC_scaffold_6 \
 HiC_scaffold_7 \
 HiC_scaffold_8 \
 HiC_scaffold_9 \
-HiC_scaffold_10 \
-HiC_scaffold_11 \
-HiC_scaffold_12 \
-HiC_scaffold_13 \
-HiC_scaffold_14 \
-HiC_scaffold_15 \
-HiC_scaffold_16 \
-HiC_scaffold_17 \
-HiC_scaffold_18 \
-HiC_scaffold_19 \
-HiC_scaffold_20"
+HiC_scaffold_10"
 
 # -------------------------------------------------------------------------------------------------
 # CALCULATE NUMBER OF TASKS TO RUN:
