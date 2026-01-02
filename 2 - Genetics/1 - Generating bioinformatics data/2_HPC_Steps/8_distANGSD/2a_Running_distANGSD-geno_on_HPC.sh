@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=Chunk_of_distANGSD
 #SBATCH --cpus-per-task=16
-#SBATCH --mem=20G
+#SBATCH --mem=8G
 #SBATCH --time=2:00:00
 #SBATCH --output=logs/dA_chunk_%A_%a.out
 #SBATCH --error=logs/dA_chunk_%A_%a.out
@@ -125,6 +125,11 @@ maximum_depth_per_sample_in_BOTH_samples="20"   # i.e., cut out regions with unu
 # Note: the use of the intersection approach dramatically increased the speed which this the analysis could be run, as it
 # cuts out difficult-to-handle sites with very flat genome likelihoods.
 
+# To avoid an error from very long commands, symlink the reference genome to a shorter name:
+cd /user/work/pk14885
+[ -e ref.fa ] || ln -s /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta ref.fa
+REF="ref.fa"
+
 echo "Starting main loop through pairwise wasp comparisons."
 for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )); do
                                          
@@ -150,7 +155,20 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
               # echo "Creating the output directory (OUTPFX) for this pairwise comparison."
               outdir="$(dirname "$OUTPFX")"
               mkdir -p "$outdir"
-              
+             
+                    # To allow for the array job to be resumed if stopped without losing the outputs of the tasks that have completed, check whether this pair has
+                    # already been run in a previous task (by seeing whether OUTPFX and a t value output appears anywhere in the DIST_TABLE output table), and if so move on to the next one instead:                                   
+                                    t_prev="$(
+                                      awk -v pfx="$OUTPFX" -F'\t' '
+                                        $3==pfx { last=$6 }
+                                        END { if (last!="") print last }
+                                      ' "$DIST_TABLE"
+                                    )"                                   
+                                    if [[ "$t_prev" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+                                      echo "SKIP: ${OUTPFX} already in DIST_TABLE (t=${t_prev})."
+                                      continue
+                                    fi
+
               echo ""
               echo "Symlinking the BAM files to the scratch directory for this pairwise comparison."
               A_bam="$(symlink_bam "$A" "$scratch_bam_dir")" || continue
@@ -224,7 +242,7 @@ echo "Building pairwise BCFs for each chromosome (bcftools mpileup | bcftools fi
 printf "%s\n" "${filtered[@]}" \
  | parallel --delay 0.2 -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "${TMPDIR}" \
      "bcftools mpileup -Ou \
-         -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta \
+         -f  \"${REF}\" \
          -q 30 -Q 30 -I -d 200 -r {} \
          -a FORMAT/AD,FORMAT/DP \
          \"${A_bam}\" \"${B_bam}\" \
