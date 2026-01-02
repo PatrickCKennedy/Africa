@@ -203,30 +203,30 @@ for (( line=starting_pair_in_this_chunk; line<=last_pair_in_this_chunk; line++ )
                           : "${TMPDIR:=/tmp}"
 
               echo "Setting up the criteria for intersection."
-                          # Build bcftools intersection filter expression for two samples
-                          minDP="${minimum_depth_per_sample_in_BOTH_samples}"
-                          maxDP="${maximum_depth_per_sample_in_BOTH_samples}"
-                          
-                          # Base: both samples must have DP >= min
-                          dp_filter="FMT/DP[0]>=${minDP} & FMT/DP[1]>=${minDP}"
-                          
-                          # If maxDP > 0, add upper bounds
-                          if [[ "${maxDP}" =~ ^[1-9][0-9]*$ ]]; then
-                            dp_filter="${dp_filter} & FMT/DP[0]<=${maxDP} & FMT/DP[1]<=${maxDP}"
-                          fi
-                          
-                          # Keep only biallelic SNPs
-                          snp_flags="-v snps -m2 -M2"
-
+                              # Build bcftools intersection filter expression for two samples
+                              minDP="${minimum_depth_per_sample_in_BOTH_samples}"
+                              maxDP="${maximum_depth_per_sample_in_BOTH_samples}"
+                              
+                              # Base: both samples must have DP >= min
+                              dp_filter="FMT/DP[0] >= ${minDP} & FMT/DP[1] >= ${minDP}"
+                              
+                              # If maxDP > 0, add upper bounds
+                              if [[ "${maxDP}" =~ ^[1-9][0-9]*$ ]]; then
+                                dp_filter="${dp_filter} & FMT/DP[0] <= ${maxDP} & FMT/DP[1] <= ${maxDP}"
+                              fi
+                
+                              # Optional: keep only biallelic SNPs
+                              snp_flags="-v snps -m2 -M2"
+                
               echo "Building pairwise VCFs for each chromosome (bcftools mpileup | bcftools call | bgzip and index)."
-                          # Note: use -I to skip indels at mpileup stage (no need for INFO/INDEL-based filter)             
-                          printf "%s\n" "${filtered[@]}" \
-                            | parallel --delay 0.2 -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "${TMPDIR}" \
-                                "bcftools mpileup -Ou -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta -q 30 -Q 30 -I -d 200 -r {} \"${A_bam}\" \"${B_bam}\" \
-                                 | bcftools call -mv -Ou -@ 1 \
-                                 | bcftools view ${snp_flags} -i '${dp_filter}' -Oz -o \"${pair_scratch}/{}.vcf.gz\" \
-                                 && bcftools index -f \"${pair_scratch}/{}.vcf.gz\""
-
+                              # Note: use -I to skip indels at mpileup stage
+                              printf "%s\n" "${filtered[@]}" \
+                                | parallel --delay 0.2 -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "${TMPDIR}" \
+                                    "bcftools mpileup -Ou -f /user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fasta -q 30 -Q 30 -I -d 200 -r {} \"${A_bam}\" \"${B_bam}\" \
+                                     | bcftools call -mv -Ou \
+                                     | bcftools view ${snp_flags} -i \"${dp_filter}\" -Oz -o \"${pair_scratch}/{}.vcf.gz\" \
+                                     && bcftools index -f \"${pair_scratch}/{}.vcf.gz\""
+              
               echo "Count up the non-empty per-chromosome outputs."
                           n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.vcf.gz' -size +0c | wc -l | awk '{print $1}')
               
