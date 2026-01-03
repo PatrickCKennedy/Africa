@@ -230,11 +230,13 @@ minDP="${minimum_depth_per_sample_in_BOTH_samples}"   # e.g., 5
 maxDP="${maximum_depth_per_sample_in_BOTH_samples}"   # e.g., 20 (0 to disable upper bound)
 
 # Build a robust filter using MIN/MAX across samples
-dp_filter="FMT/DP[0]>=${minDP} & FMT/DP[1]>=${minDP}"
+dp_filter="MIN(FMT/DP) >= ${minDP}"
+if [[ "${maxDP}" =~ ^[1-9][0-9]*$ ]]; then
+  dp_filter="${dp_filter} & MAX(FMT/DP) <= ${maxDP}"
+fi
+
 
 echo "Building pairwise BCFs for each chromosome (bcftools mpileup | bcftools filter | bcftools view (custom filters) | index)."
-
-# Per-chromosome build: mpileup -> remove indels -> apply your custom filters -> write BCF -> index
 
 # Per-chromosome build: mpileup -> remove indels -> apply your custom filters -> write BCF -> index
 printf "%s\n" "${filtered[@]}" \
@@ -247,13 +249,6 @@ printf "%s\n" "${filtered[@]}" \
       | bcftools filter -Ou -e 'INFO/INDEL!=0' \
       | bcftools view -i \"${dp_filter}\" -Ob -o \"${pair_scratch}/{}.bcf\" \
       && bcftools index -f \"${pair_scratch}/{}.bcf\""
-
-              # SANITY CHECKS TO CHECK THAT PL LIKELIHOODS ARE PRODUCED, USING THE FIRST CHROMOSOME (append to log)
-              bcftools view -h "${pair_scratch}/HiC_scaffold_1.bcf" \
-                | grep -E '^##FORMAT=<ID=PL|^#CHROM' >> "${OUTPFX}.run.log" 2>&1
-              
-              bcftools query -f '%CHROM\t%POS[\t%PL]\n' \
-                "${pair_scratch}/HiC_scaffold_1.bcf" | head >> "${OUTPFX}.run.log" 2>&1
 
 echo "Count up the non-empty per-chromosome outputs."
 n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.bcf' -size +0c | wc -l | awk '{print $1}')
@@ -335,9 +330,10 @@ set +e
 "$my_path_to_distANGSD_executable_file" \
   -vcf "$my_sorted_bcf_file" \
   -method geno \
-  -model JC \
+  -model GTR \
+  -par 2.0431,0.0821,0.0000,0.0670,0.0000,0.2184,0.2606,0.3265,0.1946 \
   -o "$OUTPFX" \
-  -is2Dinfer 1 \
+  -is2Dinfer 0 \
   -isex 0 \
   -isthreading 1 \
   2>&1 | tee "${OUTPFX}.run.log"
