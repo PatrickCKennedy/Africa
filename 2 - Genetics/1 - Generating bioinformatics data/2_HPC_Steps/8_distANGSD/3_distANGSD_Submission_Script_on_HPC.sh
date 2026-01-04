@@ -13,7 +13,7 @@ set -euo pipefail
 
 # Set the choices below manually. These will be automatically passed to the array job:
   my_chunk_size_to_run=20                        # Each array task will work through this number of pairs of genomes.
-  my_choice_of_phylogenetic_model_to_run="JC"    # Here, we run the simpler Jukes-Cantor (JC) model, but an alternative is General Time Reversible (GTR).
+  my_choice_of_phylogenetic_model_to_run="GTR"    # Here, we run the simpler Jukes-Cantor (JC) model, but an alternative is General Time Reversible (GTR).
 
 # Decide how many chromosomes (scaffolds) to use. Because using the whole genome is very time-consuming,
 # we can subsample to the largest N chromosomes. To find the sizes of the largest 10 scaffolds, we run:
@@ -42,7 +42,27 @@ HiC_scaffold_6 \
 HiC_scaffold_7 \
 HiC_scaffold_8 \
 HiC_scaffold_9 \
-HiC_scaffold_10"
+HiC_scaffold_10 \
+HiC_scaffold_11 \
+HiC_scaffold_12 \
+HiC_scaffold_13 \
+HiC_scaffold_14 \
+HiC_scaffold_15 \
+HiC_scaffold_16 \
+HiC_scaffold_17 \
+HiC_scaffold_18 \
+HiC_scaffold_19 \
+HiC_scaffold_20 \
+HiC_scaffold_21 \
+HiC_scaffold_22 \
+HiC_scaffold_23 \
+HiC_scaffold_24 \
+HiC_scaffold_25 \
+HiC_scaffold_26 \
+HiC_scaffold_27 \
+HiC_scaffold_28 \
+HiC_scaffold_29 \
+HiC_scaffold_30"
 
 # -------------------------------------------------------------------------------------------------
 # CALCULATE NUMBER OF TASKS TO RUN:
