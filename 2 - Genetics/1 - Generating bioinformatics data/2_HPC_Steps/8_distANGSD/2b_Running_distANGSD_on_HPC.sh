@@ -331,7 +331,6 @@ set +e
   -vcf "$my_sorted_bcf_file" \
   -method geno \
   -model GTR \
-  -par 2.0431,0.0821,0.0000,0.0670,0.0000,0.2184,0.2606,0.3265,0.1946 \
   -o "$OUTPFX" \
   -is2Dinfer 0 \
   -isex 0 \
