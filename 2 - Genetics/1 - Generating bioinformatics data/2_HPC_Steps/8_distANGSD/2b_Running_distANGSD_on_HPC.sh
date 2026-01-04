@@ -119,7 +119,7 @@ echo "Chromosomes requested (from --export): ${fixed_chroms[*]}"
 
 # Manually set the following, which sets up the masking for shared sites ('intersection'):
 # Keep a site only if BOTH samples have depth >= minimum_depth_per_sample_in_BOTH_samples (and <= maximum_depth_per_sample_in_BOTH_samples if >0).
-minimum_depth_per_sample_in_BOTH_samples="5"    # i.e., only keep this site in the analysis if both samples have at least this number of reads at the site.
+minimum_depth_per_sample_in_BOTH_samples="4"    # i.e., only keep this site in the analysis if both samples have at least this number of reads at the site.
 maximum_depth_per_sample_in_BOTH_samples="20"   # i.e., cut out regions with unusually high depth, which might be repeats.
 
 # Note: the use of the intersection approach dramatically increased the speed which this the analysis could be run, as it
@@ -331,6 +331,7 @@ set +e
   -vcf "$my_sorted_bcf_file" \
   -method geno \
   -model GTR \
+  -par 1,1,1,1,1,0.342723,0.160783,0.159726,0.336768 \
   -o "$OUTPFX" \
   -is2Dinfer 0 \
   -isex 0 \
@@ -339,6 +340,14 @@ set +e
 STATUS=${PIPESTATUS[0]}
 set -e
 
+## PAR tail (π_A,π_C,π_G,π_T):
+##  "The parameters of the GTR model are a = 2.0431,
+## b = 0.0821, c = 0.0000, d = 0.0670, e = 0.0000,
+## pT = 0.2184, pC = 0.2606, pA = 0.3265, pG = 0.1946.
+## These values are suggested by the table 1.3 in Yang
+## (2006) and were originally inferred from the human and
+## orangutan 12S rRNA genes." (Zhao et al., 2022)
+# Our empirical PAR tail (π_A,π_C,π_G,π_T) using the base frequencies in the reference genome FASTA is: 0.342723,0.160783,0.159726,0.336768
 
                 # --- Parse robustly from the run log ---
                 echo "Obtaining the output values (t value, and p_inv if running GTR rather than JC model)."
