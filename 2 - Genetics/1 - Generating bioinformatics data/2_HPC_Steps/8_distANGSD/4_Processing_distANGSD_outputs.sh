@@ -21,6 +21,7 @@ library(phytools)
 # IMPORT THE NECESSARY FILES
 
 # Import the tsv file into R:
+setwd("/Users/pk14885")
 df <- read.delim("~/Downloads/distances.all.tsv")
 View(df)
 
@@ -105,15 +106,15 @@ names(mean_total_sites_for_each_wasp)[names(mean_total_sites_for_each_wasp) == '
 names(mean_total_sites_for_each_wasp)[names(mean_total_sites_for_each_wasp) == 'rowMeans.summary_mat.'] <- 'total_sites'
 
 # To exclude poor quality samples, set the minimum total_sites threshold for wasps to be retained in the tree:
-minimum_threshold_for_total_sites = 12000000
+minimum_threshold_for_total_sites = 5000000
 mean_total_sites_for_each_wasp$Keep <- ifelse(mean_total_sites_for_each_wasp$total_sites > minimum_threshold_for_total_sites, 1, 0)
 
 # But keep the petiolata wasps to serve as an outgroup regardless of their total_sites:
-mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L10_e","Keep"]=1
-mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L12_c","Keep"]=1
-mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L18_c","Keep"]=1
-mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_g","Keep"]=1
-mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_h","Keep"]=1
+##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L10_e","Keep"]=1
+##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L12_c","Keep"]=1
+##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L18_c","Keep"]=1
+##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_g","Keep"]=1
+##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_h","Keep"]=1
 
 # That will retain the following number of wasps for the tree:
 sum(mean_total_sites_for_each_wasp$Keep)
@@ -153,10 +154,8 @@ print(p)
  # Rooting the tree between B. juncea and B. petiolata:
  
                             # Define the two species clades:
-                            cladeA <- c("L9_g",
-                                        "L9_h")
-                            cladeB <- c("T16_L4",
-                                        "C2_14_1")
+                            cladeA <- c("L10_e", "L18_c")
+                            cladeB <- c("T16_L4","C2_14_1")
                             
                             # Get MRCA nodes
                             nodeA <- getMRCA(tree, cladeA)
@@ -225,8 +224,8 @@ p
 # To add tip labels:
 p + geom_tiplab2(
     aes(label = label, color = climate),   # color labels by climate if desired
-    size = 1,                            # text size
-    align = TRUE,                          # draw guide lines from tip to label
+    size = 2,                            # text size
+    align = FALSE,                          # draw guide lines from tip to label
     linetype = "dotted"
 )
 
@@ -251,35 +250,4 @@ q + geom_tiplab2(
     offset = 0.3,                          # radial offset from the tips
     align = TRUE,                          # draw guide lines from tip to label
     linetype = "dotted"
-)
-
-# ---------------------------------------------------------------------------------------------------
-# To plot 'p' without the spuriously long terminal branch lengths (but keeping the internal branches unchanged in length), the following shortens the tips:
-
-tr <- tree_rooted_and_ladderised  # keep original safe
-n_tip <- Ntip(tr)
-is_tip_edge <- tr$edge[,2] <= n_tip
-
-# Scale terminal edges by a factor
-factor <- 0
-tr$edge.length[is_tip_edge] <- tr$edge.length[is_tip_edge] * factor
-
-# Plot the ggtree:
-p_tipless <- ggtree(tr, layout = "circular", size = 0.2, aes(color = climate)) %<+% metadata +
-    geom_tippoint(aes(color = climate), size = 1) 
-p_tipless + geom_treescale(x = 0, y = 200, width = 0.1) 
-myColors <- c("#56ddc5","red")
-p_tipless <- p_tipless + scale_color_manual(values = c(
-    "South_Africa" = "red",
-    "Southern_Cameroon" = "#56ddc5",
-    "Northern_Cameroon" = "orange"
-))
-p_tipless
-p_tipless <- p_tipless + theme(legend.position = "none")
-p_tipless
-
-
-
-
-
-
+) + xlim(0,50)
