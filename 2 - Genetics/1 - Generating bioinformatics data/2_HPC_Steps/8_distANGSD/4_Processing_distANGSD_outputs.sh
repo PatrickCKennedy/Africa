@@ -6,6 +6,9 @@
 # Once the array job in script 3 has completed, download the output file from the local computer:
 scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/results/distances.all.tsv Downloads/
 
+# Download the run summary table by running this in the terminal:
+##scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/results/pair_summaries.all.tsv Downloads/
+
 # -------------------------------------------------------------------------------------
 # PLOTTING THE TREE IN R
 
@@ -14,12 +17,32 @@ library(tidyverse)
 library(ggtree)
 library(phytools)
 
+# -------------------------------------------------------------------------------------
+# IMPORT THE NECESSARY FILES
+
 # Import the tsv file into R:
 df <- read.delim("~/Downloads/distances.all.tsv")
 View(df)
 
+# Import the sequencing data (this is available as the sheet "SUPMAT - lcWGS_sequences_table" in the Supplementary Material):
+library(readxl)
+Sequencing_data <- read_excel("Downloads/Sequencing_data.xlsx")
+View(Sequencing_data)     
+
+# Import the summary tsv file into R:
+summarytable <- read.delim("~/Downloads/pair_summaries.all.tsv")
+View(summarytable)
+
+# -------------------------------------------------------------------------------------
+
 # Rename the columns:
 colnames(df) <- c("Sample1", "Sample2", "OutPrefix", "Model", "Method", "Distance", "p_inv")
+
+      # Rename the BAM files with the more concise wasp names:
+      idx_for_sample1 <- match(df$Sample1, Sequencing_data$`BAM file`)
+      df$Sample1[!is.na(idx_for_sample1)] <- Sequencing_data$Sequencing_machine_sample_name[idx_for_sample1[!is.na(idx_for_sample1)]]
+      idx_for_sample2 <- match(df$Sample2, Sequencing_data$`BAM file`)
+      df$Sample2[!is.na(idx_for_sample2)] <- Sequencing_data$Sequencing_machine_sample_name[idx_for_sample2[!is.na(idx_for_sample2)]]
 
 # Generate a list of all the individual wasps in the tree:
 samples <- unique(c(df$Sample1, df$Sample2))
@@ -36,10 +59,81 @@ for (i in 1:nrow(df)) {
   mat[s2, s1] <- d
 }
 
-# Convert the matrix into a 'dist' object:
-dist_obj <- as.dist(mat)
+# View the matrix:
+image(1:ncol(mat), 1:nrow(mat), t(mat), col = terrain.colors(60), axes = FALSE)
 
-# Plot a simple tree using base R:
+# ---------------
+# DROP POOR QUALITY SAMPLES BASED ON TOTAL SITES SHARED
+
+# Add BAM sample names to the summary table as new columns:
+basename(summarytable$A) -> summarytable$A_name
+basename(summarytable$B) -> summarytable$B_name
+
+
+      # Rename the BAM files with the more concise wasp names:
+      idx_for_sample1 <- match(summarytable$A_name, Sequencing_data$`BAM file`)
+      summarytable$A_name[!is.na(idx_for_sample1)] <- Sequencing_data$Sequencing_machine_sample_name[idx_for_sample1[!is.na(idx_for_sample1)]]
+      idx_for_sample2 <- match(summarytable$B_name, Sequencing_data$`BAM file`)
+      summarytable$B_name[!is.na(idx_for_sample2)] <- Sequencing_data$Sequencing_machine_sample_name[idx_for_sample2[!is.na(idx_for_sample2)]]
+
+
+# Set up an empty square matrix to be filled in:
+summary_mat <- matrix(0, nrow=length(samples), ncol=length(samples), dimnames=list(samples, samples))
+
+# Fill the distances into the matrix:
+for (i in 1:nrow(df)) {
+  s1 <- summarytable$A_name[i]
+  s2 <- summarytable$B_name[i]
+  d  <- as.numeric(summarytable$total_sites[i])
+  summary_mat[s1, s2] <- d
+  summary_mat[s2, s1] <- d
+}
+
+# View the matrix:
+image(1:ncol(summary_mat), 1:nrow(summary_mat), t(summary_mat), col = terrain.colors(60), axes = FALSE)
+
+# Calculate average total_sites for each sample:
+mean_total_sites_for_each_wasp <- as.data.frame(rowMeans(summary_mat))
+View(mean_total_sites_for_each_wasp)
+
+
+# Rename the columns:
+mean_total_sites_for_each_wasp <- cbind(rownames(mean_total_sites_for_each_wasp), 
+                                        data.frame(mean_total_sites_for_each_wasp, 
+                                        row.names=NULL))
+names(mean_total_sites_for_each_wasp)[names(mean_total_sites_for_each_wasp) == 'rownames(mean_total_sites_for_each_wasp)'] <- 'SampleName'
+names(mean_total_sites_for_each_wasp)[names(mean_total_sites_for_each_wasp) == 'rowMeans.summary_mat.'] <- 'total_sites'
+
+# To exclude poor quality samples, set the minimum total_sites threshold for wasps to be retained in the tree:
+minimum_threshold_for_total_sites = 12000000
+mean_total_sites_for_each_wasp$Keep <- ifelse(mean_total_sites_for_each_wasp$total_sites > minimum_threshold_for_total_sites, 1, 0)
+
+# But keep the petiolata wasps to serve as an outgroup regardless of their total_sites:
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L10_e","Keep"]=1
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L12_c","Keep"]=1
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L18_c","Keep"]=1
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_g","Keep"]=1
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_h","Keep"]=1
+
+# That will retain the following number of wasps for the tree:
+sum(mean_total_sites_for_each_wasp$Keep)
+
+# The higher-quality samples to keep are therefore:
+wasps_to_keep <- subset(mean_total_sites_for_each_wasp, Keep == 1, select=c(SampleName))
+
+# Keep only those wasps in the matrix:
+mat_filtered <- mat[wasps_to_keep$SampleName, wasps_to_keep$SampleName, drop = FALSE]
+
+# View the matrix:
+image(1:ncol(mat_filtered), 1:nrow(mat_filtered), t(mat_filtered), col = terrain.colors(60), axes = FALSE)
+
+# -------------------------------------------------------------------------------------
+# PREPARE THE DATA FOR INPUTTING TO ggTREE
+
+# Convert the matrix into a 'dist' object:
+dist_obj <- as.dist(mat_filtered)
+
+# Plot a simple tree using base R as a quick check before moving to ggTree:
 tree <- nj(dist_obj)   # Neighbor-Joining
 plot(tree, main="Phylogenetic Tree from distANGSD distances")
 
@@ -59,10 +153,10 @@ print(p)
  # Rooting the tree between B. juncea and B. petiolata:
  
                             # Define the two species clades:
-                            cladeA <- c("L18_c_EKDL230052134-1A_22GGMJLT3_L7.no.overlaps.bam",
-                                        "L9_g_EKDL230052134-1A_22GGMJLT3_L7.no.overlaps.bam")
-                            cladeB <- c("A4_20_3_CKDL230013284-1A_2235HJLT3_L6.no.overlaps.bam",
-                                        "PR1_S1_CKDL220030022-1A_HK7J7DSX5.no.overlaps.bam")
+                            cladeA <- c("L10_e",
+                                        "L9_h")
+                            cladeB <- c("T16_L4",
+                                        "C2_14_1")
                             
                             # Get MRCA nodes
                             nodeA <- getMRCA(tree, cladeA)
@@ -89,22 +183,17 @@ print(p)
                             tree_rooted <- midpoint_root(tree, nodeA, nodeB)
                             tree_rooted_and_ladderised <- ladderize(tree_rooted)
                         
-# Import the sequencing data (this is available as the sheet "SUPMAT - lcWGS_sequences_table" in the Supplementary Material):
-library(readxl)
-Sequencing_data <- read_excel("Downloads/Sequencing_data.xlsx")
-View(Sequencing_data)     
-
 # Extract tip labels:
 tips <- tree_rooted_and_ladderised$tip.label
 
 # Create a clean metadata table with columns: label (matches tip labels), population
 metadata <- Sequencing_data %>%
-  select(`BAM file`, Population) %>%
-  rename(label = `BAM file`,
-         population = Population) %>%
-  mutate(label = as.character(label),
-         population = as.character(population))
-         
+     select(Sequencing_machine_sample_name, Population) %>%
+     rename(label = Sequencing_machine_sample_name,
+            population = Population) %>%
+     mutate(label = as.character(label),
+           population = as.character(population))
+
 # Add the climate zone information:
 library(dplyr)
 metadata <- metadata %>%
@@ -155,3 +244,34 @@ q + geom_tiplab2(
     align = TRUE,                          # draw guide lines from tip to label
     linetype = "dotted"
 )
+
+# ---------------------------------------------------------------------------------------------------
+# To plot 'p' without the spuriously long terminal branch lengths (but keeping the internal branches unchanged in length), the following shortens the tips:
+
+tr <- tree_rooted_and_ladderised  # keep original safe
+n_tip <- Ntip(tr)
+is_tip_edge <- tr$edge[,2] <= n_tip
+
+# Scale terminal edges by a factor
+factor <- 0
+tr$edge.length[is_tip_edge] <- tr$edge.length[is_tip_edge] * factor
+
+# Plot the ggtree:
+p_tipless <- ggtree(tr, layout = "circular", size = 0.2, aes(color = climate)) %<+% metadata +
+    geom_tippoint(aes(color = climate), size = 1) 
+p_tipless + geom_treescale(x = 0, y = 200, width = 0.1) 
+myColors <- c("#56ddc5","red")
+p_tipless <- p_tipless + scale_color_manual(values = c(
+    "South_Africa" = "red",
+    "Southern_Cameroon" = "#56ddc5",
+    "Northern_Cameroon" = "orange"
+))
+p_tipless
+p_tipless <- p_tipless + theme(legend.position = "none")
+p_tipless
+
+
+
+
+
+
