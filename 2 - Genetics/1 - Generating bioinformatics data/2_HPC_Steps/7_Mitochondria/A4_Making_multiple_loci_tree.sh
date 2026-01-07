@@ -37,7 +37,7 @@ module load seqkit/2.8.2-qs27
                     # To focus on high-quality data, we will exclude from the phylogeny all wasps that have an average depth of coverage across the COX1 region of less than 20X, using the 'Samtools_Mito_coverage_summary.txt' file.
                     
                     # Set the threshold depth of coverage of interest:
-                                my_THRESHOLD_COVERAGE=20
+                                my_THRESHOLD_COVERAGE=60
                     
                     # Count how many individuals meet this threshold:
                                 awk -v t="$my_THRESHOLD_COVERAGE" '$NF >= t {count++} END {print count}' /user/work/pk14885/Samtools_Mito_coverage_summary.txt
@@ -80,8 +80,7 @@ module load seqkit/2.8.2-qs27
 # ---------------------------------------------------------------------------------
 # NOW COMPLETE THE EXTRACTION AND ALIGNMENT OF THE OTHER SEVEN GENES OF INTEREST:
 
-# Manually choose the threshold depth (evaluated over the COX1 locus) below which we will exclude this wasp entirely:
-my_THRESHOLD_COVERAGE=20
+# Above, we manually choose the threshold depth (evaluated over the COX1 locus) below which we will exclude this wasp entirely.
 
 # Base directory:
 BASE_DIR="/user/work/pk14885/Samtools_Mito_results"
@@ -124,31 +123,34 @@ for gene in "${my_genes_of_interest[@]}"; do
 done
 
 # ---------------------------------------------------------------------------------
-# MOVE THE EIGHT _trimmed.fasta FILES TO THE MAIN FOLDER:
+# MOVE THE EIGHT _trimmed.fasta FILES TO ONE FOLDER:
+
+# Make new directory:
+mkdir /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps
 
 # Move the COX1 results over:
-      mv /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_20X/COX1_trimmed.fasta /user/work/pk14885/Samtools_Mito_results
+      mv /user/work/pk14885/Samtools_Mito_results/COX1_Outputs_Above_${my_THRESHOLD_COVERAGE}X/COX1_trimmed.fasta /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps
 
 # Move the other seven genes' results over:
 for gene in cytb COX2 ND2 ND4 ND5 ATP6 rrnL; do
-      mv /user/work/pk14885/Samtools_Mito_results/${gene}_Outputs_for_wasps_with_COX1_above_${my_THRESHOLD_COVERAGE}X/${gene}_trimmed.fasta /user/work/pk14885/Samtools_Mito_results
+      mv /user/work/pk14885/Samtools_Mito_results/${gene}_Outputs_for_wasps_with_COX1_above_${my_THRESHOLD_COVERAGE}X/${gene}_trimmed.fasta /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps
 done
 
 # ---------------------------------------------------------------------------------
 # CONCATENATE THE EIGHT GENES:
 
-# Navigate back to the main folder:
-          cd /user/work/pk14885/Samtools_Mito_results/
+# Navigate to the main folder:
+          cd /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps
 
 # Use seqkit to concatenate the genes:
-              seqkit concat /user/work/pk14885/Samtools_Mito_results/COX1_trimmed.fasta \
-              /user/work/pk14885/Samtools_Mito_results/cytb_trimmed.fasta \
-              /user/work/pk14885/Samtools_Mito_results/COX2_trimmed.fasta \
-              /user/work/pk14885/Samtools_Mito_results/ND2_trimmed.fasta \
-              /user/work/pk14885/Samtools_Mito_results/ND4_trimmed.fasta \
-              /user/work/pk14885/Samtools_Mito_results/ND5_trimmed.fasta \
-              /user/work/pk14885/Samtools_Mito_results/ATP6_trimmed.fasta \
-              /user/work/pk14885/Samtools_Mito_results/rrnL_trimmed.fasta \
+              seqkit concat /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps/COX1_trimmed.fasta \
+              /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps/cytb_trimmed.fasta \
+              /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps/COX2_trimmed.fasta \
+              /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps/ND2_trimmed.fasta \
+              /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps/ND4_trimmed.fasta \
+              /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps/ND5_trimmed.fasta \
+              /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps/ATP6_trimmed.fasta \
+              /user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_${my_THRESHOLD_COVERAGE}X_COX1_wasps/rrnL_trimmed.fasta \
               > eight_genes_concatenated.fasta
 
 # The lengths of each gene in the alignment are given by:
