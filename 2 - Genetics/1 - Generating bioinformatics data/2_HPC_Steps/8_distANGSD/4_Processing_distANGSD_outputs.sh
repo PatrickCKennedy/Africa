@@ -4,7 +4,7 @@
 # DOWNLOADING THE RESULTS FROM BLUEPEBBLE
 
 # Once the array job in script 3 has completed, download the output file from the local computer:
-scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/results/distances.all.tsv Downloads/
+##scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/results/distances.all.tsv Downloads/
 
 # Download the run summary table by running this in the terminal:
 ##scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/results/pair_summaries.all.tsv Downloads/
@@ -153,7 +153,7 @@ print(p)
  # Rooting the tree between B. juncea and B. petiolata:
  
                             # Define the two species clades:
-                            cladeA <- c("L10_e",
+                            cladeA <- c("L9_g",
                                         "L9_h")
                             cladeB <- c("T16_L4",
                                         "C2_14_1")
@@ -221,6 +221,14 @@ p <- p + scale_color_manual(values = c(
 p
 p <- p + theme(legend.position = "none")
 p
+
+# To add tip labels:
+p + geom_tiplab2(
+    aes(label = label, color = climate),   # color labels by climate if desired
+    size = 1,                            # text size
+    align = TRUE,                          # draw guide lines from tip to label
+    linetype = "dotted"
+)
 
 # Since genetic distances can be inflated at low-coverage, plot the same tree without branch lengths:
 q <- ggtree(tree_rooted_and_ladderised, branch.length = "none", layout = "circular", size = 0.2, aes(color = climate)) %<+% metadata +
