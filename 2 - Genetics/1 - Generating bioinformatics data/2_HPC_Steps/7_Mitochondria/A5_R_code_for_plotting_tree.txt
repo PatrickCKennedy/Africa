@@ -2,8 +2,8 @@
 
 # Before running it, first download the data from HPC:
 ## cd ~/Downloads/
-## mkdir Mitochondrial_IQTREE_results
-##  scp "pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Samtools_Mito_results/partitions*" ~/Downloads/Mitochondrial_IQTREE_results/
+## mkdir Mitochondrial_IQTREE_results_at_60X_for_COX1
+##  scp "pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Samtools_Mito_results/All_results_for_above_the_60X_COX1_wasps/partitions*" ~/Downloads/Mitochondrial_IQTREE_results_at_60X_for_COX1/
 
 # ------------------------------------------------------------------------------
 # IMPORT AND PLOT THE MAXIMUM LIKELIHOOD TREE IN R:
@@ -15,7 +15,7 @@
 ##  install.packages("BiocManager")
 ##BiocManager::install("ggtree")
 
-setwd("~/Downloads/Mitochondrial_IQTREE_results")
+setwd("~/Downloads/Mitochondrial_IQTREE_results_at_60X_for_COX1")
 
 # Read tree into R:
 library(ape)
@@ -25,10 +25,10 @@ tree <- read.tree("partitions.txt.treefile")  # IQ-TREE output
 ##tree_rooted_and_ladderised <- ladderize(tree_rooted)
 
  # Define the two species clades:
-                            cladeA <- c("LouwsFarm_PETIOLATA_WASPS_L13_a",
-                                        "LouwsFarm_PETIOLATA_WASPS_L17_d")
-                            cladeB <- c("Yaounde1_BBV_V_on_A4_32",
-                                        "AfricanLaboratory_AL5_4")
+                            cladeA <- c("LouwsFarm_PETIOLATA_WASPS_L9_h",
+                                        "LouwsFarm_PETIOLATA_WASPS_L12_c")
+                            cladeB <- c("Somalomo_BRIS_EF44_EGG6",
+                                        "TrudiesFarm_T16_L4")
                             
                             # Get MRCA nodes
                             nodeA <- getMRCA(tree, cladeA)
@@ -89,7 +89,7 @@ View(metadata)
 p <- ggtree(tree_rooted_and_ladderised, layout = "circular", size = 0.05, aes(color = climate)) %<+% metadata +
   geom_tippoint(aes(color = climate), size = 0.06) +
   geom_tiplab(size = 1, aes(angle = angle)) 
-p <- p + geom_treescale(x = max(p$data$x), y = 0.1, width = 0.01)
+p <- p + geom_treescale(x = max(p$data$x)/4, y = 0, width = 0.01)
 myColors <- c("#56ddc5","red")
 p <- p + scale_color_manual(values = c(
   "South_Africa" = "red",
@@ -131,7 +131,18 @@ p_boots_included <- p + geom_text2(
 )
 p_boots_included
 
-
+# And here is the same figure but without the tip labels:
+p_no_labels <- ggtree(tree_rooted_and_ladderised, layout = "circular", size = 0.05, aes(color = climate)) %<+% metadata +
+  geom_tippoint(aes(color = climate), size = 0.06)
+p_no_labels <- p_no_labels + geom_treescale(x = max(p$data$x)/4, y = 0, width = 0.01)
+myColors <- c("#56ddc5","red")
+p_no_labels <- p_no_labels + scale_color_manual(values = c(
+  "South_Africa" = "red",
+  "Southern_Cameroon" = "#56ddc5",
+  "Northern_Cameroon" = "orange"
+))
+p_no_labels <- p_no_labels + theme(legend.position = "none")
+p_no_labels
 
 
 
