@@ -120,7 +120,7 @@ echo "Chromosomes requested (from --export): ${fixed_chroms[*]}"
 # Manually set the following, which sets up the masking for shared sites ('intersection'):
 # Keep a site only if BOTH samples have depth >= minimum_depth_per_sample_in_BOTH_samples (and <= maximum_depth_per_sample_in_BOTH_samples if >0).
 minimum_depth_per_sample_in_BOTH_samples="5"    # i.e., only keep this site in the analysis if both samples have at least this number of reads at the site.
-maximum_depth_per_sample_in_BOTH_samples="20"   # i.e., cut out regions with unusually high depth, which might be repeats.
+maximum_depth_per_sample_in_BOTH_samples="12"   # i.e., cut out regions with unusually high depth, which might be repeats.
 
 # Note: the use of the intersection approach dramatically increased the speed which this the analysis could be run, as it
 # cuts out difficult-to-handle sites with very flat genome likelihoods.
@@ -232,9 +232,8 @@ maxDP="${maximum_depth_per_sample_in_BOTH_samples}"   # e.g., 20 (0 to disable u
 # Build a robust filter using MIN/MAX across samples
 dp_filter="MIN(FMT/DP) >= ${minDP}"
 if [[ "${maxDP}" =~ ^[1-9][0-9]*$ ]]; then
-  dp_filter="${dp_filter} & MAX(FMT/DP) <= ${maxDP}"
+  dp_filter="${dp_filter} && MAX(FMT/DP) <= ${maxDP}"
 fi
-
 
 echo "Building pairwise BCFs for each chromosome (bcftools mpileup | bcftools filter | bcftools view (custom filters) | index)."
 
@@ -243,7 +242,7 @@ printf "%s\n" "${filtered[@]}" \
  | parallel --delay 0.2 -j "$jobs" --halt now,fail=1 --line-buffer --compress --tmpdir "${TMPDIR}" \
      "bcftools mpileup -Ou \
          -f  \"${REF}\" \
-         -q 30 -Q 30 -I -d 200 -r {} \
+         -q 30 -Q 30 -I -d 20 -r {} \
          -a FORMAT/AD,FORMAT/DP \
          \"${A_bam}\" \"${B_bam}\" \
       | bcftools filter -Ou -e 'INFO/INDEL!=0' \
@@ -253,6 +252,13 @@ printf "%s\n" "${filtered[@]}" \
 echo "Count up the non-empty per-chromosome outputs."
 n_nonempty=$(find "$pair_scratch" -maxdepth 1 -name '*.bcf' -size +0c | wc -l | awk '{print $1}')
 
+echo ""
+echo "As a sanity check (using the first chromosomes as a test), the following is to confirm that the filter worked to keep depth between the specified ranges."
+echo "If it worked, the following bcftools query | head should report two integers on each line, and they"
+echo "should both be between the filter ranges (e.g., between 4 and 10 if the filter is set to 4 and 10)."
+bcftools query -f '%CHROM\t%POS[\t%DP]\n' "${pair_scratch}/HiC_scaffold_1.bcf" | head
+
+echo ""
 echo ">> Concatenating per-chromosome BCFs."
 mapfile -d '' -t parts < <(find "$pair_scratch" -maxdepth 1 -name '*.bcf' -size +0c -print0 | sort -z)
 if (( ${#parts[@]} == 0 )); then
@@ -305,23 +311,36 @@ if (( n_samples != 2 )); then
 fi
 
 echo "(4) Calculating the mean and max depth per sample."
-if ! read -r mean_depth_A mean_depth_B max_depth_A max_depth_B < <(
-  bcftools query -f '[%DP\t]\n' "$my_sorted_bcf_file" \
-  | awk 'BEGIN{n=0;s1=0;s2=0;m1=0;m2=0}
-         {
-           d1 = ($1 ~ /^[0-9]+$/) ? $1+0 : 0
-           d2 = ($2 ~ /^[0-9]+$/) ? $2+0 : 0
-           n++; s1+=d1; s2+=d2; if(d1>m1)m1=d1; if(d2>m2)m2=d2
-         }
-         END{
-           if(n>0){ printf "%.6f\t%.6f\t%d\t%d", s1/n, s2/n, m1, m2 }
-           else   { print "0\t0\t0\t0" }
-         }'
-); then
-  echo "ERROR: Failed to compute per-sample DP stats from $my_sorted_bcf_file" >&2
-  mean_depth_A=0 mean_depth_B=0 max_depth_A=0 max_depth_B=0
-fi
 
+                  # Pulls the exact sample names present in the BCF (order guaranteed)
+                          echo "dp_filter = ${dp_filter}"
+                          mapfile -t BCF_SAMPLES < <(bcftools query -l "$my_sorted_bcf_file")        
+                          SAMPLE_A="${BCF_SAMPLES[0]}"
+                          SAMPLE_B="${BCF_SAMPLES[1]}"      
+                          # Use these names in the depth summary:
+                          
+                  if ! read -r mean_depth_A mean_depth_B max_depth_A max_depth_B << <(
+                    bcftools query -s "$SAMPLE_A,$SAMPLE_B" -f '[%DP\t]\n' "$my_sorted_bcf_file" \
+                    | awk -F'\t' '
+                        BEGIN{n=0;s1=0;s2=0;m1=0;m2=0}
+                        NF<2{next} # need both samples present
+                        {
+                          d1 = ($1 ~ /^[0-9]+$/) ? $1+0 : 0
+                          d2 = ($2 ~ /^[0-9]+$/) ? $2+0 : 0
+                          n++; s1+=d1; s2+=d2
+                          if(d1>m1)m1=d1
+                          if(d2>m2)m2=d2
+                        }
+                        END{
+                          if(n>0){ printf "%.6f\t%.6f\t%d\t%d\n", s1/n, s2/n, m1, m2 }
+                          else   { print "0\t0\t0\t0" }
+                        }'
+                  ); then
+                    echo "ERROR: Failed to compute per-sample DP stats from $my_sorted_bcf_file" >&2
+                    mean_depth_A=0 mean_depth_B=0 max_depth_A=0 max_depth_B=0
+                  fi
+
+                          
 echo "Summary: total_sites=$total_sites  meanDP=($mean_depth_A, $mean_depth_B)  maxDP=($max_depth_A, $max_depth_B)"
 
 echo ""
