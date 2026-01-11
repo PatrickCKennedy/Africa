@@ -32,7 +32,7 @@ cd /user/work/pk14885/Wasps/Completed_alignments
 
 # Before running this script, you must run the quick code in 'Screening_relatives_on_HPC.sh' manually in each of the populations of interest. Once this has been completed, there will be a file for each population in the country's folder (e.g., 'Somalomo.nonrelatives.bam.filelist.txt').
 
-# If we use all nonrelatives, the PCANGSD run takes a very long time. We therefore select a random sample of up to 10 nonrelatives from each population:
+# If we use all nonrelatives, the PCANGSD run takes a very long time. We therefore select a random sample of up to 20 nonrelatives from each population:
 
         # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         # SELECT (up to 20) RANDOM NONRELATIVES FROM EACH OF THE CAMEROON POPULATIONS:
@@ -262,8 +262,8 @@ angsd -bam Cameroon.AND.SouthAfrica.randomly.selected.nonrelatives.txt \
 # Here, we have applied some filters. This is what the tutorial says:
 # "These filters will retain only uniquely mapping reads, not tagged as bad, considering only proper pairs, without trimming, and adjusting for indel/mapping (as in samtools). -C 50 reduces the effect of reads with excessive mismatches, while -baq 1 computes base alignment quality as explained here (BAQ) used to rule out false SNPs close to INDELS. Also, you may want to remove reads with low mapping quality and sites with low quality or covered by few reads (low depth). Under these circumstances, the assignment of individual genotypes and SNPs is problematic, and can lead to errors. We may also want to remove sites where a fraction (half?) of the individuals have no data. This is achieved by the -minInd option." (https://github.com/nt246/lcwgs-guide-tutorial/blob/main/tutorial2_genotype_snp_calling/markdowns/snp_calling.md)
 
-	# For minInd, I think we should set this value to half of the samples we have. So you would need to change this to 200, for instance, if looking at 400 individuals in total.
-
+	# For minInd, we have set this value to half of the samples we have. 
+	
 	# CHOOSING THE RIGHT OPTION FOR GENOTYPE LIKELIHOOD FUNCTION (THE GL COMMAND IN THE FUNCTION ABOVE).
 	# These are the options:
 
@@ -282,7 +282,7 @@ angsd -bam Cameroon.AND.SouthAfrica.randomly.selected.nonrelatives.txt \
 
 # -------------------------------------------------------------
 # PCANGSD:
-# Before running PCANGSD, you need to generate the Beagle file using ANGSD (above). The following assumes that you have already completed that step.
+# Before running PCANGSD, we need to generate the Beagle file using ANGSD (above). The following assumes that we have already completed that step.
 
 # Activate PCANGSD:
 		module add lang/python/anaconda/3.8.8-2021.05-2.5
@@ -308,11 +308,11 @@ echo
 # Run PCANGSD to generate covariance matrix (and tree data) ready for making the PCA (and tree) in R:
 		pcangsd -b my_Angsd_file.beagle.gz -t 4 --tree --tree_samples WaspNameList -o output.for.pca.in.R.pcangsd
 
-# You can now use the output file ('output.for.pca.in.R.pcangsd') to produce a PCA plot in R, following http://www.popgen.dk/software/index.php/PCAngsdTutorial#Plot_the_results_in_R:
+# We can now use the output file ('output.for.pca.in.R.pcangsd') to produce a PCA plot in R, following http://www.popgen.dk/software/index.php/PCAngsdTutorial#Plot_the_results_in_R:
 # First, download the output (from outside BluePebble).
 
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-# NOTE (OF INTEREST ONLY IF YOU INTEND TO LOOK AT LOCAL-WINDOW PCAs IN THE NEXT SCRIPT):
+# NOTE (OF INTEREST ONLY IF LOOKING AT LOCAL-WINDOW PCAs IN THE NEXT SCRIPT):
 # The covariance matrix produced by our PCANGSD command above is called 'output.for.pca.in.R.pcangsd.cov'.
 # In the following script ('2_PCANGSD_in_genomic_windows.sh'), we use part of a pipeline developed by Merot et al. (2021) 
 # to look at PCAs on short windows of the genome. That script calls an R script created by Merot et al. (2021), which
@@ -352,12 +352,12 @@ echo
 # Inbreeding analysis with PCANGSD:
     pcangsd -b my_Angsd_file.beagle.gz --inbreedSamples --minMaf 0.05 -t 64 -o output.inbreeding_per_individual.pcangsd
     
-# P: For analysing the inbreeding outputs, you can import the two resulting .npy files into R. There are two outputs from 
+# P: For analysing the inbreeding outputs, we can import the two resulting .npy files into R. There are two outputs from 
 # the pcangsd function: one seems to be the per-site inbreeding coefficient, and the other seems to the the likelihood ratio 
 #test ('lrt') output. 
-# Here is my script for plotting them in R on the local computer: 
+# Here is our script for plotting them in R on the local computer: 
 ##library(RcppCNPy); LRT_results <- npyLoad("output.inbreeding.pcangsd.lrt.sites.npy"); inbreeding <- npyLoad("output.inbreeding.pcangsd.inbreed.sites.npy"); inbreeding <- as.data.frame(inbreeding); hist(inbreeding$inbreeding); LRT_results <- as.data.frame(LRT_results)
-# That was for the old analysis, which was inbreeding by sites - have now changed it to by individual.
+# That was for a previous analysis, which was inbreeding by sites - we have now changed it to by individual.
 
 # -------------------------------------------------------------
 # (4 - OPTIONAL) ADMIXTURE ANALYSIS USING NGSADMIX:
@@ -369,7 +369,7 @@ echo
 ##echo "P: Now about to run NGSadmix to generate an admixture plot."
 ##echo
 
-# You can run NGSadmix as part of ANGSD. I have installed it independently on the cluster (following the commands at http://www.popgen.dk/software/index.php/NgsAdmix). Here is the path to where I have installed it on my BluePebble account:
+# We can run NGSadmix as part of ANGSD. We have installed it independently on the cluster (following the commands at http://www.popgen.dk/software/index.php/NgsAdmix). Here is the path to where we have installed it on BluePebble:
 ##NGSADMIX="/user/work/pk14885/MySoftware/NGSadmix"
 
 # This means that we can run NGSadmix just by typing $NGSADMIX. We will run it at several different K (cluster number) values:
