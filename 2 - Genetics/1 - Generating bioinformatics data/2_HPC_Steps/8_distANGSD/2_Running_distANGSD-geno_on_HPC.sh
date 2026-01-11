@@ -319,27 +319,23 @@ echo "(4) Calculating the mean and max depth per sample."
                           SAMPLE_B="${BCF_SAMPLES[1]}"      
                           # Use these names in the depth summary:
                           
-                  if ! read -r mean_depth_A mean_depth_B max_depth_A max_depth_B << <(
-                    bcftools query -s "$SAMPLE_A,$SAMPLE_B" -f '[%DP\t]\n' "$my_sorted_bcf_file" \
-                    | awk -F'\t' '
-                        BEGIN{n=0;s1=0;s2=0;m1=0;m2=0}
-                        NF<2{next} # need both samples present
-                        {
-                          d1 = ($1 ~ /^[0-9]+$/) ? $1+0 : 0
-                          d2 = ($2 ~ /^[0-9]+$/) ? $2+0 : 0
-                          n++; s1+=d1; s2+=d2
-                          if(d1>m1)m1=d1
-                          if(d2>m2)m2=d2
-                        }
-                        END{
-                          if(n>0){ printf "%.6f\t%.6f\t%d\t%d\n", s1/n, s2/n, m1, m2 }
-                          else   { print "0\t0\t0\t0" }
-                        }'
-                  ); then
-                    echo "ERROR: Failed to compute per-sample DP stats from $my_sorted_bcf_file" >&2
-                    mean_depth_A=0 mean_depth_B=0 max_depth_A=0 max_depth_B=0
-                  fi
-
+                  
+if ! read -r mean_depth_A mean_depth_B max_depth_A max_depth_B <<< "$(
+  bcftools query -s "$SAMPLE_A,$SAMPLE_B" -f '[%DP\t]\n' "$my_sorted_bcf_file" \
+  | awk -F'\t' '
+      BEGIN{n=0;s1=0;s2=0;m1=0;m2=0}
+      NF<2{next}
+      { d1 = ($1 ~ /^[0-9]+$/) ? $1+0 : 0
+        d2 = ($2 ~ /^[0-9]+$/) ? $2+0 : 0
+        n++; s1+=d1; s2+=d2; if(d1>m1)m1=d1; if(d2>m2)m2=d2 }
+      END{
+        if(n>0){ printf "%.6f\t%.6f\t%d\t%d\n", s1/n, s2/n, m1, m2 }
+        else   { print "0\t0\t0\t0" }
+      }'
+)"; then
+  echo "ERROR: Failed to compute per-sample DP stats from $my_sorted_bcf_file" >&2
+  mean_depth_A=0 mean_depth_B=0 max_depth_A=0 max_depth_B=0
+fi
                           
 echo "Summary: total_sites=$total_sites  meanDP=($mean_depth_A, $mean_depth_B)  maxDP=($max_depth_A, $max_depth_B)"
 
