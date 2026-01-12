@@ -256,7 +256,7 @@ echo ""
 echo "As a sanity check (using the first chromosomes as a test), the following is to confirm that the filter worked to keep depth between the specified ranges."
 echo "If it worked, the following bcftools query | head should report two integers on each line, and they"
 echo "should both be between the filter ranges (e.g., between 4 and 10 if the filter is set to 4 and 10)."
-bcftools query -f '%CHROM\t%POS[\t%DP]\n' "${pair_scratch}/HiC_scaffold_1.bcf" | head
+bcftools query -f '%CHROM\t%POS[\t%DP]\n' "${pair_scratch}/HiC_scaffold_1.bcf" | head || true
 
 echo ""
 echo ">> Concatenating per-chromosome BCFs."
