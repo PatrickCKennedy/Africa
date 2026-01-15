@@ -97,7 +97,6 @@ image(1:ncol(summary_mat), 1:nrow(summary_mat), t(summary_mat), col = terrain.co
 mean_total_sites_for_each_wasp <- as.data.frame(rowMeans(summary_mat))
 View(mean_total_sites_for_each_wasp)
 
-
 # Rename the columns:
 mean_total_sites_for_each_wasp <- cbind(rownames(mean_total_sites_for_each_wasp), 
                                         data.frame(mean_total_sites_for_each_wasp, 
@@ -106,21 +105,23 @@ names(mean_total_sites_for_each_wasp)[names(mean_total_sites_for_each_wasp) == '
 names(mean_total_sites_for_each_wasp)[names(mean_total_sites_for_each_wasp) == 'rowMeans.summary_mat.'] <- 'total_sites'
 
 # To exclude poor quality samples, set the minimum total_sites threshold for wasps to be retained in the tree:
-minimum_threshold_for_total_sites = 5000000
+minimum_threshold_for_total_sites = 16000000
 mean_total_sites_for_each_wasp$Keep <- ifelse(mean_total_sites_for_each_wasp$total_sites > minimum_threshold_for_total_sites, 1, 0)
 
-# But keep the petiolata wasps to serve as an outgroup regardless of their total_sites:
-##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L10_e","Keep"]=1
-##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L12_c","Keep"]=1
-##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L18_c","Keep"]=1
-##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_g","Keep"]=1
-##mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_h","Keep"]=1
+# However, we keep the petiolata wasps to serve as an outgroup regardless of their total_sites:
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L10_e","Keep"]=1
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L12_c","Keep"]=1
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L18_c","Keep"]=1
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_g","Keep"]=1
+mean_total_sites_for_each_wasp[mean_total_sites_for_each_wasp$SampleName=="L9_h","Keep"]=1
 
 # That will retain the following number of wasps for the tree:
 sum(mean_total_sites_for_each_wasp$Keep)
 
 # The higher-quality samples to keep are therefore:
 wasps_to_keep <- subset(mean_total_sites_for_each_wasp, Keep == 1, select=c(SampleName))
+
+# Among the retained wasps, the average depth was:
 
 # Keep only those wasps in the matrix:
 mat_filtered <- mat[wasps_to_keep$SampleName, wasps_to_keep$SampleName, drop = FALSE]
@@ -154,7 +155,7 @@ print(p)
  # Rooting the tree between B. juncea and B. petiolata:
  
                             # Define the two species clades:
-                            cladeA <- c("L10_e", "L18_c")
+                            cladeA <- c("L9_g", "L18_c")
                             cladeB <- c("T16_L4","C2_14_1")
                             
                             # Get MRCA nodes
