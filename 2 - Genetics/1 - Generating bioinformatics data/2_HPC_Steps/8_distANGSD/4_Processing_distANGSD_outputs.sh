@@ -122,6 +122,9 @@ sum(mean_total_sites_for_each_wasp$Keep)
 wasps_to_keep <- subset(mean_total_sites_for_each_wasp, Keep == 1, select=c(SampleName))
 
 # Among the retained wasps, the average depth was:
+total_sites_of_wasps_to_keep <- subset(mean_total_sites_for_each_wasp, Keep == 1, select=c(total_sites))
+mean(total_sites_of_wasps_to_keep$total_sites)
+sd(total_sites_of_wasps_to_keep$total_sites)
 
 # Keep only those wasps in the matrix:
 mat_filtered <- mat[wasps_to_keep$SampleName, wasps_to_keep$SampleName, drop = FALSE]
