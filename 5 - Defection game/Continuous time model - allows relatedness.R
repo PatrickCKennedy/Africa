@@ -10,12 +10,11 @@ IncludeRelatedness = 0
 
                     # If including relatedness, there is a potential bias introduced by the fact that relatedness is strongly correlated/colinear
                     # with country. Almost all relatednesses are full-sister within the South African trials, whilst there is a lot of variation
-                    # within the Cameroonian trials. It may be inappropriate to include country in a model exploring the effects of relatedness.
-                    # To restrict the relatedness analysis only to Cameroon (where there is much more variation), set IncludeBothCountries to zero:
+                    # within the Cameroonian trials. To restrict the relatedness analysis only to Cameroon (where there is much more variation), set IncludeBothCountries to zero:
                     IncludeBothCountries = 1
 
-# If including relatedness, you need to supply the relatedness values (average relatedness on each colony). Before running this script,
-# you should run 'Processing_relatedness_output.R'. Within that script, a dataframe
+# If including relatedness, we supply the relatedness values (average relatedness on each colony). Before running this script,
+# run 'Processing_relatedness_output.R'. Within that script, a dataframe
 # containing mean relatedness within each trial is generated ('MeanParticipantRelatedness').
 
 # ---------------------------------------------------------------------
@@ -51,11 +50,10 @@ my_data$e41 <- as.numeric(my_data$e41); my_data$e42 <- as.numeric(my_data$e42); 
 View(Trial_info_table) 
 
 # -----------------------------------------------------------------------------
-# Choose whether you want to exclude data after the first 3 days:
-# IF YES, RUN THESE TWO LINES. IF YOU WANT TO INCLUDE ALL DATA, REGARDLESS OF TIMEPOINT, COMMENT THEM OUT:
+# Choose whether to exclude data after the first 3 days:
+# IF YES, WE RUN THESE TWO LINES. TO INCLUDE ALL DATA, REGARDLESS OF TIMEPOINT, WE COMMENT THEM OUT:
  ##           Time_Threshold <- 24*3
  ##           my_data <- subset(my_data, TimeSinceTrialStart < Time_Threshold)
-# I think we should present both results side by side.
 
 # Total number of retained transitions:
 dim(my_data)[[1]]
@@ -85,7 +83,198 @@ if (IncludeBothCountries == 0){
   my_data <- subset(my_data, Country == "Cameroon")
 }
 
+# ---------------------------------------------------------------------------------------
+# PLOT DATA AS A SANKEY PLOT:
+
+# Set dates to more readable format:
+    my_data$Date_only_readable_format <- as.Date(as.numeric(my_data$Date_only),
+                             origin = "1899-12-30")
+
+# For each trial, retain the last observation for each day for the Sankey plot:
+    grouped_by_trial_and_date <- group_by(my_data,Trial,Date_only_readable_format)
+    last_obs_per_day <- slice_tail(grouped_by_trial_and_date,n=1)
+
+# Remove dates that are "NA":
+last_obs_per_day <- last_obs_per_day %>%
+  mutate(Date_only_readable_format = as.Date(Date_only_readable_format))
+last_obs_per_day <- last_obs_per_day %>%
+  filter(!is.na(Date_only_readable_format))
+
+# Focus on the transition columns:
+    last_obs_per_day_focused_columns <- as.data.frame(cbind(last_obs_per_day$Trial,
+    +       last_obs_per_day$Destination_State_1,
+    +       last_obs_per_day$Destination_State_2,
+    +       last_obs_per_day$Destination_State_3,
+    +       last_obs_per_day$Destination_State_4,
+    +       last_obs_per_day$Date_only_readable_format))
+    View(last_obs_per_day_focused_columns)
+
+# Restore the column names:
+colnames(last_obs_per_day_focused_columns) <- c("Trial","Destination_State1","Destination_State2","Destination_State3","Destination_State4","Date")
+
+# Record the destination state in a single column:
+library(dplyr)
+last_obs_per_day_focused_columns <- last_obs_per_day_focused_columns %>%
+  mutate(
+    State = case_when(
+      Destination_State1 == 1 ~ "1",
+      Destination_State2 == 1 ~ "2",
+      Destination_State3 == 1 ~ "3",
+      Destination_State4 == 1 ~ "4",
+      TRUE ~ ""
+    ))
+
+# Remove the transitions columns for clarity:
+last_obs_per_day_more_focused_columns <- as.data.frame(cbind(
+  last_obs_per_day_focused_columns$Trial,
+  last_obs_per_day_focused_columns$State,
+  last_obs_per_day_focused_columns$Date))
+# Restore the column names:
+colnames(last_obs_per_day_more_focused_columns) <- c("Trial","State","Date")
+View(last_obs_per_day_more_focused_columns)
+
+# Dates were turned into R's numerical format. Set them back to a more readable format:
+last_obs_per_day_more_focused_columns$Date <- as.Date(as.numeric(last_obs_per_day_more_focused_columns$Date), origin = "1970-01-01")
+
+# Enter "Not observed" for any observation day that is Not observed for a given trial:
+df_Not_observed <- last_obs_per_day_more_focused_columns %>%
+    group_by(Trial) %>%
+    tidyr::complete(
+        Date = seq(min(Date),
+                                        max(Date),
+                                        by = "day"),
+        fill = list(State = "Not observed")
+    ) %>%
+    ungroup()
+View(df_Not_observed)
+
+# Add in the trial start date (from the Trial_info_table):
+      last_obs_per_day_more_focused_columns_with_trial_start_date <- 
+          df_Not_observed %>%
+          left_join(
+              Trial_info_table %>% select(NestID, Installation_date_and_time),
+              by = c("Trial" = "NestID"))
+      View(last_obs_per_day_more_focused_columns_with_trial_start_date)
+
+# Extract dates from the date/time combo:
+    last_obs_per_day_more_focused_columns_with_trial_start_date$Installation_date <- as.Date(last_obs_per_day_more_focused_columns_with_trial_start_date$Installation_date_and_time, format="%d/%m/%Y")
+
+# To get the number of day since the start of the trial, subtract the installation date from the observation date:
+last_obs_per_day_more_focused_columns_with_trial_start_date$days_since_trial_start <- last_obs_per_day_more_focused_columns_with_trial_start_date$Date - last_obs_per_day_more_focused_columns_with_trial_start_date$Installation_date
+
+# For clarity, remove columns we no longer need:
+last_obs_per_day_more_focused_columns_with_trial_start_date <- as.data.frame(cbind(
+  last_obs_per_day_more_focused_columns_with_trial_start_date$Trial,
+  last_obs_per_day_more_focused_columns_with_trial_start_date$State,
+  last_obs_per_day_more_focused_columns_with_trial_start_date$days_since_trial_start))
+# Restore the column names:
+colnames(last_obs_per_day_more_focused_columns_with_trial_start_date) <- c("Trial","State","Days")
+
+# Convert to wide format for ggSankey:
+      df_wide <- last_obs_per_day_more_focused_columns_with_trial_start_date %>%
+          mutate(Date_chr = as.character(Days)) %>%     # column names must be character
+          select(Trial, Date_chr, State) %>%
+          tidyr::pivot_wider(
+              names_from  = Date_chr,
+              values_from = State)
+
+# Make sure the days are ordered the right way:
+        cn <- names(df_wide)
+        order_idx <- order(ifelse(cn == "NA", Inf, as.numeric(cn)))
+        df_wide_ordered <- df_wide[,order_idx]
+        View(df_wide_ordered)
+
+# Convert remaining NAs to "Not observed":
+df_wide_ordered[is.na(df_wide_ordered)] <- "Not observed"
+
+# List all the daily columns (excluding the column called "Trial"):
+day_cols <- setdiff(names(df_wide_ordered), "Trial")
+
+# Convert to 'long' format:
+        df_long <- make_long(df_wide_ordered, Trial, !!!syms(day_cols))
+
+# Remove the rows that feature "Trial" in, because we don't want to plot each individual
+# trial in the Sankey plot:
+          df_long_no_trial <- df_long |>
+            dplyr::filter(x != "Trial", next_x != "Trial")
+
+# Sankey plot:
+        ggplot2::ggplot(df_long_no_trial, ggplot2::aes(
+              x        = x,
+              next_x   = next_x,
+              node     = node,
+              next_node = next_node,
+              fill     = node
+          )) +
+              geom_sankey(flow.alpha = 0.5, node.color = "black") +
+              ggplot2::scale_fill_manual(
+                  values = c(
+                      "1" = "#1f77b4",  # blue
+                      "2" = "#ff7f0e",  # orange
+                      "3" = "#2ca02c",  # green
+                      "4" = "#d62728",   # red
+                      "Not observed" = "#ebebeb"   # grey
+                  )
+              ) +
+              ggplot2::scale_x_discrete(labels = function(x) x) +
+              theme_sankey() +
+              ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+
+
+
+
+
+
+
+
+                                    
+
+daily_states <- last_obs_per_day_more_focused_columns_with_trial_start_date %>%
+    group_by(Days, State) %>%
+    summarise(n = n(), .groups = "drop")
+
+transition_data <- daily_states %>%
+    arrange(Days, State) %>%
+    group_by(State) %>%
+    mutate(next_state = lead(State),
+           next_date  = lead(Days),
+           next_n     = lead(n)) %>%
+    ungroup() %>%
+    filter(!is.na(next_state), next_date == as.numeric(Days) + 1)
+
+expanded <- transition_data %>%
+    arrange(Days, State) %>%    # ensures chronological order
+    # expand counts into replicated rows
+    slice(rep(row_number(), n))
+
+# Get unique sorted dates
+all_dates <- sort(unique(expanded$Days))
+
+sankey_long <- expanded %>%
+  transmute(
+    x = factor(as.character(Days), levels = as.character(all_dates)),
+    next_x = factor(as.character(next_date), levels = as.character(all_dates)),
+    node = as.character(State),
+    next_node = as.character(next_state)
+  )
+
+ggplot2::ggplot(sankey_long, ggplot2::aes(
+    x = x,
+    next_x = next_x,
+    node = node,
+    next_node = next_node,
+    fill = node
+)) +
+    geom_sankey(flow.alpha = 0.6) +
+    theme_sankey() +
+    ggplot2::labs(title = "Daily Transitions Between States (Aggregated)")
+
+
+
+
+                                    
 # -----------------------------------------------------------------------------
+# MARKOV CHAIN MODEL (using the full 'my_data' dataset)
 
 # Load libraries:
 library(rjags)
