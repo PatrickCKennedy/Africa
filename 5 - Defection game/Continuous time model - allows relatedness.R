@@ -136,21 +136,15 @@ View(last_obs_per_day_more_focused_columns)
 # Dates were turned into R's numerical format. Set them back to a more readable format:
 last_obs_per_day_more_focused_columns$Date <- as.Date(as.numeric(last_obs_per_day_more_focused_columns$Date), origin = "1970-01-01")
 
-# Enter "Not observed" for any observation day that is Not observed for a given trial:
-df_Not_observed <- last_obs_per_day_more_focused_columns %>%
-    group_by(Trial) %>%
-    tidyr::complete(
-        Date = seq(min(Date),
-                                        max(Date),
-                                        by = "day"),
-        fill = list(State = "Not observed")
-    ) %>%
-    ungroup()
-View(df_Not_observed)
+df_filled <- last_obs_per_day_more_focused_columns %>%
+  group_by(Trial) %>%
+  tidyr::complete(Date = seq(min(Date), max(Date), by = "day")) %>%  # all missing days
+  tidyr::fill(State, .direction = "down") %>%  # LOCF
+  ungroup()
 
 # Add in the trial start date (from the Trial_info_table):
       last_obs_per_day_more_focused_columns_with_trial_start_date <- 
-          df_Not_observed %>%
+          df_filled %>%
           left_join(
               Trial_info_table %>% select(NestID, Installation_date_and_time),
               by = c("Trial" = "NestID"))
@@ -186,10 +180,20 @@ colnames(last_obs_per_day_more_focused_columns_with_trial_start_date) <- c("Tria
 
 # Convert remaining NAs to "Not observed":
 df_wide_ordered[is.na(df_wide_ordered)] <- "Not observed"
+                     
+# Add a column at the start to represent the fact that all trials start in State 1 by definition:
+df_wide_ordered$Start <- 1                                     
+df_wide_ordered <- df_wide_ordered %>%
+    select(Start, everything())
+
+# The column "0" is the last observation on the installation day, but this is not informative 
+# for many trials (e.g., if the installation was in the late afternoon). We therefore exclude it from
+# the plot and begin with day 1 (i.e. 1 day after installation):
+df_wide_ordered$`0` <- NULL
 
 # List all the daily columns (excluding the column called "Trial"):
 day_cols <- setdiff(names(df_wide_ordered), "Trial")
-
+                                                     
 # Convert to 'long' format:
         df_long <- make_long(df_wide_ordered, Trial, !!!syms(day_cols))
 
@@ -199,80 +203,41 @@ day_cols <- setdiff(names(df_wide_ordered), "Trial")
             dplyr::filter(x != "Trial", next_x != "Trial")
 
 # Sankey plot:
-        ggplot2::ggplot(df_long_no_trial, ggplot2::aes(
+# Define the exact order on the x-axis:
+levels_vec <- c("Start", as.character(1:19))                                     
+df_long_no_trial <- df_long_no_trial |>
+    dplyr::mutate(
+        x      = factor(as.character(x),      levels = levels_vec),
+        next_x = factor(as.character(next_x), levels = levels_vec))
+
+# Plot Sankey plot:
+          ggplot2::ggplot(df_long_no_trial, ggplot2::aes(
               x        = x,
               next_x   = next_x,
               node     = node,
               next_node = next_node,
               fill     = node
           )) +
-              geom_sankey(flow.alpha = 0.5, node.color = "black") +
+              geom_sankey(
+                  flow.alpha = 0.5, 
+                  node.color = "black",
+                  linewidth = 0   # set >0 if you want visible node borders
+              ) +
               ggplot2::scale_fill_manual(
                   values = c(
                       "1" = "#1f77b4",  # blue
                       "2" = "#ff7f0e",  # orange
                       "3" = "#2ca02c",  # green
-                      "4" = "#d62728",   # red
+                      "4" = "#d62728",  # red
                       "Not observed" = "#ebebeb"   # grey
-                  )
+                  ),
+                  drop = FALSE
               ) +
-              ggplot2::scale_x_discrete(labels = function(x) x) +
+              ggplot2::scale_x_discrete(limits = levels_vec, drop = FALSE, labels = identity) +
+              ggplot2::labs(x = "Day") + 
               theme_sankey() +
               ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
-
-
-
-
-
-
-
-
-                                    
-
-daily_states <- last_obs_per_day_more_focused_columns_with_trial_start_date %>%
-    group_by(Days, State) %>%
-    summarise(n = n(), .groups = "drop")
-
-transition_data <- daily_states %>%
-    arrange(Days, State) %>%
-    group_by(State) %>%
-    mutate(next_state = lead(State),
-           next_date  = lead(Days),
-           next_n     = lead(n)) %>%
-    ungroup() %>%
-    filter(!is.na(next_state), next_date == as.numeric(Days) + 1)
-
-expanded <- transition_data %>%
-    arrange(Days, State) %>%    # ensures chronological order
-    # expand counts into replicated rows
-    slice(rep(row_number(), n))
-
-# Get unique sorted dates
-all_dates <- sort(unique(expanded$Days))
-
-sankey_long <- expanded %>%
-  transmute(
-    x = factor(as.character(Days), levels = as.character(all_dates)),
-    next_x = factor(as.character(next_date), levels = as.character(all_dates)),
-    node = as.character(State),
-    next_node = as.character(next_state)
-  )
-
-ggplot2::ggplot(sankey_long, ggplot2::aes(
-    x = x,
-    next_x = next_x,
-    node = node,
-    next_node = next_node,
-    fill = node
-)) +
-    geom_sankey(flow.alpha = 0.6) +
-    theme_sankey() +
-    ggplot2::labs(title = "Daily Transitions Between States (Aggregated)")
-
-
-
-
-                                    
+                                                                                   
 # -----------------------------------------------------------------------------
 # MARKOV CHAIN MODEL (using the full 'my_data' dataset)
 
