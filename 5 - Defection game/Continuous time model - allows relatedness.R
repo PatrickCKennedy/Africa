@@ -534,7 +534,7 @@ df_long_no_trial_South_Africa_only <- df_long_no_trial_South_Africa_only |>
     next_x = factor(as.character(next_x), levels = levels_vec))
 
 # Plot Sankey plot:
-South_Africaian_Sankey_Plot <- ggplot2::ggplot(df_long_no_trial_South_Africa_only, ggplot2::aes(
+South_African_Sankey_Plot <- ggplot2::ggplot(df_long_no_trial_South_Africa_only, ggplot2::aes(
   x        = x,
   next_x   = next_x,
   node     = node,
@@ -560,13 +560,15 @@ South_Africaian_Sankey_Plot <- ggplot2::ggplot(df_long_no_trial_South_Africa_onl
   ggplot2::labs(x = "Day") + 
   theme_sankey() +
   ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
-South_Africaian_Sankey_Plot
+South_African_Sankey_Plot
 
 # - - - - - - - - - - - - - - - - -
 # PLOT THE THREE SANKEY PLOTS AS A PANEL:
 
 library(patchwork)
-BothCountries_SankeyPlot + Cameroonian_Sankey_Plot + SouthAfrican_Sankey_Plot + plot_layout(ncol = 1)
+(BothCountries_SankeyPlot + Cameroonian_Sankey_Plot + South_African_Sankey_Plot) +
+  plot_layout(ncol = 1) +
+  plot_annotation(tag_levels = "a")
 
 # -----------------------------------------------------------------------------
 # MARKOV CHAIN MODEL (using the full 'my_data' dataset)
