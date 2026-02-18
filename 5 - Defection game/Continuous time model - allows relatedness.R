@@ -211,7 +211,7 @@ df_long_no_trial <- df_long_no_trial |>
         next_x = factor(as.character(next_x), levels = levels_vec))
 
 # Plot Sankey plot:
-          ggplot2::ggplot(df_long_no_trial, ggplot2::aes(
+          BothCountries_SankeyPlot <- ggplot2::ggplot(df_long_no_trial, ggplot2::aes(
               x        = x,
               next_x   = next_x,
               node     = node,
@@ -237,7 +237,337 @@ df_long_no_trial <- df_long_no_trial |>
               ggplot2::labs(x = "Day") + 
               theme_sankey() +
               ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
-                                                                                   
+           BothCountries_SankeyPlot                                                                        
+# -----------------------------------------------------------------------------
+# PLOTTING SANKEY PLOTS FOR EACH COUNTRY SEPARATELY:
+
+# - - - - - - - - - - 
+# CAMEROON:
+
+# Extract the Cameroonian data:
+my_data_Cameroon_only <- subset(my_data, Country == "Cameroon")
+
+# Set dates to more readable format:
+    my_data_Cameroon_only$Date_only_readable_format <- as.Date(as.numeric(my_data_Cameroon_only$Date_only),
+                             origin = "1899-12-30")
+
+# For each trial, retain the last observation for each day for the Sankey plot:
+    grouped_by_trial_and_date_Cameroon_only <- group_by(my_data_Cameroon_only,Trial,Date_only_readable_format)
+    last_obs_per_day_Cameroon_only <- slice_tail(grouped_by_trial_and_date_Cameroon_only,n=1)
+
+# Remove dates that are "NA":
+last_obs_per_day_Cameroon_only <- last_obs_per_day_Cameroon_only %>%
+  mutate(Date_only_readable_format = as.Date(Date_only_readable_format))
+last_obs_per_day_Cameroon_only <- last_obs_per_day_Cameroon_only %>%
+  filter(!is.na(Date_only_readable_format))
+
+# Focus on the transition columns:
+    last_obs_per_day_focused_columns_Cameroon_only <- as.data.frame(cbind(last_obs_per_day_Cameroon_only$Trial,
+    +       last_obs_per_day_Cameroon_only$Destination_State_1,
+    +       last_obs_per_day_Cameroon_only$Destination_State_2,
+    +       last_obs_per_day_Cameroon_only$Destination_State_3,
+    +       last_obs_per_day_Cameroon_only$Destination_State_4,
+    +       last_obs_per_day_Cameroon_only$Date_only_readable_format))
+    View(last_obs_per_day_focused_columns_Cameroon_only)
+
+# Restore the column names:
+colnames(last_obs_per_day_focused_columns_Cameroon_only) <- c("Trial","Destination_State1","Destination_State2","Destination_State3","Destination_State4","Date")
+
+# Record the destination state in a single column:
+library(dplyr)
+last_obs_per_day_focused_columns_Cameroon_only <- last_obs_per_day_focused_columns_Cameroon_only %>%
+  mutate(
+    State = case_when(
+      Destination_State1 == 1 ~ "1",
+      Destination_State2 == 1 ~ "2",
+      Destination_State3 == 1 ~ "3",
+      Destination_State4 == 1 ~ "4",
+      TRUE ~ ""
+    ))
+
+# Remove the transitions columns for clarity:
+last_obs_per_day_more_focused_columns_Cameroon_only <- as.data.frame(cbind(
+  last_obs_per_day_focused_columns_Cameroon_only$Trial,
+  last_obs_per_day_focused_columns_Cameroon_only$State,
+  last_obs_per_day_focused_columns_Cameroon_only$Date))
+# Restore the column names:
+colnames(last_obs_per_day_more_focused_columns_Cameroon_only) <- c("Trial","State","Date")
+View(last_obs_per_day_more_focused_columns_Cameroon_only)
+
+# Dates were turned into R's numerical format. Set them back to a more readable format:
+last_obs_per_day_more_focused_columns_Cameroon_only$Date <- as.Date(as.numeric(last_obs_per_day_more_focused_columns_Cameroon_only$Date), origin = "1970-01-01")
+
+df_filled_Cameroon_only <- last_obs_per_day_more_focused_columns_Cameroon_only %>%
+  group_by(Trial) %>%
+  tidyr::complete(Date = seq(min(Date), max(Date), by = "day")) %>%  # all missing days
+  tidyr::fill(State, .direction = "down") %>%  # LOCF
+  ungroup()
+
+# Add in the trial start date (from the Trial_info_table):
+      last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only <- 
+          df_filled_Cameroon_only %>%
+          left_join(
+              Trial_info_table %>% select(NestID, Installation_date_and_time),
+              by = c("Trial" = "NestID"))
+      View(last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only)
+
+# Extract dates from the date/time combo:
+    last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only$Installation_date <- as.Date(last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only$Installation_date_and_time, format="%d/%m/%Y")
+
+# To get the number of day since the start of the trial, subtract the installation date from the observation date:
+last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only$days_since_trial_start <- last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only$Date - last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only$Installation_date
+
+# For clarity, remove columns we no longer need:
+last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only <- as.data.frame(cbind(
+  last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only$Trial,
+  last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only$State,
+  last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only$days_since_trial_start))
+# Restore the column names:
+colnames(last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only) <- c("Trial","State","Days")
+
+# Convert to wide format for ggSankey:
+      df_wide_Cameroon_only <- last_obs_per_day_more_focused_columns_with_trial_start_date_Cameroon_only %>%
+          mutate(Date_chr = as.character(Days)) %>%     # column names must be character
+          select(Trial, Date_chr, State) %>%
+          tidyr::pivot_wider(
+              names_from  = Date_chr,
+              values_from = State)
+
+# Make sure the days are ordered the right way:
+        cn_Cameroon_only <- names(df_wide_Cameroon_only)
+        order_idx_Cameroon_only <- order(ifelse(cn_Cameroon_only == "NA", Inf, as.numeric(cn_Cameroon_only)))
+        df_wide_ordered_Cameroon_only <- df_wide_Cameroon_only[,order_idx_Cameroon_only]
+        View(df_wide_ordered_Cameroon_only)
+
+# Convert remaining NAs to "Not observed":
+df_wide_ordered_Cameroon_only[is.na(df_wide_ordered_Cameroon_only)] <- "Not observed"
+                     
+# Add a column at the start to represent the fact that all trials start in State 1 by definition:
+df_wide_ordered_Cameroon_only$Start <- 1                                     
+df_wide_ordered_Cameroon_only <- df_wide_ordered_Cameroon_only %>%
+    select(Start, everything())
+
+# The column "0" is the last observation on the installation day, but this is not informative 
+# for many trials (e.g., if the installation was in the late afternoon). We therefore exclude it from
+# the plot and begin with day 1 (i.e. 1 day after installation):
+df_wide_ordered_Cameroon_only$`0` <- NULL
+
+# List all the daily columns (excluding the column called "Trial"):
+day_cols_Cameroon_only <- setdiff(names(df_wide_ordered_Cameroon_only), "Trial")
+                                                     
+# Convert to 'long' format:
+        df_long_Cameroon_only <- make_long(df_wide_ordered_Cameroon_only, Trial, !!!syms(day_cols_Cameroon_only))
+
+# Remove the rows that feature "Trial" in, because we don't want to plot each individual
+# trial in the Sankey plot:
+          df_long_no_trial_Cameroon_only <- df_long_Cameroon_only |>
+            dplyr::filter(x != "Trial", next_x != "Trial")
+
+# Sankey plot:
+# Define the exact order on the x-axis:
+levels_vec <- c("Start", as.character(1:19))                                     
+df_long_no_trial_Cameroon_only <- df_long_no_trial_Cameroon_only |>
+    dplyr::mutate(
+        x      = factor(as.character(x),      levels = levels_vec),
+        next_x = factor(as.character(next_x), levels = levels_vec))
+
+# Plot Sankey plot:
+          Cameroonian_Sankey_Plot <- ggplot2::ggplot(df_long_no_trial_Cameroon_only, ggplot2::aes(
+              x        = x,
+              next_x   = next_x,
+              node     = node,
+              next_node = next_node,
+              fill     = node
+          )) +
+              geom_sankey(
+                  flow.alpha = 0.5, 
+                  node.color = "black",
+                  linewidth = 0   # set >0 if you want visible node borders
+              ) +
+              ggplot2::scale_fill_manual(
+                  values = c(
+                      "1" = "#1f77b4",  # blue
+                      "2" = "#ff7f0e",  # orange
+                      "3" = "#2ca02c",  # green
+                      "4" = "#d62728",  # red
+                      "Not observed" = "#ebebeb"   # grey
+                  ),
+                  drop = FALSE
+              ) +
+              ggplot2::scale_x_discrete(limits = levels_vec, drop = FALSE, labels = identity) +
+              ggplot2::labs(x = "Day") + 
+              theme_sankey() +
+              ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+Cameroonian_Sankey_Plot
+
+# - - - - - - - - - - - - - - - -
+# SOUTH AFRICA:
+
+# - - - - - - - - - - 
+# South_Africa:
+
+# Extract the South_Africaian data:
+my_data_South_Africa_only <- subset(my_data, Country == "South Africa")
+
+# Set dates to more readable format:
+my_data_South_Africa_only$Date_only_readable_format <- as.Date(as.numeric(my_data_South_Africa_only$Date_only),
+                                                           origin = "1899-12-30")
+
+# For each trial, retain the last observation for each day for the Sankey plot:
+grouped_by_trial_and_date_South_Africa_only <- group_by(my_data_South_Africa_only,Trial,Date_only_readable_format)
+last_obs_per_day_South_Africa_only <- slice_tail(grouped_by_trial_and_date_South_Africa_only,n=1)
+
+# Remove dates that are "NA":
+last_obs_per_day_South_Africa_only <- last_obs_per_day_South_Africa_only %>%
+  mutate(Date_only_readable_format = as.Date(Date_only_readable_format))
+last_obs_per_day_South_Africa_only <- last_obs_per_day_South_Africa_only %>%
+  filter(!is.na(Date_only_readable_format))
+
+# Focus on the transition columns:
+last_obs_per_day_focused_columns_South_Africa_only <- as.data.frame(cbind(last_obs_per_day_South_Africa_only$Trial,
+                                                                      +       last_obs_per_day_South_Africa_only$Destination_State_1,
+                                                                      +       last_obs_per_day_South_Africa_only$Destination_State_2,
+                                                                      +       last_obs_per_day_South_Africa_only$Destination_State_3,
+                                                                      +       last_obs_per_day_South_Africa_only$Destination_State_4,
+                                                                      +       last_obs_per_day_South_Africa_only$Date_only_readable_format))
+View(last_obs_per_day_focused_columns_South_Africa_only)
+
+# Restore the column names:
+colnames(last_obs_per_day_focused_columns_South_Africa_only) <- c("Trial","Destination_State1","Destination_State2","Destination_State3","Destination_State4","Date")
+
+# Record the destination state in a single column:
+library(dplyr)
+last_obs_per_day_focused_columns_South_Africa_only <- last_obs_per_day_focused_columns_South_Africa_only %>%
+  mutate(
+    State = case_when(
+      Destination_State1 == 1 ~ "1",
+      Destination_State2 == 1 ~ "2",
+      Destination_State3 == 1 ~ "3",
+      Destination_State4 == 1 ~ "4",
+      TRUE ~ ""
+    ))
+
+# Remove the transitions columns for clarity:
+last_obs_per_day_more_focused_columns_South_Africa_only <- as.data.frame(cbind(
+  last_obs_per_day_focused_columns_South_Africa_only$Trial,
+  last_obs_per_day_focused_columns_South_Africa_only$State,
+  last_obs_per_day_focused_columns_South_Africa_only$Date))
+# Restore the column names:
+colnames(last_obs_per_day_more_focused_columns_South_Africa_only) <- c("Trial","State","Date")
+View(last_obs_per_day_more_focused_columns_South_Africa_only)
+
+# Dates were turned into R's numerical format. Set them back to a more readable format:
+last_obs_per_day_more_focused_columns_South_Africa_only$Date <- as.Date(as.numeric(last_obs_per_day_more_focused_columns_South_Africa_only$Date), origin = "1970-01-01")
+
+df_filled_South_Africa_only <- last_obs_per_day_more_focused_columns_South_Africa_only %>%
+  group_by(Trial) %>%
+  tidyr::complete(Date = seq(min(Date), max(Date), by = "day")) %>%  # all missing days
+  tidyr::fill(State, .direction = "down") %>%  # LOCF
+  ungroup()
+
+# Add in the trial start date (from the Trial_info_table):
+last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only <- 
+  df_filled_South_Africa_only %>%
+  left_join(
+    Trial_info_table %>% select(NestID, Installation_date_and_time),
+    by = c("Trial" = "NestID"))
+View(last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only)
+
+# Extract dates from the date/time combo:
+last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only$Installation_date <- as.Date(last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only$Installation_date_and_time, format="%d/%m/%Y")
+
+# To get the number of day since the start of the trial, subtract the installation date from the observation date:
+last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only$days_since_trial_start <- last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only$Date - last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only$Installation_date
+
+# For clarity, remove columns we no longer need:
+last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only <- as.data.frame(cbind(
+  last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only$Trial,
+  last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only$State,
+  last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only$days_since_trial_start))
+# Restore the column names:
+colnames(last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only) <- c("Trial","State","Days")
+
+# Convert to wide format for ggSankey:
+df_wide_South_Africa_only <- last_obs_per_day_more_focused_columns_with_trial_start_date_South_Africa_only %>%
+  mutate(Date_chr = as.character(Days)) %>%     # column names must be character
+  select(Trial, Date_chr, State) %>%
+  tidyr::pivot_wider(
+    names_from  = Date_chr,
+    values_from = State)
+
+# Make sure the days are ordered the right way:
+cn_South_Africa_only <- names(df_wide_South_Africa_only)
+order_idx_South_Africa_only <- order(ifelse(cn_South_Africa_only == "NA", Inf, as.numeric(cn_South_Africa_only)))
+df_wide_ordered_South_Africa_only <- df_wide_South_Africa_only[,order_idx_South_Africa_only]
+View(df_wide_ordered_South_Africa_only)
+
+# Convert remaining NAs to "Not observed":
+df_wide_ordered_South_Africa_only[is.na(df_wide_ordered_South_Africa_only)] <- "Not observed"
+
+# Add a column at the start to represent the fact that all trials start in State 1 by definition:
+df_wide_ordered_South_Africa_only$Start <- 1                                     
+df_wide_ordered_South_Africa_only <- df_wide_ordered_South_Africa_only %>%
+  select(Start, everything())
+
+# The column "0" is the last observation on the installation day, but this is not informative 
+# for many trials (e.g., if the installation was in the late afternoon). We therefore exclude it from
+# the plot and begin with day 1 (i.e. 1 day after installation):
+df_wide_ordered_South_Africa_only$`0` <- NULL
+
+# List all the daily columns (excluding the column called "Trial"):
+day_cols_South_Africa_only <- setdiff(names(df_wide_ordered_South_Africa_only), "Trial")
+
+# Convert to 'long' format:
+df_long_South_Africa_only <- make_long(df_wide_ordered_South_Africa_only, Trial, !!!syms(day_cols_South_Africa_only))
+
+# Remove the rows that feature "Trial" in, because we don't want to plot each individual
+# trial in the Sankey plot:
+df_long_no_trial_South_Africa_only <- df_long_South_Africa_only |>
+  dplyr::filter(x != "Trial", next_x != "Trial")
+
+# Sankey plot:
+# Define the exact order on the x-axis:
+levels_vec <- c("Start", as.character(1:19))                                     
+df_long_no_trial_South_Africa_only <- df_long_no_trial_South_Africa_only |>
+  dplyr::mutate(
+    x      = factor(as.character(x),      levels = levels_vec),
+    next_x = factor(as.character(next_x), levels = levels_vec))
+
+# Plot Sankey plot:
+South_Africaian_Sankey_Plot <- ggplot2::ggplot(df_long_no_trial_South_Africa_only, ggplot2::aes(
+  x        = x,
+  next_x   = next_x,
+  node     = node,
+  next_node = next_node,
+  fill     = node
+)) +
+  geom_sankey(
+    flow.alpha = 0.5, 
+    node.color = "black",
+    linewidth = 0   # set >0 if you want visible node borders
+  ) +
+  ggplot2::scale_fill_manual(
+    values = c(
+      "1" = "#1f77b4",  # blue
+      "2" = "#ff7f0e",  # orange
+      "3" = "#2ca02c",  # green
+      "4" = "#d62728",  # red
+      "Not observed" = "#ebebeb"   # grey
+    ),
+    drop = FALSE
+  ) +
+  ggplot2::scale_x_discrete(limits = levels_vec, drop = FALSE, labels = identity) +
+  ggplot2::labs(x = "Day") + 
+  theme_sankey() +
+  ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 45, hjust = 1))
+South_Africaian_Sankey_Plot
+
+# - - - - - - - - - - - - - - - - -
+# PLOT THE THREE SANKEY PLOTS AS A PANEL:
+
+library(patchwork)
+BothCountries_SankeyPlot + Cameroonian_Sankey_Plot + SouthAfrican_Sankey_Plot + plot_layout(ncol = 1)
+
 # -----------------------------------------------------------------------------
 # MARKOV CHAIN MODEL (using the full 'my_data' dataset)
 
