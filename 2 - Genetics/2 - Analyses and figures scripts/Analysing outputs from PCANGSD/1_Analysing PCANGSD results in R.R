@@ -108,62 +108,6 @@ barplot(t(q)[,ord],col=2:10,space=0,border=NA,xlab="Individuals",ylab="Admixture
 text(tapply(1:nrow(PopulationLabels),PopulationLabels[ord,1],mean),-0.05,unique(PopulationLabels[ord,1]),xpd=T)
 abline(v=cumsum(sapply(unique(PopulationLabels[ord,1]),function(x){sum(PopulationLabels[ord,1]==x)})),col=1,lwd=1.2)
 
-
-
-## order according to population
-barplot(t(q),col=2:10,space=0,border=NA,xlab="Individuals",ylab="Admixture proportions")
-text(tapply(1:nrow(PopulationLabels),PopulationLabels[,1],mean),-0.1,sort(unique(PopulationLabels[,1])),xpd=T, cex = 0.5)
-abline(v=cumsum(sapply(unique(PopulationLabels[,1]),function(x){sum(PopulationLabels[,1]==x)})),col=1,lwd=1.2)
-
-
-
-
-
-
-
-q$V4 <- WaspNameList
-
-library(tidyverse)
-plot_data <- q %>% 
-  mutate(id = V4) %>% 
-  gather('pop', 'prob', V1:V3) %>% 
-  group_by(id) %>% 
-  mutate(likely_assignment = pop[which.max(prob)],
-         assingment_prob = max(prob)) %>% 
-  arrange(likely_assignment, desc(assingment_prob)) %>% 
-  ungroup() %>% 
-  mutate(id = forcats::fct_inorder(factor(id)))
-
-ggplot(plot_data, aes(id, prob, fill = pop)) +
-  geom_col() +
-  theme_classic()
-
-
-
-
-
-
-#open R
-pop<-read.table("pop.info")
-
-C <- as.matrix(read.table("input.cov"))
- e <- eigen(C)
-plot(e$vectors[,1:2],col=pop[,1],xlab="PC1",ylab="PC2")
-legend("top",fill=1:5,levels(pop[,1]))
-## close R
-
-
-
-
-
-
-
-
-
-
-
-
-
 # ------------------------------------------------------------------
 # (2) SELECTION SCAN (MANHATTAN PLOT), following http://www.popgen.dk/software/index.php/PCAngsdTutorial:
 
@@ -183,7 +127,7 @@ pval<-1-pchisq(s,1)
 # (This also takes quite a long time to run.)
 p<-read.table("output.selection.pcangsd.sites",colC=c("factor","integer"),sep="_")
 
-# To avoid errors, I think we need to convert this to a dataframe:
+# Convert this to a dataframe:
 p <- as.data.frame(p)
 
 # Rename the column headers:
@@ -191,9 +135,3 @@ names(p)<-c("chr","pos")
 
 ## make manhatten plot
 plot(-log10(pval),col=p$chr,xlab="Chromosomes",main="Manhattan plot")
-
-
-
-# Following https://github.com/pinskylab/codEvol/blob/master/scripts/angsd_pcangsd_plot_selection.R:
-
-library(data.table)
