@@ -16,25 +16,25 @@ module load seqtk
 
 # Here are the start and end positions for the relevant genes from the UCL reference mitogenome ('final_mitogenome.gb').
 cytb_START=16417
-cytb_END=17397
+cytb_END=17556
 
-ND5_START=19948
-ND5_END=21189
+ND5_START=19906
+ND5_END=21574
 
-COX2_START=2707
+COX2_START=2677
 COX2_END=3354
 
-ND4_START=18626
-ND4_END=19837
+ND4_START=18240
+ND4_END=18527
 
-ND2_START=5218
-ND2_END=6165
+ND2_START=5110
+ND2_END=6108
 
 ATP6_START=1656
-ATP6_END=2318
+ATP6_END=2330
 
-rrnL_START=13992
-rrnL_END=15196
+rrnL_START=14091
+rrnL_END=15245
 
 BASE_DIR="/user/work/pk14885/Samtools_Mito_results"
 header_name="atg000004l_rc_rotated"
