@@ -111,11 +111,8 @@ REF="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fas
 # Move the 'freq' file to the ANGSD_results folder:
     mv freq ANGSD_results
 
-# Note: The line above is supposed to extract the allele frequency (presumably the population allele frequency) column and put it in a file of its own. The version on the website has 'cut -f5', but when I did this the next step doesn't work. So I opened up the .mafs.gz file and it turns out our frequency info (with the header 'knownEM') is actually in column 6, not column 5. This seems to be because there is a column containing the reference genome allele (btw, how come there is only one allele, rather than two, for the reference? Anyway). So I have tweaked the command to 'cut -f6', and that seems to solve the problem: the next command now works.
-
 # We can now run ngsRelate:
     ngsRelate -g ANGSD_results/my_Angsd_file.glf.gz -n $file_count -f ANGSD_results/freq -O ANGSD_results/newres -z bam.filelist -m 1 -p 8
-# I've added '-m 1' in an attempt to get it to run faster (https://github.com/ANGSD/NgsRelate/blob/master/README.md).
 
  # The 'newres' file is the relatedness output, which you can open in Excel. You can download it from BluePebble by running this command on the laptop: scp pk14885@bp1-login.acrc.bris.ac.uk:/user/work/pk14885/Wasps/Completed_alignments/Cameroon/Mbouda/ANGSD_results/newres newres
  
