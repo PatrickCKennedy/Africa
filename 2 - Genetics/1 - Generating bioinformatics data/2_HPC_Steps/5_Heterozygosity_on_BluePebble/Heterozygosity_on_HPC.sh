@@ -71,8 +71,6 @@ REF="/user/work/pk14885/3_Patrick_Indexed_ref_using_BWA/B_junceaGenome.FINAL.fas
 # -------------------------------------------------------------
 # CALCULATE GENOME-WIDE HETEROZYGOSITY FOR THE CURRENT WASP:
 
-# Figure 6B in the leopard paper (https://www.cell.com/current-biology/pdfExtended/S0960-9822(21)00129-9) compares genome-wide heterozygosity across different leopard populations in Africa. Here, we will do the same. You can do this for both Cameroon and South Africa, and then plot them together in R. There is a good description of the method in the buffalo paper: https://bio-protocol.org/exchange/minidetail?type=30&id=9005705 (the script for the buffalo paper is here: https://github.com/DeondeJager/Buffalo_PopGenomics/blob/master/02-Data_analysis/12-Genome-wide_Heterozygosity_A_243_14.sh)
-
 # According to http://www.popgen.dk/angsd/index.php/Heterozygosity, the way to calculate heterozygosity in ANGSD is just to calculate the SFS with only a single sample: it is "simply the SFS estimation for single samples".
 
 # "Create saf.idx file in ANGSD" (https://github.com/DeondeJager/Buffalo_PopGenomics/blob/master/02-Data_analysis/12-Genome-wide_Heterozygosity_A_243_14.sh)
