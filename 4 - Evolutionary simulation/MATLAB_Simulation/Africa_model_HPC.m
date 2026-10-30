@@ -120,7 +120,7 @@ RedirectedHelpingOpportunity = 0.5; % set the probability that a failed lead fou
             all_males(19:24,:) = 0.1*randi(10,size(all_males(19:24,:,:))); 
 % Set up starting male mates' values for the first generation:
                 % For existing queens:
-                    Wasps(64:69,:,:) = 0.1*randi(10,size(Wasps(64:69,:,:)));                                          % HAVE TEMPORARILY ADDED +0.1 TO THESE VALUES SO CAN KEEP TRACK OF THEM MOVING THROUGH THE TABLES. BUT SET BACK TO THE STARTING TRAIT VALUES WHEN THE SCRIPT IS READY TO RUN.
+                    Wasps(64:69,:,:) = 0.1*randi(10,size(Wasps(64:69,:,:)));                                          
                     Wasps(70:75,:,:) = 0.1*randi(10,size(Wasps(70:75,:,:))); 
                     Wasps(76:81,:,:) = 0.1*randi(10,size(Wasps(76:81,:,:))); 
                     Wasps(82:87,:,:) = 0.1*randi(10,size(Wasps(82:87,:,:))); 
