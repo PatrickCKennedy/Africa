@@ -1129,8 +1129,6 @@ ggplot(Cameroon.ExperimentSubordinates,
 # defined as the average relatedness between all participating individuals in the trial
 # of interest. Caveat: not all participating individuals will have been sequenced.
 
-# MAKING A LOOP THROUGH ALL THE NESTS (HAVEN'T YET ADDED IN THE OVERARCHING LOOP OVER ALL THE NESTS - BUILDING IT HERE:)
-
 # Make sure the table is in dataframe format:
 temp_Experiment_wasps <- as.data.frame(temp_Experiment_wasps_table)
 
